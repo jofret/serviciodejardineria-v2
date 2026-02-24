@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: limpieza_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: limpieza_terrenos
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_PASSWORD: secret
+      MYSQL_USER: laravel
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - laravel
+
+  php:
+    build:
+      context: ./docker/php
+    container_name: limpieza_php
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./src:/var/www
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    depends_on:
+      - mysql
+    networks:
+      - laravel
+
+  nginx:
+    image: nginx:alpine
+    container_name: limpieza_nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www
+      - ./docker/nginx:/etc/nginx/conf.d
+    depends_on:
+      - php
+    networks:
+      - laravel
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: limpieza_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: laravel
+      PMA_PASSWORD: secret
+      UPLOAD_LIMIT: 100M
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+    networks:
+      - laravel
+
+networks:
+  laravel:
+    driver: bridge
+
+volumes:
+  mysql_data:

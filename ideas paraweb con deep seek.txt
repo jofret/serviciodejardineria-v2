@@ -1,0 +1,9 @@
+hola quiero hacer una web de mi empresa completamente optimizada que se puedan posicionar, en diferentes buscadores, 
+que se pueda compartir en redes sociales y  que    llegue a puesto 1 ranking en todos los buscadores organicamente
+se haria  con laravel 12 para realizar: 
+Posteos de los trabajos que realizamos 
+ademas tambien postear temas  relacionados con nuestros servicios que atraigan clientes  
+    
+sistema de comentarios, ademas que los comentarios muestren el trabajo que se le realiz{o al cliente/
+al realizar un comentario el cliente debe llenar sus datos mes y dia de cumpleaños mediante formulario de contactos
+tambien quiero tener un sistema que emvie 1 por whatsapp e email el saludo de cumpleaños cuando sea la fecha
