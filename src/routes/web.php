@@ -5,6 +5,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\ContactController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,19 +18,17 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 /*
 |--------------------------------------------------------------------------
-| Rutas semánticas para categorías y posts
+| Rutas semánticas (sin /categoria) - URLs limpias
 |--------------------------------------------------------------------------
-| Estructura: /categoria/desmalezado
-|           /categoria/desmalezado/terreno-en-pilar
+| Estructura: /desmalezado
+|           /desmalezado/terreno-en-pilar
 */
 
-Route::prefix('categoria')->name('category.')->group(function () {
-    // Listado de posts por categoría
-    Route::get('/{category:slug}', [CategoryController::class, 'show'])->name('show');
-    
-    // Post individual dentro de una categoría
-    Route::get('/{category:slug}/{post:slug}', [PostController::class, 'show'])->name('post');
-});
+// Listado de posts por categoría
+Route::get('/{category:slug}', [CategoryController::class, 'show'])->name('category.show');
+
+// Post individual dentro de una categoría
+Route::get('/{category:slug}/{post:slug}', [PostController::class, 'show'])->name('post.show');
 
 /*
 |--------------------------------------------------------------------------
@@ -54,11 +53,20 @@ Route::view('/presupuesto', 'pages.quote')->name('presupuesto');
 
 /*
 |--------------------------------------------------------------------------
-| Listado general de posts (opcional)
+| Listado general de posts
 |--------------------------------------------------------------------------
 */
 
 Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
+
+/*
+|--------------------------------------------------------------------------
+| Contacto (formulario y envío)
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/contacto', [ContactController::class, 'show'])->name('contacto');
+Route::post('/contacto/enviar', [ContactController::class, 'send'])->name('contacto.enviar');
 
 /*
 |--------------------------------------------------------------------------

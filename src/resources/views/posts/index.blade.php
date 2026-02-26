@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('meta_title', 'Todos los trabajos - Limpieza de Terrenos')
-@section('meta_description', 'Galería completa de trabajos de limpieza y desmalezado realizados en zona norte')
+@section('meta_description', 'Limpieza y Desmalezado de terrenos WhatsApp ✅ 11 7178 9529 | Galería completa de trabajos de limpieza y desmalezado realizados en zona norte. Antes y después reales. | Tags: desmalezado, limpieza, terrenos, maquinaria, zona norte, pilar, escobar, campos')
 
 @section('content')
     <section class="bg-green-700 text-white rounded-lg p-8 mb-8">
@@ -22,11 +22,7 @@
         </select>
 
         <form method="GET" class="flex-1">
-            <input type="text" 
-                   name="search" 
-                   placeholder="Buscar trabajos..." 
-                   value="{{ request('search') }}"
-                   class="border rounded-lg px-4 py-2 w-full">
+            <input type="text" name="search" placeholder="Buscar trabajos..." value="{{ request('search') }}" class="border rounded-lg px-4 py-2 w-full">
         </form>
     </div>
 
@@ -34,31 +30,68 @@
     @if($posts->count() > 0)
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         @foreach($posts as $post)
-        <a href="/categoria/{{ $post->category->slug }}/{{ $post->slug }}" 
-           class="bg-white rounded-lg shadow hover:shadow-xl transition overflow-hidden group">
-            <div class="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-400">
-                📸 Trabajo realizado
-            </div>
+        <a href="/{{ $post->category->slug }}/{{ $post->slug }}" class="bg-white rounded-lg shadow hover:shadow-xl transition overflow-hidden group">
+            @if($post->getFirstMediaUrl('featured', 'thumb'))
+            <img src="{{ $post->getFirstMediaUrl('featured', 'thumb') }}" alt="{{ $post->title }}" class="w-full h-48 object-cover group-hover:scale-105 transition">
+            @else
+            <div class="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-400">📸 Sin imagen</div>
+            @endif
             
             <div class="p-4">
                 <span class="text-sm text-green-600 font-semibold">{{ $post->category->name }}</span>
                 <h2 class="font-bold text-lg mt-1">{{ $post->title }}</h2>
-                @if($post->location)
-                <p class="text-gray-600 text-sm mt-1">📍 {{ $post->location }}</p>
-                @endif
+                @if($post->location)<p class="text-gray-600 text-sm mt-1">📍 {{ $post->location }}</p>@endif
                 <p class="text-gray-500 text-sm mt-2">{{ $post->formatted_date }}</p>
             </div>
         </a>
         @endforeach
     </div>
 
-    {{-- Paginación --}}
-    <div class="mt-8">
-        {{ $posts->links() }}
-    </div>
+    <div class="mt-8">{{ $posts->links() }}</div>
     @else
-    <div class="text-center py-12 bg-white rounded-lg">
-        <p class="text-gray-500">No hay trabajos publicados aún.</p>
-    </div>
+    <div class="text-center py-12 bg-white rounded-lg"><p class="text-gray-500">No hay trabajos publicados aún.</p></div>
     @endif
 @endsection
+
+@push('schema')
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Todos los trabajos de limpieza de terrenos",
+    "description": "Galería completa de trabajos de limpieza y desmalezado realizados en zona norte y Gran Buenos Aires",
+    "url": "{{ url()->current() }}",
+    "mainEntity": {
+        "@type": "ItemList",
+        "itemListElement": [
+            @foreach($posts as $index => $post)
+            {
+                "@type": "ListItem",
+                "position": {{ $index + 1 + (($posts->currentPage() - 1) * $posts->perPage()) }},
+                "url": "{{ url('/' . $post->category->slug . '/' . $post->slug) }}",
+                "name": "{{ $post->title }}"
+            }@if(!$loop->last),@endif
+            @endforeach
+        ]
+    }
+}
+</script>
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [{
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Inicio",
+        "item": "{{ url('/') }}"
+    },{
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Todos los trabajos",
+        "item": "{{ url()->current() }}"
+    }]
+}
+</script>
+@endpush
