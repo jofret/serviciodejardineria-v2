@@ -214,7 +214,7 @@
     </section>
 
     {{-- FORMULARIO DE CONTACTO CON PARALLAX --}}
-    <div class="relative w-full py-16 my-8" 
+    <div id="contacto-formulario" class="relative w-full py-16 my-8" 
          style="background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1589923188900-85dae523342b?w=1200') fixed center/cover;">
         
         <div class="container mx-auto px-4">
@@ -229,36 +229,75 @@
                         </div>
                         @endif
 
-                        <form action="{{ route('contacto.enviar') }}" method="POST">
+                        <form id="contact-form" action="{{ route('contacto.enviar') }}" method="POST">
                             @csrf
                             
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="mb-2">
-                                    <label class="block text-gray-700 font-medium mb-1">Nombre</label>
+                            {{-- Zona y localidad --}}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                {{-- Zona principal --}}
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-1">Zona *</label>
+                                    <select id="zona_principal" name="zona_principal" 
+                                            class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 @error('zona_principal') border-red-500 @enderror"
+                                            required>
+                                        <option value="">Seleccione zona...</option>
+                                        <option value="CABA">CABA</option>
+                                        <option value="Zona Norte">Zona Norte</option>
+                                        <option value="Zona Oeste">Zona Oeste</option>
+                                        <option value="Otra">Otra zona (especificar)</option>
+                                    </select>
+                                    @error('zona_principal')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
+                                </div>
+
+                                {{-- Partido / Localidad --}}
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-1">Localidad / Partido *</label>
+                                    <select id="partido" name="partido" 
+                                            class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 @error('partido') border-red-500 @enderror"
+                                            required>
+                                        <option value="">Primero seleccione zona</option>
+                                    </select>
+                                    @error('partido')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
+                                </div>
+                            </div>
+
+                            {{-- Campo para "Otra zona" (oculto por defecto) --}}
+                            <div id="otra_zona_container" class="mb-4 hidden">
+                                <label class="block text-gray-700 font-medium mb-1">Especificar otra zona/localidad *</label>
+                                <input type="text" id="otra_zona" name="otra_zona"
+                                       class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 @error('otra_zona') border-red-500 @enderror"
+                                       placeholder="Ej: La Plata, Berisso, Mar del Plata, etc.">
+                                @error('otra_zona')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
+                            </div>
+
+                            {{-- Datos personales --}}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-1">Nombre *</label>
                                     <input type="text" name="name" value="{{ old('name') }}"
                                            class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 @error('name') border-red-500 @enderror"
                                            placeholder="Tu nombre" required>
                                     @error('name')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
                                 </div>
 
-                                <div class="mb-2">
-                                    <label class="block text-gray-700 font-medium mb-1">Email</label>
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-1">Email *</label>
                                     <input type="email" name="email" value="{{ old('email') }}"
                                            class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 @error('email') border-red-500 @enderror"
                                            placeholder="tu@email.com" required>
                                     @error('email')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
                                 </div>
 
-                                <div class="mb-2">
-                                    <label class="block text-gray-700 font-medium mb-1">Teléfono</label>
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-1">Teléfono *</label>
                                     <input type="tel" name="phone" value="{{ old('phone') }}"
                                            class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 @error('phone') border-red-500 @enderror"
                                            placeholder="11 7178-9529" required>
                                     @error('phone')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
                                 </div>
 
-                                <div class="mb-2">
-                                    <label class="block text-gray-700 font-medium mb-1">Servicio</label>
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-1">Servicio *</label>
                                     <select name="service" class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500" required>
                                         <option value="">Seleccione...</option>
                                         <option value="desmalezado">Desmalezado</option>
@@ -270,14 +309,16 @@
                                 </div>
                             </div>
 
-                            <div class="mb-4 mt-2">
-                                <label class="block text-gray-700 font-medium mb-1">Mensaje</label>
+                            {{-- Mensaje --}}
+                            <div class="mb-4">
+                                <label class="block text-gray-700 font-medium mb-1">Mensaje *</label>
                                 <textarea name="message" rows="4"
                                           class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 @error('message') border-red-500 @enderror"
                                           placeholder="Escribí tu consulta..." required>{{ old('message') }}</textarea>
                                 @error('message')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
                             </div>
 
+                            {{-- Botón --}}
                             <div class="text-center mt-6">
                                 <button type="submit" class="bg-green-700 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-green-800 transition transform hover:scale-105 shadow-lg inline-flex items-center">
                                     Enviar Ahora <i class="fas fa-paper-plane ml-2"></i>
@@ -289,6 +330,93 @@
             </div>
         </div>
     </div>
+
+
+    {{-- Script para manejar zonas y scroll --}}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const zonaPrincipal = document.getElementById('zona_principal');
+        const partido = document.getElementById('partido');
+        const otraZonaContainer = document.getElementById('otra_zona_container');
+        const otraZona = document.getElementById('otra_zona');
+        const form = document.getElementById('contact-form');
+
+        // Definir las localidades por zona
+        const localidades = {
+            'CABA': ['Palermo', 'Belgrano', 'Recoleta', 'Puerto Madero', 
+                     'Caballito', 'Almagro', 'Villa Crespo', 'Colegiales',
+                     'Nuñez', 'Saavedra', 'Villa Urquiza', 'Villa Devoto'],
+            'Zona Norte': ['Pilar', 'Escobar', 'Tigre', 'San Isidro', 'Vicente López',
+                           'San Fernando', 'San Martín', 'Malvinas Argentinas', 'José C. Paz'],
+            'Zona Oeste': ['Moreno', 'Merlo', 'Morón', 'Ituzaingó', 'Hurlingham',
+                           'La Matanza', 'Tres de Febrero', 'San Miguel']
+        };
+
+        zonaPrincipal.addEventListener('change', function() {
+            const selected = this.value;
+            
+            partido.innerHTML = '<option value="">Seleccione localidad...</option>';
+            partido.disabled = false;
+            partido.required = true;
+            otraZonaContainer.classList.add('hidden');
+            otraZona.required = false;
+
+            if (selected === 'Otra') {
+                partido.disabled = true;
+                partido.required = false;
+                otraZonaContainer.classList.remove('hidden');
+                otraZona.required = true;
+            } else if (selected && localidades[selected]) {
+                localidades[selected].forEach(function(l) {
+                    const option = document.createElement('option');
+                    option.value = l;
+                    option.textContent = l;
+                    partido.appendChild(option);
+                });
+            }
+        });
+
+        // Ajustar required antes de enviar
+        if (form) {
+            form.addEventListener('submit', function() {
+                if (zonaPrincipal.value === 'Otra') {
+                    partido.required = false;
+                    otraZona.required = true;
+                } else {
+                    partido.required = true;
+                    otraZona.required = false;
+                }
+            });
+        }
+
+        // Si hay un error de validación, restaurar el estado
+        @if(old('zona_principal'))
+            setTimeout(() => {
+                zonaPrincipal.value = "{{ old('zona_principal') }}";
+                zonaPrincipal.dispatchEvent(new Event('change'));
+                
+                @if(old('partido'))
+                    setTimeout(() => {
+                        partido.value = "{{ old('partido') }}";
+                    }, 100);
+                @endif
+            }, 100);
+        @endif
+
+        // SCROLL AL FORMULARIO SI HAY MENSAJES
+        @if(session('success') || $errors->any())
+            setTimeout(function() {
+                const formulario = document.getElementById('contacto-formulario');
+                if (formulario) {
+                    formulario.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                }
+            }, 100);
+        @endif
+    });
+    </script>
 
     {{-- Tags populares --}}
     @if($popularTags->count() > 0)
