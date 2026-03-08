@@ -123,4 +123,19 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Configuration - Admin Emails
+    |--------------------------------------------------------------------------
+    |
+    | Email addresses for admin notifications.
+    |
+    */
+
+    'admin_emails' => [
+        env('ADMIN_EMAIL_1'),
+        env('ADMIN_EMAIL_2'),
+        env('ADMIN_EMAIL_3'),
+    ],
+
 ];

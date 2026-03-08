@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\NuevoContactoMailable;
 
 class ContactController extends Controller
 {
@@ -68,6 +70,17 @@ class ContactController extends Controller
         $customer->metadata = json_encode($metadata);
 
         $customer->save();
+
+        // Enviar emails a los destinatarios usando Mailable
+        $emails = [
+            'jofret_@hotmail.com',
+            'jofretjofret@gmail.com',
+            'info@serviciodejardineria.com.ar',
+        ];
+
+        foreach ($emails as $email) {
+            Mail::to($email)->send(new NuevoContactoMailable($customer));
+        }
 
         $mensaje = $customer->wasRecentlyCreated 
             ? '¡Gracias por contactarnos! Te responderemos a la brevedad.'
