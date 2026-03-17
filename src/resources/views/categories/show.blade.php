@@ -43,44 +43,56 @@
     @endif
 @endsection
 
+
+@php
+    // Datos estructurados para CollectionPage (lista de posts)
+    $collectionSchema = [
+        "@context" => "https://schema.org",
+        "@type" => "CollectionPage",
+        "name" => $category->name,
+        "description" => $category->description ?? 'Trabajos de ' . $category->name,
+        "url" => url()->current(),
+        "mainEntity" => [
+            "@type" => "ItemList",
+            "itemListElement" => []
+        ]
+    ];
+
+    // Agregar cada post como elemento de la lista
+    foreach ($posts as $index => $post) {
+        $collectionSchema["mainEntity"]["itemListElement"][] = [
+            "@type" => "ListItem",
+            "position" => $index + 1,
+            "url" => url('/' . $category->slug . '/' . $post->slug)
+        ];
+    }
+
+    // Datos estructurados para BreadcrumbList
+    $breadcrumbSchema = [
+        "@context" => "https://schema.org",
+        "@type" => "BreadcrumbList",
+        "itemListElement" => [
+            [
+                "@type" => "ListItem",
+                "position" => 1,
+                "name" => "Inicio",
+                "item" => url('/')
+            ],
+            [
+                "@type" => "ListItem",
+                "position" => 2,
+                "name" => $category->name,
+                "item" => url()->current()
+            ]
+        ]
+    ];
+@endphp
+
 @push('schema')
 <script type="application/ld+json">
-{
-    "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    "name": "{{ $category->name }}",
-    "description": "{{ $category->description ?? 'Trabajos de ' . $category->name }}",
-    "url": "{{ url()->current() }}",
-    "mainEntity": {
-        "@type": "ItemList",
-        "itemListElement": [
-            @foreach($posts as $index => $post)
-            {
-                "@type": "ListItem",
-                "position": {{ $index + 1 }},
-                "url": "{{ url('/' . $category->slug . '/' . $post->slug) }}"
-            }@if(!$loop->last),@endif
-            @endforeach
-        ]
-    }
-}
+{!! json_encode($collectionSchema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) !!}
 </script>
-
 <script type="application/ld+json">
-{
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [{
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Inicio",
-        "item": "{{ url('/') }}"
-    },{
-        "@type": "ListItem",
-        "position": 2,
-        "name": "{{ $category->name }}",
-        "item": "{{ url()->current() }}"
-    }]
-}
+{!! json_encode($breadcrumbSchema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) !!}
 </script>
 @endpush

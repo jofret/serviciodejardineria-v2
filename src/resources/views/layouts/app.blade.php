@@ -114,8 +114,8 @@
                 <a href="/" class="flex items-center space-x-2">
                     <span class="text-3xl">🌿</span>
                     <div>
-                        <span class="text-xl font-bold text-green-800">Limpieza de Terrenos</span>
-                        <span class="block text-xs text-gray-600">Profesionales en desmalezado</span>
+                        <span class="text-xl font-bold text-green-800">ALTOPARQUE</span>
+                        <span class="block text-xs text-gray-600">Servicio de Limpieza y Desmalezado de Terrenos</span>
                     </div>
                 </a>
 
@@ -125,10 +125,12 @@
                     <a href="#servicios" class="text-gray-700 hover:text-green-700 font-medium transition">Servicios</a>
                     <a href="#trabajos" class="text-gray-700 hover:text-green-700 font-medium transition">Trabajos</a>
                     <a href="#contacto-formulario" class="text-gray-700 hover:text-green-700 font-medium transition">Contacto</a>
-                    <a href="tel:+541171789529" class="flex items-center text-green-700 font-bold">
-                        <i class="fas fa-phone-alt mr-2"></i> 11 7178-9529
+                    <a href="https://wa.me/5491171789529?text=Hola%21%20Necesito%20informaci%C3%B3n%20sobre%20los%20servicios%20de%20limpieza%20de%20terrenos"
+                       target="_blank"
+                       class="flex items-center text-green-700 font-bold hover:text-green-800 transition">
+                        <i class="fab fa-whatsapp mr-2"></i> 11 7178-9529
                     </a>
-                    <a href="/presupuesto" class="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800">
+                    <a href="#contacto-formulario" class="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition">
                         Presupuesto
                     </a>
                 </div>
@@ -148,7 +150,7 @@
                 <a href="tel:+541171789529" class="block py-2 px-4 text-green-700 font-bold">
                     <i class="fas fa-phone-alt mr-2"></i> 11 7178-9529
                 </a>
-                <a href="/presupuesto" class="block py-2 px-4 bg-green-700 text-white rounded">Presupuesto</a>
+                <a href="#contacto-formulario" class="block py-2 px-4 bg-green-700 text-white rounded">Presupuesto</a>
             </div>
         </nav>
     </header>
@@ -174,9 +176,9 @@
                 <div>
                     <h3 class="text-xl font-bold mb-4 flex items-center">
                         <span class="text-2xl mr-2">🌿</span>
-                        Limpieza de Terrenos
+                        ALTOPARQUE
                     </h3>
-                    <p class="text-gray-400">Profesionales en limpieza, desmalezado y mantenimiento de terrenos en zona norte y Gran Buenos Aires.</p>
+                    <p class="text-gray-400">Servicio profesional de limpieza y desmalezado de terrenos en CABA - Gran Buenos Aires - Zona Norte.</p>
                 </div>
 
                 {{-- Columna 2: Enlaces rápidos (anclas) --}}

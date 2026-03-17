@@ -30,7 +30,7 @@
                 </p>
 
                 <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <a href="/presupuesto" 
+                    <a href="#contacto-formulario" 
                        class="group bg-yellow-500 text-gray-900 px-8 py-4 rounded-lg text-lg font-bold hover:bg-yellow-400 transition-all transform hover:scale-105 shadow-xl">
                         <i class="fas fa-calculator group-hover:rotate-12 transition"></i>
                         Solicitar presupuesto
@@ -442,7 +442,7 @@
             <h2 class="text-3xl font-bold mb-4">¿Necesitas limpiar un terreno?</h2>
             <p class="text-xl mb-8 text-green-200">Respondemos en menos de 24 horas</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="/contacto" class="bg-white text-green-800 px-8 py-4 rounded-lg text-lg font-bold hover:bg-gray-100 transition">
+                <a href="#contacto-formulario" class="bg-white text-green-800 px-8 py-4 rounded-lg text-lg font-bold hover:bg-gray-100 transition">
                     <i class="fas fa-envelope mr-2"></i> Enviar consulta
                 </a>
                 <a href="https://wa.me/5491171789529" target="_blank" class="bg-green-600 text-white px-8 py-4 rounded-lg text-lg font-bold hover:bg-green-700 transition border-2 border-white">
@@ -451,4 +451,48 @@
             </div>
         </div>
     </section>
+
+    
+    {{-- SCHEMAS --}}
+    @php
+        $localBusiness = [
+            "@context" => "https://schema.org",
+            "@type" => "LocalBusiness",
+            "name" => "Limpieza de Terrenos",
+            "image" => asset('images/logo.jpg'),
+            "telephone" => "+54 11 7178-9529",
+            "email" => "info@serviciodejardineria.com.ar",
+            "address" => [
+                "@type" => "PostalAddress",
+                "addressLocality" => "Buenos Aires",
+                "addressRegion" => "Buenos Aires",
+                "addressCountry" => "AR"
+            ],
+            "openingHours" => "Mo-Sa 08:00-18:00",
+            "priceRange" => "$$",
+            "areaServed" => ["CABA", "Zona Norte", "Gran Buenos Aires"]
+        ];
+
+        $webSite = [
+            "@context" => "https://schema.org",
+            "@type" => "WebSite",
+            "name" => "Limpieza de Terrenos",
+            "url" => url('/'),
+            "potentialAction" => [
+                "@type" => "SearchAction",
+                "target" => url('/posts?search={search_term_string}'),
+                "query-input" => "required name=search_term_string"
+            ]
+        ];
+    @endphp
+
+    @push('schema')
+    <script type="application/ld+json">
+    {!! json_encode($localBusiness, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) !!}
+    </script>
+    <script type="application/ld+json">
+    {!! json_encode($webSite, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) !!}
+    </script>
+    @endpush
 @endsection
+

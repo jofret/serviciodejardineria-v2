@@ -27,3 +27,65 @@
         @endif
     </article>
 @endsection
+@php
+    $blogPosting = [
+        "@context" => "https://schema.org",
+        "@type" => "BlogPosting",
+        "headline" => $post->title,
+        "description" => $post->excerpt ?? strip_tags(Str::limit($post->content, 150)),
+        "image" => $post->getFirstMediaUrl('featured') ?? asset('images/default-post.jpg'),
+        "datePublished" => $post->published_at->toIso8601String(),
+        "dateModified" => $post->updated_at->toIso8601String(),
+        "author" => [
+            "@type" => "Organization",
+            "name" => "Limpieza de Terrenos",
+            "url" => url('/')
+        ],
+        "publisher" => [
+            "@type" => "Organization",
+            "name" => "Limpieza de Terrenos",
+            "logo" => [
+                "@type" => "ImageObject",
+                "url" => asset('images/logo.jpg')
+            ]
+        ],
+        "mainEntityOfPage" => [
+            "@type" => "WebPage",
+            "@id" => url()->current()
+        ]
+    ];
+
+    $breadcrumbPost = [
+        "@context" => "https://schema.org",
+        "@type" => "BreadcrumbList",
+        "itemListElement" => [
+            [
+                "@type" => "ListItem",
+                "position" => 1,
+                "name" => "Inicio",
+                "item" => url('/')
+            ],
+            [
+                "@type" => "ListItem",
+                "position" => 2,
+                "name" => $post->category->name,
+                "item" => url('/' . $post->category->slug)
+            ],
+            [
+                "@type" => "ListItem",
+                "position" => 3,
+                "name" => $post->title,
+                "item" => url()->current()
+            ]
+        ]
+    ];
+@endphp
+
+@push('schema')
+<script type="application/ld+json">
+{!! json_encode($blogPosting, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) !!}
+</script>
+<script type="application/ld+json">
+{!! json_encode($breadcrumbPost, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) !!}
+</script>
+@endpush

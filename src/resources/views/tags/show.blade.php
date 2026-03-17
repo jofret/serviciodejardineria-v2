@@ -35,33 +35,41 @@
     @endif
 @endsection
 
+@php
+    $tagSchema = [
+        "@context" => "https://schema.org",
+        "@type" => "CollectionPage",
+        "name" => "Posts etiquetados con #" . $tag->name,
+        "description" => "Trabajos de limpieza etiquetados con " . $tag->name . " en zona norte",
+        "url" => url()->current(),
+        "keywords" => $tag->name
+    ];
+
+    $breadcrumbTag = [
+        "@context" => "https://schema.org",
+        "@type" => "BreadcrumbList",
+        "itemListElement" => [
+            [
+                "@type" => "ListItem",
+                "position" => 1,
+                "name" => "Inicio",
+                "item" => url('/')
+            ],
+            [
+                "@type" => "ListItem",
+                "position" => 2,
+                "name" => $tag->name,
+                "item" => url()->current()
+            ]
+        ]
+    ];
+@endphp
+
 @push('schema')
 <script type="application/ld+json">
-{
-    "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    "name": "Posts etiquetados con #{{ $tag->name }}",
-    "description": "Trabajos de limpieza etiquetados con {{ $tag->name }} en zona norte",
-    "url": "{{ url()->current() }}",
-    "keywords": "{{ $tag->name }}"
-}
+{!! json_encode($tagSchema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) !!}
 </script>
-
 <script type="application/ld+json">
-{
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [{
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Inicio",
-        "item": "{{ url('/') }}"
-    },{
-        "@type": "ListItem",
-        "position": 2,
-        "name": "{{ $tag->name }}",
-        "item": "{{ url()->current() }}"
-    }]
-}
+{!! json_encode($breadcrumbTag, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) !!}
 </script>
 @endpush

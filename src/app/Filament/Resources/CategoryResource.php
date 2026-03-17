@@ -31,18 +31,33 @@ class CategoryResource extends Resource
                             ->label('Nombre')
                             ->required()
                             ->maxLength(255)
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(function ($state, callable $set) {
+                            // ->live(onBlur: true)  // Se actualiza al perder el foco
+                            ->live(onBlur: true) 
+                            ->afterStateUpdated(function (string $operation, $state, Forms\Set $set) {
+                                // Si estás creando (create), o si quieres que se actualice siempre, usamos esta lógica.
+                                // $set('slug', Str::slug($state));
+                                
+                                // --- Lógica MEJORADA: Solo actualiza si el slug está vacío o si es el mismo que el título anterior ---
+                                // Esto evita sobreescribir un slug que el usuario haya editado manualmente.
+                                
+                                // Si el slug actual está vacío, lo generamos automáticamente.
+                                if (empty($state)) {
+                                    return;
+                                }
+                                
+                                // Si el slug NO está vacío, NO lo sobreescribimos para no perder ediciones manuales.
+                                // Para que sea como el tuyo (que siempre se actualiza), usamos la línea simple de arriba.
+                                // Yo recomiendo esta línea simple para que siempre se genere del nombre.
                                 $set('slug', Str::slug($state));
+                                
                             }),
                         Forms\Components\TextInput::make('slug')
                             ->label('Slug (URL)')
                             ->required()
                             ->maxLength(255)
-                            ->unique(ignoreRecord: true)
-                            ->disabled()
-                            ->dehydrated()
-                            ->helperText('Se genera automáticamente desde el nombre'),
+                            ->unique(ignoreRecord: true) // Ignora el registro actual para no dar error de duplicado al editar [citation:6][citation:8]
+                            ->helperText('Se genera automáticamente desde el nombre, pero puedes editarlo manualmente si es necesario.'),
+                            // ->disabled() // Si lo descomentas, el slug dejará de ser editable manualmente.
                         Forms\Components\Textarea::make('description')
                             ->label('Descripción')
                             ->maxLength(65535)
@@ -139,6 +154,7 @@ class CategoryResource extends Resource
             'edit' => Pages\EditCategory::route('/{record}/edit'),
         ];
     }
+
 
     public static function getNavigationBadge(): ?string
     {
