@@ -97,6 +97,7 @@ class PostResource extends Resource
                         Forms\Components\FileUpload::make('featured_image')
                             ->label('Imagen destacada')
                             ->image()
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/jfif', 'image/bmp', 'image/gif'])
                             ->directory('posts/featured')
                             ->visibility('public')
                             ->imageEditor()
@@ -104,7 +105,8 @@ class PostResource extends Resource
                                 '16:9',
                                 '4:3',
                                 '1:1',
-                            ]),
+                            ])
+                            ->helperText('Formatos aceptados: JPG, PNG, WEBP, JFIF, BMP, GIF'),
                         Forms\Components\Toggle::make('has_before_after')
                             ->label('Tiene imágenes antes/después')
                             ->default(false),
@@ -112,12 +114,14 @@ class PostResource extends Resource
                             ->label('Galería de imágenes')
                             ->multiple()
                             ->image()
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/jfif', 'image/bmp', 'image/gif'])
                             ->directory('posts/gallery')
                             ->visibility('public')
                             ->imageEditor()
                             ->reorderable()
                             ->openable()
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->helperText('Formatos aceptados: JPG, PNG, WEBP, JFIF, BMP, GIF. Puede seleccionar múltiples imágenes.'),
                     ]),
 
                 Forms\Components\Section::make('Etiquetas')

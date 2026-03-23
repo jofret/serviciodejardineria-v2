@@ -18,10 +18,12 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         @foreach($posts as $post)
         <a href="/{{ $category->slug }}/{{ $post->slug }}" class="bg-white rounded-lg shadow hover:shadow-xl transition overflow-hidden group">
-            @if($post->getFirstMediaUrl('featured', 'thumb'))
-            <img src="{{ $post->getFirstMediaUrl('featured', 'thumb') }}" alt="{{ $post->title }}" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300">
+            @if($post->featured_image)
+                <img src="{{ Storage::url($post->featured_image) }}" alt="{{ $post->title }}" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300">
+            @elseif($post->gallery_images && count($post->gallery_images) > 0)
+                <img src="{{ Storage::url($post->gallery_images[0]) }}" alt="{{ $post->title }}" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300">
             @else
-            <div class="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-400">📸 Sin imagen</div>
+                <div class="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-400">📸 Sin imagen</div>
             @endif
             
             <div class="p-4">

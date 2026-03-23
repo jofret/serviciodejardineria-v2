@@ -78,14 +78,25 @@
                 @foreach($featuredPosts as $post)
                 <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover border border-gray-100">
                     <a href="/{{ $post->category->slug }}/{{ $post->slug }}">
-                        @if($post->getFirstMediaUrl('featured', 'thumb'))
-                        <img src="{{ $post->getFirstMediaUrl('featured', 'thumb') }}" 
-                             alt="{{ $post->title }}"
-                             class="w-full h-56 object-cover hover:opacity-90 transition">
+                        @php
+                            // Obtener la URL de la imagen destacada
+                            $imageUrl = null;
+                            if ($post->featured_image) {
+                                $imageUrl = Storage::url($post->featured_image);
+                            } elseif ($post->gallery_images && count($post->gallery_images) > 0) {
+                                $imageUrl = Storage::url($post->gallery_images[0]);
+                            }
+                        @endphp
+                        @if($imageUrl)
+                            <div class="w-full h-56 overflow-hidden">
+                                <img src="{{ $imageUrl }}" 
+                                     alt="{{ $post->title }}"
+                                     class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
+                            </div>
                         @else
-                        <div class="w-full h-56 bg-gray-200 flex items-center justify-center text-gray-400">
-                            <i class="fas fa-image text-4xl"></i>
-                        </div>
+                            <div class="w-full h-56 bg-gray-200 flex items-center justify-center text-gray-400">
+                                <i class="fas fa-image text-4xl"></i>
+                            </div>
                         @endif
                     </a>
                     <div class="p-6">
