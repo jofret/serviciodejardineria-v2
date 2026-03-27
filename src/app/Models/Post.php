@@ -80,44 +80,41 @@ class Post extends Model implements HasMedia
     {
         // Imagen destacada (una sola)
         $this->addMediaCollection('featured')
-            ->singleFile()
-            ->registerMediaConversions(function (Media $media) {
-                $this->addMediaConversion('thumb')
-                    ->width(368)
-                    ->height(232)
-                    ->sharpen(10);
-                    
-                $this->addMediaConversion('og-image')
-                    ->width(1200)
-                    ->height(630)
-                    ->sharpen(5);
-            });
-        
+            ->singleFile();
+
         // Galería de imágenes (múltiples, para antes/después)
-        $this->addMediaCollection('gallery')
-            ->registerMediaConversions(function (Media $media) {
-                $this->addMediaConversion('thumb')
-                    ->width(300)
-                    ->height(200);
-            });
+        $this->addMediaCollection('gallery');
 
         // Imágenes de "antes" (opcional)
         $this->addMediaCollection('before')
-            ->singleFile()
-            ->registerMediaConversions(function (Media $media) {
-                $this->addMediaConversion('thumb')
-                    ->width(300)
-                    ->height(200);
-            });
+            ->singleFile();
 
         // Imágenes de "después" (opcional)
         $this->addMediaCollection('after')
-            ->singleFile()
-            ->registerMediaConversions(function (Media $media) {
-                $this->addMediaConversion('thumb')
-                    ->width(300)
-                    ->height(200);
-            });
+            ->singleFile();
+    }
+
+    /**
+     * Conversiones globales para todas las imágenes del modelo
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        // Thumbnail para listados
+        $this->addMediaConversion('thumb')
+            ->width(368)
+            ->height(232)
+            ->sharpen(10);
+
+        // Open Graph (para compartir en redes)
+        $this->addMediaConversion('og-image')
+            ->width(1200)
+            ->height(630)
+            ->sharpen(5);
+
+        // WebP (optimización)
+        $this->addMediaConversion('webp')
+            ->format('webp')
+            ->quality(80);
     }
 
     /**
@@ -177,11 +174,11 @@ class Post extends Model implements HasMedia
         if ($value) {
             return $value;
         }
-        
+
         if ($this->excerpt) {
             return $this->excerpt;
         }
-        
+
         return "Trabajo de limpieza en {$this->location}. Ver fotos antes/después y solicitar presupuesto.";
     }
 
@@ -190,17 +187,23 @@ class Post extends Model implements HasMedia
      */
     public function getHasBeforeAfterMediaAttribute(): bool
     {
-        return $this->getMedia('before')->isNotEmpty() && 
+        return $this->getMedia('before')->isNotEmpty() &&
                $this->getMedia('after')->isNotEmpty();
     }
 
     /**
-     * Obtener URL de la imagen destacada
+     * Obtener URL de la imagen destacada (versión optimizada)
      */
     public function getFeaturedImageUrlAttribute()
     {
         $media = $this->getFirstMedia('featured');
-        return $media ? $media->getUrl() : asset('images/default-post.jpg');
+        if ($media) {
+            // Priorizar WebP si existe
+            return $media->hasGeneratedConversion('webp')
+                ? $media->getUrl('webp')
+                : $media->getUrl();
+        }
+        return asset('images/default-post.jpg');
     }
 
     /**
@@ -209,7 +212,10 @@ class Post extends Model implements HasMedia
     public function getFeaturedThumbUrlAttribute()
     {
         $media = $this->getFirstMedia('featured');
-        return $media ? $media->getUrl('thumb') : asset('images/default-thumb.jpg');
+        if ($media && $media->hasGeneratedConversion('thumb')) {
+            return $media->getUrl('thumb');
+        }
+        return asset('images/default-thumb.jpg');
     }
 
     /**

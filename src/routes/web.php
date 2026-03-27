@@ -53,6 +53,16 @@ Route::post('/encuesta/{token}', [App\Http\Controllers\SurveyController::class, 
 
 /*
 |--------------------------------------------------------------------------
+| sitemap
+|--------------------------------------------------------------------------
+*/
+
+
+// Sitemap
+Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index']);
+
+/*
+|--------------------------------------------------------------------------
 | Rutas semánticas (sin /categoria) - URLs limpias
 |--------------------------------------------------------------------------
 | Estructura: /desmalezado
@@ -60,6 +70,8 @@ Route::post('/encuesta/{token}', [App\Http\Controllers\SurveyController::class, 
 */
 Route::get('/{category:slug}', [CategoryController::class, 'show'])->name('category.show');
 Route::get('/{category:slug}/{post:slug}', [PostController::class, 'show'])->name('post.show');
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -69,3 +81,4 @@ Route::get('/{category:slug}/{post:slug}', [PostController::class, 'show'])->nam
 Route::fallback(function () {
     return view('errors.404');
 });
+

@@ -78,18 +78,15 @@
                 @foreach($featuredPosts as $post)
                 <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover border border-gray-100">
                     <a href="/{{ $post->category->slug }}/{{ $post->slug }}">
-                        @php
-                            // Obtener la URL de la imagen destacada
-                            $imageUrl = null;
-                            if ($post->featured_image) {
-                                $imageUrl = Storage::url($post->featured_image);
-                            } elseif ($post->gallery_images && count($post->gallery_images) > 0) {
-                                $imageUrl = Storage::url($post->gallery_images[0]);
-                            }
-                        @endphp
-                        @if($imageUrl)
+                        @if($post->featured_image)
                             <div class="w-full h-56 overflow-hidden">
-                                <img src="{{ $imageUrl }}" 
+                                <img src="{{ Storage::url($post->featured_image) }}" 
+                                     alt="{{ $post->title }}"
+                                     class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
+                            </div>
+                        @elseif($post->gallery_images && count($post->gallery_images) > 0)
+                            <div class="w-full h-56 overflow-hidden">
+                                <img src="{{ Storage::url($post->gallery_images[0]) }}" 
                                      alt="{{ $post->title }}"
                                      class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
                             </div>
@@ -103,20 +100,18 @@
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-sm text-green-600 font-semibold">{{ $post->category->name }}</span>
                             @if($post->location)
-                            <span class="text-sm text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i>{{ $post->location }}</span>
+                                <span class="text-sm text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i>{{ $post->location }}</span>
                             @endif
                         </div>
                         <h3 class="font-bold text-xl mb-2">
-                            <a href="/{{ $post->category->slug }}/{{ $post->slug }}" 
-                               class="hover:text-green-700">
+                            <a href="/{{ $post->category->slug }}/{{ $post->slug }}" class="hover:text-green-700">
                                 {{ $post->title }}
                             </a>
                         </h3>
                         <p class="text-gray-600 mb-4">{{ $post->excerpt ?? Str::limit(strip_tags($post->content), 100) }}</p>
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-500"><i class="far fa-calendar mr-1"></i>{{ $post->formatted_date }}</span>
-                            <a href="/{{ $post->category->slug }}/{{ $post->slug }}" 
-                               class="text-green-700 hover:text-green-800 font-medium">
+                            <a href="/{{ $post->category->slug }}/{{ $post->slug }}" class="text-green-700 hover:text-green-800 font-medium">
                                 Ver más <i class="fas fa-arrow-right ml-1"></i>
                             </a>
                         </div>
@@ -443,4 +438,3 @@
     </script>
     @endpush
 @endsection
-

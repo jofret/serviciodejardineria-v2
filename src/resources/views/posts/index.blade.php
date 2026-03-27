@@ -31,30 +31,17 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         @foreach($posts as $post)
         <a href="/{{ $post->category->slug }}/{{ $post->slug }}" class="bg-white rounded-lg shadow hover:shadow-xl transition overflow-hidden group">
-            {{-- Imagen destacada --}}
-            @php
-                $imageUrl = null;
-                // 1. Intentar obtener la imagen de la colección 'featured' de Spatie
-                if ($post->hasMedia('featured')) {
-                    $imageUrl = $post->getFirstMediaUrl('featured', 'thumb');
-                }
-                // 2. Si no, intentar con el campo 'featured_image' (si guardaste manualmente)
-                if (!$imageUrl && $post->featured_image) {
-                    $imageUrl = Storage::url($post->featured_image);
-                }
-                // 3. Si todavía no, tomar la primera imagen de la galería (si existe)
-                if (!$imageUrl && $post->hasMedia('gallery')) {
-                    $imageUrl = $post->getFirstMediaUrl('gallery', 'thumb');
-                }
-                // 4. Si no hay ninguna, mostrar placeholder
-            @endphp
-
-            @if($imageUrl)
-                <img src="{{ $imageUrl }}" alt="{{ $post->title }}" class="w-full h-48 object-cover group-hover:scale-105 transition">
+            {{-- Imagen destacada optimizada (prioriza WebP) --}}
+            @if($post->featured_image)
+                <img src="{{ Storage::url($post->featured_image) }}" 
+                     alt="{{ $post->title }}" 
+                     class="w-full h-48 object-cover group-hover:scale-105 transition">
+            @elseif($post->gallery_images && count($post->gallery_images) > 0)
+                <img src="{{ Storage::url($post->gallery_images[0]) }}" 
+                     alt="{{ $post->title }}" 
+                     class="w-full h-48 object-cover group-hover:scale-105 transition">
             @else
-                <div class="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-400">
-                    📸 Sin imagen
-                </div>
+                <div class="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-400">📸 Sin imagen</div>
             @endif
             
             <div class="p-4">

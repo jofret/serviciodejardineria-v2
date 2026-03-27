@@ -1,2 +1,7 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin
+Disallow: /livewire
+Disallow: /filament
+
+Sitemap: http://localhost:8080/sitemap.xml

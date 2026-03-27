@@ -3,7 +3,11 @@
 @section('meta_title', $post->meta_title ?? $post->title)
 @section('meta_description', 'Limpieza y Desmalezado de terrenos WhatsApp ✅ 11 7178 9529 | ' . strip_tags($post->excerpt ?? Str::limit($post->content, 150)))
 
-@section('og_image', $post->featured_image ? Storage::url($post->featured_image) : asset('images/default-og.jpg'))
+@php
+    $featuredMedia = $post->getFirstMedia('featured');
+    $ogImageUrl = $featuredMedia ? $featuredMedia->getUrl('webp') ?? $featuredMedia->getUrl() : asset('images/default-og.jpg');
+@endphp
+@section('og_image', $ogImageUrl)
 
 @section('content')
     {{-- Breadcrumbs --}}
@@ -21,7 +25,7 @@
             <div class="lg:w-2/3">
                 <article class="bg-white rounded-xl shadow-sm overflow-hidden">
                     <div class="p-6 md:p-8">
-                        {{-- Imagen destacada con lightbox (unificada con galería) --}}
+                        {{-- Imagen destacada --}}
                         @if($post->featured_image)
                             <div class="mb-6 rounded-lg overflow-hidden">
                                 <a href="{{ Storage::url($post->featured_image) }}" 
@@ -44,7 +48,7 @@
                             {!! $post->content !!}
                         </div>
 
-                        {{-- Galería con lightbox (mismo grupo) --}}
+                        {{-- Galería con lightbox (webp) --}}
                         @if($post->gallery_images && count($post->gallery_images) > 0)
                             <div class="mt-12">
                                 <h3 class="text-2xl font-bold mb-4">Galería de imágenes</h3>
@@ -83,7 +87,7 @@
 
             {{-- Sidebar --}}
             <aside class="lg:w-1/3 space-y-8">
-                {{-- Contacto rápido --}}
+                {{-- Contacto rápido (igual) --}}
                 <div class="bg-white rounded-xl shadow-sm p-6">
                     <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
                         <i class="fas fa-phone-alt text-green-600"></i>
@@ -97,7 +101,7 @@
                     </div>
                 </div>
 
-                {{-- Categorías --}}
+                {{-- Categorías (igual) --}}
                 @php
                     $categories = App\Models\Category::withCount('posts')->orderBy('name')->get();
                 @endphp
@@ -112,7 +116,7 @@
                 </div>
                 @endif
 
-                {{-- Etiquetas populares --}}
+                {{-- Etiquetas populares (igual) --}}
                 @php
                     $popularTags = App\Models\Tag::withCount('posts')->orderBy('posts_count', 'desc')->limit(10)->get();
                 @endphp
@@ -127,7 +131,7 @@
                 </div>
                 @endif
 
-                {{-- Últimas publicaciones --}}
+                {{-- Últimas publicaciones (igual) --}}
                 @php
                     $recentPosts = App\Models\Post::where('is_published', true)
                                     ->where('id', '!=', $post->id)
@@ -350,14 +354,15 @@
 @endsection
 
 @php
-    $featuredImageUrl = $post->featured_image ? Storage::url($post->featured_image) : asset('images/default-post.jpg');
+    $featuredMedia = $post->getFirstMedia('featured');
+    $ogImageUrl = $featuredMedia ? $featuredMedia->getUrl('webp') ?? $featuredMedia->getUrl() : asset('images/default-og.jpg');
 
     $blogPosting = [
         "@context" => "https://schema.org",
         "@type" => "BlogPosting",
         "headline" => $post->title,
         "description" => $post->excerpt ?? strip_tags(Str::limit($post->content, 150)),
-        "image" => $featuredImageUrl,
+        "image" => $ogImageUrl,
         "datePublished" => $post->published_at->toIso8601String(),
         "dateModified" => $post->updated_at->toIso8601String(),
         "author" => [
