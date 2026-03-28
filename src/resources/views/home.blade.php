@@ -7,9 +7,23 @@
     {{-- BANNER PRINCIPAL --}}
     <section id="inicio" class="relative text-white flex items-center overflow-hidden" style="min-height: calc(100vh - 80px);">
         <div class="absolute inset-0 z-0">
-            <img src="https://images.unsplash.com/photo-1589923188900-85dae523342b?w=1200" 
-                 alt="Terreno con maleza" 
-                 class="w-full h-full object-cover">
+            {{-- Imagen responsive con WebP --}}
+            <picture>
+                {{-- Para pantallas grandes (>= 1024px) --}}
+                <source srcset="{{ asset('images/banner.webp') }}" 
+                        media="(min-width: 1024px)" 
+                        type="image/webp">
+                {{-- Para pantallas medianas/pequeñas (< 1024px) --}}
+                <source srcset="{{ asset('images/banner-768w.webp') }}" 
+                        media="(max-width: 1023px)" 
+                        type="image/webp">
+                {{-- Imagen de respaldo (obligatoria) --}}
+                <img src="{{ asset('images/banner-768w.webp') }}" 
+                     alt="Terreno con maleza" 
+                     class="w-full h-full object-cover"
+                     loading="eager">
+            </picture>
+            {{-- Overlay verde --}}
             <div class="absolute inset-0 bg-gradient-to-r from-green-900/90 to-green-800/80"></div>
         </div>
 
@@ -133,14 +147,14 @@
                    class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition card-hover text-center">
                     <div class="text-5xl mb-4">
                         @switch($category->slug)
-                            @case('desmalezado') 🌿 @break
-                            @case('limpieza') 🧹 @break
-                            @case('roza') 🚜 @break
+                            @case('desmalezado-de-terrenos') 🌿 @break
+                            @case('limpieza-de-terrenos') 🧹 @break
+                            @case('poda-de-altura') 📍 @break
                             @case('precios') 💰 @break
                             @case('prevencion') 🔥 @break
                             @case('legal') ⚖️ @break
                             @case('consejos') 💡 @break
-                            @case('zonas') 📍 @break
+                            @case('zonas') 🚜 @break
                             @default 📋
                         @endswitch
                     </div>

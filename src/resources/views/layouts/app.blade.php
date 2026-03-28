@@ -36,8 +36,13 @@
     <meta name="twitter:description" content="@yield('meta_description', 'Limpieza y Desmalezado de terrenos WhatsApp ✅ 11 7178 9529')">
     <meta name="twitter:image" content="@yield('og_image', asset('images/og-default.jpg'))">
 
-    {{-- CSS Y FUENTES --}}
-    <script src="https://cdn.tailwindcss.com"></script>
+    {{-- 
+        CSS Y FUENTES OPTIMIZADAS 
+        - Tailwind CSS se carga con defer (no bloquea renderizado)
+        - Font Awesome y Alpine también con defer
+        - jQuery y Lightbox2 son necesarios para galería
+    --}}
+    <script defer src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
@@ -47,6 +52,14 @@
     {{-- Lightbox2 (mesa de luz) --}}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js"></script>
+
+    {{-- Google Fonts (optimizada para no bloquear renderizado) --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    </noscript>
 
     <style>
         html {
@@ -73,9 +86,9 @@
         }
     </style>
 
-    {{-- Google reCAPTCHA --}}
+    {{-- Google reCAPTCHA (cargado con defer para no bloquear) --}}
     @if(config('services.recaptcha.site_key'))
-    <script src="https://www.google.com/recaptcha/api.js?render={{ config('services.recaptcha.site_key') }}"></script>
+    <script defer src="https://www.google.com/recaptcha/api.js?render={{ config('services.recaptcha.site_key') }}"></script>
     <script>
         // Esperar a que el DOM esté listo
         document.addEventListener('DOMContentLoaded', function() {
@@ -113,7 +126,7 @@
 </head>
 <body class="bg-gray-50" x-data="{ mobileMenuOpen: false }">
 
-    {{-- Header (igual) --}}
+    {{-- Header --}}
     <header class="bg-white shadow-md sticky top-0 z-50">
         <nav class="container mx-auto px-4 py-3">
             <div class="flex justify-between items-center">
@@ -174,7 +187,7 @@
         @yield('content')
     </main>
 
-    {{-- Footer (igual) --}}
+    {{-- Footer --}}
     <footer class="bg-gray-900 text-white mt-16">
         <div class="container mx-auto px-4 py-12">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
