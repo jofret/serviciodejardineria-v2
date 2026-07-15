@@ -19,9 +19,6 @@ class SitemapController extends Controller
         $staticPages = [
             '/' => 1.0,
             '/posts' => 0.9,
-            '/servicios' => 0.8,
-            '/contacto' => 0.8,
-            '/presupuesto' => 0.8,
         ];
 
         foreach ($staticPages as $path => $priority) {

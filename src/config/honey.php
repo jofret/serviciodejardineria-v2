@@ -20,7 +20,11 @@ return [
      */
     'features' => [
         Features::spammerIpTracking(),
-        Features::blockSpammersGlobally(),
+        // Features::blockSpammersGlobally() deliberately disabled: bloqueaba TODO el
+        // sitio (incluido /admin) para una IP con 5 intentos "sospechosos" en el
+        // formulario de contacto, sin forma de auto-desbloqueo. El formulario ya
+        // queda protegido por el middleware ['honey', 'honey-recaptcha'] en su propia
+        // ruta, que rechaza envíos individuales sin afectar el resto del sitio.
 //        Features::neverGonnaGiveYouUp(),
     ],
 

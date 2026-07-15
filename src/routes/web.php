@@ -27,23 +27,15 @@ Route::prefix('tag')->name('tag.')->group(function () {
     Route::get('/{tag:slug}', [TagController::class, 'show'])->name('show');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Páginas estáticas (deben ir ANTES de las rutas dinámicas)
-|--------------------------------------------------------------------------
-*/
-Route::view('/servicios', 'pages.services')->name('servicios');
-Route::view('/contacto', 'pages.contact')->name('contacto');
-Route::view('/presupuesto', 'pages.quote')->name('presupuesto');
+// Debe ir antes de las rutas dinámicas de abajo
 Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
 
 /*
 |--------------------------------------------------------------------------
-| Contacto (formulario y envío)
+| Contacto (envío del formulario embebido en home/posts vía #contacto-formulario)
 |--------------------------------------------------------------------------
 */
-Route::get('/contacto', [ContactController::class, 'show'])->name('contacto');
-Route::post('/contacto/enviar', [App\Http\Controllers\ContactController::class, 'send'])
+Route::post('/contacto/enviar', [ContactController::class, 'send'])
     ->middleware(['honey', 'honey-recaptcha'])
     ->name('contacto.enviar');
 

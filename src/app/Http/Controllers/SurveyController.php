@@ -47,15 +47,6 @@ class SurveyController extends Controller
             throw $e;
         }
     }
-/*    public function show($token)
-    {
-        $survey = Survey::with('customer')
-            ->where('token', $token)
-            ->whereNull('answered_at')
-            ->firstOrFail();
-
-        return view('survey.show', compact('survey'));
-    }*/
 
     /**
      * Guarda las respuestas de la encuesta

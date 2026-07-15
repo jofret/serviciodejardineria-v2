@@ -5,7 +5,7 @@
 
 @php
     $featuredMedia = $post->getFirstMedia('featured');
-    $ogImageUrl = $featuredMedia ? $featuredMedia->getUrl('webp') ?? $featuredMedia->getUrl() : asset('images/default-og.jpg');
+    $ogImageUrl = $featuredMedia ? ($featuredMedia->getUrl('webp') ?? $featuredMedia->getUrl()) : asset('images/default-og.jpg');
 @endphp
 @section('og_image', $ogImageUrl)
 
@@ -25,14 +25,15 @@
             <div class="lg:w-2/3">
                 <article class="bg-white rounded-xl shadow-sm overflow-hidden">
                     <div class="p-6 md:p-8">
-                        {{-- Imagen destacada --}}
-                        @if($post->featured_image)
+                        {{-- Imagen destacada (usando Spatie) --}}
+                        @if($post->getFirstMedia('featured'))
                             <div class="mb-6 rounded-lg overflow-hidden">
-                                <a href="{{ Storage::url($post->featured_image) }}" 
+                                <a href="{{ $post->getFirstMediaUrl('featured') }}" 
                                    data-lightbox="post-gallery" 
                                    data-title="{{ $post->title }} - Imagen destacada">
-                                    <img src="{{ Storage::url($post->featured_image) }}" 
+                                    <img src="{{ $post->getFirstMediaUrl('featured', 'thumb') ?? $post->getFirstMediaUrl('featured') }}" 
                                          alt="{{ $post->title }}" 
+                                         loading="eager"
                                          class="w-full h-auto object-cover cursor-pointer hover:opacity-95 transition">
                                 </a>
                             </div>
@@ -48,22 +49,54 @@
                             {!! $post->content !!}
                         </div>
 
-                        {{-- Galería con lightbox (webp) --}}
-                        @if($post->gallery_images && count($post->gallery_images) > 0)
+                        {{-- Galería con lightbox (usando Spatie) --}}
+                        @if($post->getMedia('gallery')->count() > 0)
                             <div class="mt-12">
                                 <h3 class="text-2xl font-bold mb-4">Galería de imágenes</h3>
-                                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                    @foreach($post->gallery_images as $index => $image)
-                                        <a href="{{ Storage::url($image) }}" 
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="gallery-container">
+                                    @php
+                                        $gallery = $post->getMedia('gallery');
+                                        $total = $gallery->count();
+                                        $initial = 6;
+                                        $remaining = $total - $initial;
+                                    @endphp
+
+                                    {{-- Primeras 6 imágenes --}}
+                                    @foreach($gallery->take($initial) as $index => $image)
+                                        <a href="{{ $image->getUrl() }}" 
                                            data-lightbox="post-gallery" 
                                            data-title="{{ $post->title }} - Imagen {{ $index+1 }}">
                                             <div class="rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
-                                                <img src="{{ Storage::url($image) }}" 
-                                                     alt="{{ $post->title }}" 
+                                                <img src="{{ $image->getUrl('thumb') ?? $image->getUrl() }}" 
+                                                     alt="{{ $post->title }} - imagen {{ $index+1 }}"
+                                                     loading="lazy"
                                                      class="w-full h-48 object-cover hover:scale-105 transition duration-300">
                                             </div>
                                         </a>
                                     @endforeach
+
+                                    {{-- Imágenes restantes ocultas --}}
+                                    @if($remaining > 0)
+                                        <div id="hidden-gallery" style="display: none;">
+                                            @foreach($gallery->skip($initial) as $index => $image)
+                                                <a href="{{ $image->getUrl() }}" 
+                                                   data-lightbox="post-gallery" 
+                                                   data-title="{{ $post->title }} - Imagen {{ $initial + $index + 1 }}">
+                                                    <div class="rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
+                                                        <img src="{{ $image->getUrl('thumb') ?? $image->getUrl() }}" 
+                                                             alt="{{ $post->title }} - imagen {{ $initial + $index + 1 }}"
+                                                             loading="lazy"
+                                                             class="w-full h-48 object-cover hover:scale-105 transition duration-300">
+                                                    </div>
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                        <div class="flex justify-center mt-4">
+                                            <button id="show-all-gallery" class="bg-green-700 text-white px-6 py-2 rounded-lg hover:bg-green-800 transition">
+                                                Ver todas ({{ $remaining }} más)
+                                            </button>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         @endif
@@ -246,7 +279,7 @@
 
 @php
     $featuredMedia = $post->getFirstMedia('featured');
-    $ogImageUrl = $featuredMedia ? $featuredMedia->getUrl('webp') ?? $featuredMedia->getUrl() : asset('images/default-og.jpg');
+    $ogImageUrl = $featuredMedia ? ($featuredMedia->getUrl('webp') ?? $featuredMedia->getUrl()) : asset('images/default-og.jpg');
 
     $blogPosting = [
         "@context" => "https://schema.org",

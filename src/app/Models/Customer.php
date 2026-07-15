@@ -54,6 +54,41 @@ class Customer extends Model
     }
 
     /**
+     * Indica si corresponde ofrecer el botón de "Encuesta WhatsApp":
+     * false si ya hay una encuesta respondida o publicada para este cliente.
+     */
+    public function canRequestTestimonial(): bool
+    {
+        return ! $this->surveys()
+            ->where(function ($query) {
+                $query->whereNotNull('answered_at')->orWhere('is_published', true);
+            })
+            ->exists();
+    }
+
+    /**
+     * Estado del testimonio más reciente del cliente, para mostrar en el admin.
+     */
+    public function testimonialStatusLabel(): string
+    {
+        $survey = $this->surveys()->latest()->first();
+
+        if (! $survey) {
+            return 'No enviado';
+        }
+
+        if ($survey->is_published) {
+            return 'Publicado';
+        }
+
+        if ($survey->answered_at) {
+            return 'Completado';
+        }
+
+        return 'Enlace enviado';
+    }
+
+    /**
      * Relación con posts a través de propiedades
      */
     public function posts()

@@ -133,6 +133,17 @@ class CustomerResource extends Resource
                     ->label('Propiedades')
                     ->counts('properties')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('testimonial_status')
+                    ->label('Testimonio')
+                    ->badge()
+                    ->getStateUsing(fn (Customer $record): string => $record->testimonialStatusLabel())
+                    ->color(fn (string $state): string => match ($state) {
+                        'No enviado' => 'gray',
+                        'Enlace enviado' => 'warning',
+                        'Completado' => 'info',
+                        'Publicado' => 'success',
+                        default => 'gray',
+                    }),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Registrado')
                     ->dateTime('d/m/Y')
@@ -165,6 +176,7 @@ class CustomerResource extends Resource
                     ->label('📱 Encuesta WhatsApp')
                     ->icon('heroicon-o-chat-bubble-left-ellipsis')
                     ->color('success')
+                    ->visible(fn (Customer $record): bool => $record->canRequestTestimonial())
                     ->requiresConfirmation()
                     ->modalHeading('Enviar encuesta por WhatsApp')
                     ->modalDescription('Se enviará un enlace al cliente para que complete su opinión. Los datos del cliente se precargarán automáticamente.')
@@ -203,9 +215,11 @@ class CustomerResource extends Resource
                         
                         // Codificar mensaje
                         $mensajeCodificado = urlencode($mensaje);
-                        
-                        // Crear enlace de WhatsApp
-                        $whatsappLink = "https://wa.me/{$telefono}?text={$mensajeCodificado}";
+
+                        // Crear enlace de WhatsApp: se usa api.whatsapp.com/send directo en vez de
+                        // wa.me, porque el acortador wa.me corrompe emojis (4 bytes UTF-8) en su
+                        // propio redirect hacia api.whatsapp.com.
+                        $whatsappLink = "https://api.whatsapp.com/send/?phone={$telefono}&text={$mensajeCodificado}&type=phone_number&app_absent=0";
                         
                         // Notificación en el panel
                         \Filament\Notifications\Notification::make()

@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\ContactResource\Pages;
+namespace App\Filament\Resources\SurveyResource\Pages;
 
-use App\Filament\Resources\ContactResource;
+use App\Filament\Resources\SurveyResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
-class EditContact extends EditRecord
+class EditSurvey extends EditRecord
 {
-    protected static string $resource = ContactResource::class;
+    protected static string $resource = SurveyResource::class;
 
     protected function getHeaderActions(): array
     {

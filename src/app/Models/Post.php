@@ -74,6 +74,16 @@ class Post extends Model implements HasMedia
     }
 
     /**
+     * Relación con propiedades (muchos a muchos, inversa de Property::posts())
+     */
+    public function properties()
+    {
+        return $this->belongsToMany(Property::class, 'property_post')
+                    ->withPivot('relation_type', 'comment', 'rating', 'service_date')
+                    ->withTimestamps();
+    }
+
+    /**
      * Colecciones de imágenes para Spatie Media Library
      */
     public function registerMediaCollections(): void
@@ -99,22 +109,22 @@ class Post extends Model implements HasMedia
      */
     public function registerMediaConversions(?Media $media = null): void
     {
-        // Thumbnail para listados
         $this->addMediaConversion('thumb')
-            ->width(368)
-            ->height(232)
-            ->sharpen(10);
+             ->width(368)
+             ->height(232)
+             ->sharpen(10)
+             ->nonQueued();
 
-        // Open Graph (para compartir en redes)
         $this->addMediaConversion('og-image')
-            ->width(1200)
-            ->height(630)
-            ->sharpen(5);
+             ->width(1200)
+             ->height(630)
+             ->sharpen(5)
+             ->nonQueued();
 
-        // WebP (optimización)
         $this->addMediaConversion('webp')
-            ->format('webp')
-            ->quality(80);
+             ->format('webp')
+             ->quality(80)
+             ->nonQueued();
     }
 
     /**

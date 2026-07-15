@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use App\Models\Category;
 use App\Models\Tag;
+use App\Models\Survey;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -42,11 +43,21 @@ class HomeController extends Controller
             ->limit(15)
             ->get();
 
+        // Testimonios reales: encuestas de satisfacción publicadas por el admin
+        $testimonials = Survey::with(['customer', 'post.category'])
+            ->where('is_published', true)
+            ->whereNotNull('comment')
+            ->where('comment', '!=', '')
+            ->latest('answered_at')
+            ->limit(9)
+            ->get();
+
         return view('home', compact(
             'featuredPosts',
             'latestPosts',
             'categories',
-            'popularTags'
+            'popularTags',
+            'testimonials'
         ));
     }
 }

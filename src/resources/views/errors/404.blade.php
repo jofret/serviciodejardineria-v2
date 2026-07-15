@@ -17,7 +17,7 @@
                 <i class="fas fa-home mr-2"></i>
                 Volver al inicio
             </a>
-            <a href="/contacto" 
+            <a href="{{ route('home') }}#contacto-formulario"
                class="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-300 transition transform hover:scale-105">
                 <i class="fas fa-envelope mr-2"></i>
                 Contactar

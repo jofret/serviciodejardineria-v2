@@ -4,26 +4,17 @@
 @section('meta_description', 'Limpieza y Desmalezado de terrenos WhatsApp ✅ 11 7178 9529 | Servicio profesional en zona norte y Gran Buenos Aires. Respuesta rápida, presupuesto sin cargo. | Tags: desmalezado, limpieza, roza, pilar, escobar, campos, terrenos, maquinaria')
 
 @section('content')
-    {{-- BANNER PRINCIPAL --}}
+    {{-- BANNER PRINCIPAL (sin lazy loading, es LCP) --}}
     <section id="inicio" class="relative text-white flex items-center overflow-hidden" style="min-height: calc(100vh - 80px);">
         <div class="absolute inset-0 z-0">
-            {{-- Imagen responsive con WebP --}}
             <picture>
-                {{-- Para pantallas grandes (>= 1024px) --}}
-                <source srcset="{{ asset('images/banner.webp') }}" 
-                        media="(min-width: 1024px)" 
-                        type="image/webp">
-                {{-- Para pantallas medianas/pequeñas (< 1024px) --}}
-                <source srcset="{{ asset('images/banner-768w.webp') }}" 
-                        media="(max-width: 1023px)" 
-                        type="image/webp">
-                {{-- Imagen de respaldo (obligatoria) --}}
+                <source srcset="{{ asset('images/banner.webp') }}" media="(min-width: 1024px)" type="image/webp">
+                <source srcset="{{ asset('images/banner-768w.webp') }}" media="(max-width: 1023px)" type="image/webp">
                 <img src="{{ asset('images/banner-768w.webp') }}" 
                      alt="Terreno con maleza" 
                      class="w-full h-full object-cover"
                      loading="eager">
             </picture>
-            {{-- Overlay verde --}}
             <div class="absolute inset-0 bg-gradient-to-r from-green-900/90 to-green-800/80"></div>
         </div>
 
@@ -83,7 +74,7 @@
         </div>
     </section>
 
-    {{-- Trabajos destacados --}}
+    {{-- Trabajos destacados (con Spatie y lazy loading) --}}
     @if($featuredPosts->count() > 0)
     <section id="trabajos" class="py-16 bg-white rounded-xl shadow-sm mb-8">
         <div class="container mx-auto px-4">
@@ -91,17 +82,19 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 @foreach($featuredPosts as $post)
                 <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover border border-gray-100">
-                    <a href="/{{ $post->category->slug }}/{{ $post->slug }}">
-                        @if($post->featured_image)
+                    <a href="/{{ $post->category->slug }}/{{ $post->slug }}" aria-label="Ver trabajo: {{ $post->title }}">
+                        @if($post->getFirstMediaUrl('featured', 'thumb'))
                             <div class="w-full h-56 overflow-hidden">
-                                <img src="{{ Storage::url($post->featured_image) }}" 
+                                <img src="{{ $post->getFirstMediaUrl('featured', 'thumb') }}" 
                                      alt="{{ $post->title }}"
+                                     loading="lazy"
                                      class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
                             </div>
-                        @elseif($post->gallery_images && count($post->gallery_images) > 0)
+                        @elseif($post->getFirstMedia('gallery'))
                             <div class="w-full h-56 overflow-hidden">
-                                <img src="{{ Storage::url($post->gallery_images[0]) }}" 
+                                <img src="{{ $post->getFirstMediaUrl('gallery', 'thumb') }}" 
                                      alt="{{ $post->title }}"
+                                     loading="lazy"
                                      class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
                             </div>
                         @else
@@ -122,10 +115,12 @@
                                 {{ $post->title }}
                             </a>
                         </h3>
-                        <p class="text-gray-600 mb-4">{{ $post->excerpt ?? Str::limit(strip_tags($post->content), 100) }}</p>
+                        <p class="text-gray-600 mb-4 line-clamp-3">{{ $post->excerpt ?? Str::limit(strip_tags($post->content), 100) }}</p>
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-500"><i class="far fa-calendar mr-1"></i>{{ $post->formatted_date }}</span>
-                            <a href="/{{ $post->category->slug }}/{{ $post->slug }}" class="text-green-700 hover:text-green-800 font-medium">
+                            <a href="/{{ $post->category->slug }}/{{ $post->slug }}" 
+                               class="text-green-700 hover:text-green-800 font-medium"
+                               aria-label="Ver más detalles de {{ $post->title }}">
                                 Ver más <i class="fas fa-arrow-right ml-1"></i>
                             </a>
                         </div>
@@ -144,7 +139,8 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 justify-items-center max-w-4xl mx-auto">
                 @foreach($categories as $category)
                 <a href="/{{ $category->slug }}" 
-                   class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition card-hover text-center">
+                   class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition card-hover text-center"
+                   aria-label="Servicio de {{ $category->name }}">
                     <div class="text-5xl mb-4">
                         @switch($category->slug)
                             @case('desmalezado-de-terrenos') 🌿 @break
@@ -169,10 +165,8 @@
     {{-- Testimonios --}}
     @include('partials.testimonios')
     
-
-    {{-- FORMULARIO DE CONTACTO (igual al de home) --}}
+    {{-- FORMULARIO DE CONTACTO --}}
     @include('partials.contact-form')
-
 
     {{-- Script para manejar zonas y scroll --}}
     <script>
@@ -183,7 +177,6 @@
         const otraZona = document.getElementById('otra_zona');
         const form = document.getElementById('contact-form');
 
-        // Definir las localidades por zona
         const localidades = {
             'CABA': ['Palermo', 'Belgrano', 'Recoleta', 'Puerto Madero', 
                      'Caballito', 'Almagro', 'Villa Crespo', 'Colegiales',
@@ -218,7 +211,6 @@
             }
         });
 
-        // Ajustar required antes de enviar
         if (form) {
             form.addEventListener('submit', function() {
                 if (zonaPrincipal.value === 'Otra') {
@@ -231,12 +223,10 @@
             });
         }
 
-        // Si hay un error de validación, restaurar el estado
         @if(old('zona_principal'))
             setTimeout(() => {
                 zonaPrincipal.value = "{{ old('zona_principal') }}";
                 zonaPrincipal.dispatchEvent(new Event('change'));
-                
                 @if(old('partido'))
                     setTimeout(() => {
                         partido.value = "{{ old('partido') }}";
@@ -245,7 +235,6 @@
             }, 100);
         @endif
 
-        // SCROLL AL FORMULARIO SI HAY MENSAJES
         @if(session('success') || $errors->any())
             setTimeout(function() {
                 const formulario = document.getElementById('contacto-formulario');
@@ -267,7 +256,7 @@
             <h2 class="text-3xl font-bold text-center mb-8">Búsquedas populares</h2>
             <div class="flex flex-wrap justify-center gap-3">
                 @foreach($popularTags as $tag)
-                <a href="/tag/{{ $tag->slug }}" class="bg-white px-4 py-2 rounded-full text-gray-700 hover:bg-green-700 hover:text-white transition shadow-sm">
+                <a href="/tag/{{ $tag->slug }}" class="bg-white px-4 py-2 rounded-full text-gray-700 hover:bg-green-700 hover:text-white transition shadow-sm" aria-label="Ver trabajos etiquetados como #{{ $tag->name }}">
                     #{{ $tag->name }}
                 </a>
                 @endforeach
@@ -282,17 +271,16 @@
             <h2 class="text-3xl font-bold mb-4">¿Necesitas limpiar un terreno?</h2>
             <p class="text-xl mb-8 text-green-200">Respondemos en menos de 24 horas</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="#contacto-formulario" class="bg-white text-green-800 px-8 py-4 rounded-lg text-lg font-bold hover:bg-gray-100 transition">
+                <a href="#contacto-formulario" class="bg-white text-green-800 px-8 py-4 rounded-lg text-lg font-bold hover:bg-gray-100 transition" aria-label="Enviar consulta por correo">
                     <i class="fas fa-envelope mr-2"></i> Enviar consulta
                 </a>
-                <a href="https://wa.me/5491171789529" target="_blank" class="bg-green-600 text-white px-8 py-4 rounded-lg text-lg font-bold hover:bg-green-700 transition border-2 border-white">
+                <a href="https://wa.me/5491171789529" target="_blank" class="bg-green-600 text-white px-8 py-4 rounded-lg text-lg font-bold hover:bg-green-700 transition border-2 border-white" aria-label="Contactar por WhatsApp">
                     <i class="fab fa-whatsapp mr-2"></i> WhatsApp directo
                 </a>
             </div>
         </div>
     </section>
 
-    
     {{-- SCHEMAS --}}
     @php
         $localBusiness = [
