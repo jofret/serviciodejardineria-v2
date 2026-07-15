@@ -73,9 +73,8 @@ class ContactController extends Controller
 
         // Enviar emails a los destinatarios usando Mailable
         $emails = [
-            'jofret_@hotmail.com',
-            'jofretjofret@gmail.com',
             'info@serviciodejardineria.com.ar',
+            'jofretjofret@gmail.com',
         ];
 
         foreach ($emails as $email) {
