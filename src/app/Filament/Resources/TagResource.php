@@ -32,8 +32,13 @@ class TagResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(function ($state, callable $set) {
-                                $set('slug', Str::slug($state));
+                            ->afterStateUpdated(function (string $operation, $state, callable $set) {
+                                // Solo autogenera el slug al crear. Si se regenerara también al
+                                // editar, corregir el nombre de un tag ya publicado cambiaría su
+                                // URL indexada sin que nadie lo pida explícitamente.
+                                if ($operation === 'create') {
+                                    $set('slug', Str::slug($state));
+                                }
                             })
                             ->unique(ignoreRecord: true),
                         Forms\Components\TextInput::make('slug')
@@ -41,9 +46,11 @@ class TagResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->unique(ignoreRecord: true)
-                            ->disabled()
+                            ->disabled(fn (string $operation): bool => $operation === 'create')
                             ->dehydrated()
-                            ->helperText('Se genera automáticamente desde el nombre'),
+                            ->helperText(fn (string $operation): string => $operation === 'create'
+                                ? 'Se genera automáticamente desde el nombre.'
+                                : 'No se regenera automáticamente al editar, para no cambiar la URL ya publicada. Editalo acá solo si es intencional.'),
                         Forms\Components\Textarea::make('description')
                             ->label('Descripción')
                             ->maxLength(65535)

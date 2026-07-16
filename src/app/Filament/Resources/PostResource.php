@@ -9,6 +9,8 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Illuminate\Support\Str;
 
 class PostResource extends Resource
@@ -39,17 +41,24 @@ class PostResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(function ($state, callable $set) {
-                                $set('slug', Str::slug($state));
+                            ->afterStateUpdated(function (string $operation, $state, callable $set) {
+                                // Solo autogenera el slug al crear. Si se regenerara también al
+                                // editar, corregir una tilde en el título de un post ya publicado
+                                // cambiaría su URL indexada sin que nadie lo pida explícitamente.
+                                if ($operation === 'create') {
+                                    $set('slug', Str::slug($state));
+                                }
                             }),
                         Forms\Components\TextInput::make('slug')
                             ->label('Slug (URL)')
                             ->required()
                             ->maxLength(255)
                             ->unique(ignoreRecord: true)
-                            ->disabled()
+                            ->disabled(fn (string $operation): bool => $operation === 'create')
                             ->dehydrated()
-                            ->helperText('Se genera automáticamente desde el título'),
+                            ->helperText(fn (string $operation): string => $operation === 'create'
+                                ? 'Se genera automáticamente desde el título.'
+                                : 'No se regenera automáticamente al editar, para no cambiar la URL ya publicada. Editalo acá solo si es intencional.'),
                         Forms\Components\TextInput::make('subtitle')
                             ->label('Subtítulo')
                             ->maxLength(255),
@@ -94,12 +103,11 @@ class PostResource extends Resource
 
                 Forms\Components\Section::make('Imágenes')
                     ->schema([
-                        Forms\Components\FileUpload::make('featured_image')
+                        SpatieMediaLibraryFileUpload::make('featured')
+                            ->collection('featured')
                             ->label('Imagen destacada')
                             ->image()
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/jfif', 'image/bmp', 'image/gif'])
-                            ->directory('posts/featured')
-                            ->visibility('public')
                             ->imageEditor()
                             ->imageEditorAspectRatios([
                                 '16:9',
@@ -110,13 +118,12 @@ class PostResource extends Resource
                         Forms\Components\Toggle::make('has_before_after')
                             ->label('Tiene imágenes antes/después')
                             ->default(false),
-                        Forms\Components\FileUpload::make('gallery_images')
+                        SpatieMediaLibraryFileUpload::make('gallery')
+                            ->collection('gallery')
                             ->label('Galería de imágenes')
                             ->multiple()
                             ->image()
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/jfif', 'image/bmp', 'image/gif'])
-                            ->directory('posts/gallery')
-                            ->visibility('public')
                             ->imageEditor()
                             ->reorderable()
                             ->openable()
@@ -170,7 +177,8 @@ class PostResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('featured_image')
+                SpatieMediaLibraryImageColumn::make('featured')
+                    ->collection('featured')
                     ->label('Imagen')
                     ->circular()
                     ->size(40),

@@ -137,7 +137,7 @@ class SurveyResource extends Resource
                         $nombre = $record->customer->name ?: 'Cliente';
 
                         $mensaje = "¡Hola {$nombre}! 🌿 Muchas gracias por tu comentario, ya está publicado en nuestra web. ";
-                        $mensaje .= "Fue un placer haber trabajado con vos, y nos alegra mucho que hayas confiado en Limpieza de Terrenos. ";
+                        $mensaje .= "Fue un placer haber trabajado con vos, y nos alegra mucho que hayas confiado en Servicio de Jardinería. ";
                         $mensaje .= "¡Cualquier cosa que necesites, contactanos! 🙌";
 
                         $telefono = preg_replace('/[^0-9]/', '', $record->customer->phone);
