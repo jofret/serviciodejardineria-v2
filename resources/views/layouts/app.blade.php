@@ -54,6 +54,9 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js"></script>
 
+    {{-- Parallax.js (efecto de fondo fijo del formulario de contacto, igual al sitio anterior) --}}
+    <script src="{{ asset('js/parallax.min.js') }}"></script>
+
     {{-- Google Fonts (optimizada para no bloquear renderizado) --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

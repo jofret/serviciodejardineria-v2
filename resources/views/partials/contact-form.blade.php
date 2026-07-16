@@ -1,7 +1,9 @@
-    <div id="contacto-formulario" class="relative w-full py-16 my-8" 
-         style="background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('{{ asset('images/banner.webp') }}') fixed center/cover;">
-        
-        <div class="container mx-auto px-4">
+    <div id="contacto-formulario" class="relative w-full py-16 my-8"
+         data-parallax="scroll" data-image-src="{{ asset('images/contact-bg.jpg') }}">
+
+        <div class="absolute inset-0 bg-black bg-opacity-20 pointer-events-none"></div>
+
+        <div class="container mx-auto px-4 relative">
             <div class="flex justify-center">
                 <div class="w-full md:w-2/3 lg:w-1/2">
                     <div class="bg-white rounded-xl shadow-2xl p-6 md:p-8 wow fadeIn" data-wow-delay="0.5s">
