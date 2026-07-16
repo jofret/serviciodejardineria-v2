@@ -3,5 +3,6 @@ Allow: /
 Disallow: /admin
 Disallow: /livewire
 Disallow: /filament
+Disallow: /encuesta
 
-Sitemap: https://limpieza-y-desmalezado-de-terrenos.com.ar/sitemap.xml
+Sitemap: https://serviciodejardineria.com.ar/sitemap.xml

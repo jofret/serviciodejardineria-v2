@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('meta_title', $metaTitle ?? $category->name . ' - Limpieza de Terrenos')
-@section('meta_description', 'Limpieza y Desmalezado de terrenos WhatsApp ✅ 11 7178 9529 | ' . ($category->description ?? 'Trabajos de ' . $category->name . ' realizados en zona norte con fotos antes/después.') . ' | Tags: ' . $category->name . ', desmalezado, limpieza, zona norte, terrenos')
-@section('meta_keywords', collect([strtolower($category->name), 'limpieza de terrenos', 'desmalezado', 'zona norte', strtolower($category->name) . ' pilar', strtolower($category->name) . ' escobar'])->unique()->implode(', '))
+@section('meta_title', $metaTitle ?? $category->name . ' - Servicio de Jardinería')
+@section('meta_description', 'Servicio de Jardinería WhatsApp ✅ 11 7178-9529 | ' . ($category->description ?? 'Trabajos de ' . $category->name . ' realizados en zona norte con fotos antes/después.') . ' | ' . $category->name . ', zona norte, CABA')
+@section('meta_keywords', collect([strtolower($category->name), 'servicio de jardinería', 'zona norte', 'caba', strtolower($category->name) . ' pilar', strtolower($category->name) . ' san isidro'])->unique()->implode(', '))
 
 {{-- Las páginas siguientes de una categoría duplican contenido ya indexado en la página 1 --}}
 @if($posts->currentPage() > 1)
@@ -17,12 +17,6 @@
             ['q' => '¿Cada cuánto tiempo hay que desmalezar un terreno?', 'a' => 'En zona norte y Gran Buenos Aires, con el clima húmedo, se recomienda desmalezar cada 2 o 3 meses en primavera-verano, y cada 4 a 6 meses en otoño-invierno, para evitar multas y mantener el terreno en condiciones.'],
             ['q' => '¿Trabajan con maquinaria propia?', 'a' => 'Sí, contamos con maquinaria propia (desmalezadoras, motoguadañas y equipos pesados según el tamaño del terreno) para resolver el trabajo en el menor tiempo posible.'],
             ['q' => '¿Cuánto cuesta el desmalezado de un terreno?', 'a' => 'El costo depende del tamaño del terreno, el tipo de maleza y el acceso al lugar. Escribinos por WhatsApp al 11 7178-9529 y te pasamos un presupuesto sin cargo.'],
-        ],
-        'limpieza-de-terrenos' => [
-            ['q' => '¿Qué incluye el servicio de limpieza de terrenos?', 'a' => 'Incluye el corte de maleza, retiro de escombros y residuos, poda de arbustos bajos y dejar el terreno listo para uso, venta o construcción.'],
-            ['q' => '¿Cuánto tiempo tarda la limpieza de un terreno?', 'a' => 'Un terreno urbano estándar se resuelve en el mismo día. Terrenos grandes o muy descuidados pueden llevar de 1 a 3 días según la superficie y la cantidad de maquinaria necesaria.'],
-            ['q' => '¿Retiran los residuos y escombros?', 'a' => 'Sí, el retiro de ramas, malezas y escombros generados durante la limpieza está incluido en el servicio.'],
-            ['q' => '¿Hacen limpieza previa a la construcción?', 'a' => 'Sí, es uno de los servicios más solicitados: dejamos el terreno despejado y nivelado para que puedas empezar la obra sin demoras.'],
         ],
         'poda-de-altura' => [
             ['q' => '¿Qué es la poda de altura y cuándo se necesita?', 'a' => 'Es la poda de árboles grandes o de difícil acceso, que requiere equipo especializado y trabajo en altura. Se recomienda cuando hay ramas secas, riesgo de caída, o el árbol interfiere con cables o construcciones.'],
@@ -140,12 +134,12 @@
             "@context" => "https://schema.org",
             "@type" => "Service",
             "serviceType" => $category->name,
-            "name" => $category->name . ' - Limpieza y Desmalezado de Terrenos',
+            "name" => $category->name . ' - Servicio de Jardinería',
             "description" => $category->description ?? 'Servicio profesional de ' . strtolower($category->name) . ' en zona norte y Gran Buenos Aires.',
             "url" => url()->current(),
             "provider" => [
                 "@type" => "LocalBusiness",
-                "name" => "Limpieza de Terrenos",
+                "name" => "Servicio de Jardinería",
                 "telephone" => "+54 11 7178-9529",
                 "image" => asset('images/og-default.jpg'),
                 "address" => [

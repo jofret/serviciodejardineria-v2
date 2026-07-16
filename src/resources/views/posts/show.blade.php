@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('meta_title', $post->meta_title ?? $post->title)
-@section('meta_description', 'Limpieza y Desmalezado de terrenos WhatsApp ✅ 11 7178 9529 | ' . strip_tags($post->excerpt ?? Str::limit($post->content, 150)))
-@section('meta_keywords', collect([$post->category->name, 'limpieza de terrenos', 'desmalezado', 'zona norte'])
+@section('meta_description', 'Servicio de Jardinería WhatsApp ✅ 11 7178-9529 | ' . strip_tags($post->excerpt ?? Str::limit($post->content, 150)))
+@section('meta_keywords', collect([$post->category->name, 'servicio de jardinería', 'zona norte'])
     ->merge($post->tags->pluck('name'))
     ->merge($post->location ? [$post->location] : [])
     ->unique(fn ($term) => strtolower(trim($term)))
@@ -296,12 +296,12 @@
         "dateModified" => $post->updated_at->toIso8601String(),
         "author" => [
             "@type" => "Organization",
-            "name" => "Limpieza de Terrenos",
+            "name" => "Servicio de Jardinería",
             "url" => url('/')
         ],
         "publisher" => [
             "@type" => "Organization",
-            "name" => "Limpieza de Terrenos",
+            "name" => "Servicio de Jardinería",
             "logo" => [
                 "@type" => "ImageObject",
                 "url" => asset('images/logo.jpg')
