@@ -110,9 +110,18 @@ class Post extends Model implements HasMedia
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('thumb')
-             ->width(368)
-             ->height(232)
-             ->sharpen(10)
+             ->width(736)
+             ->height(464)
+             ->sharpen(5)
+             ->format('webp')
+             ->quality(75)
+             ->nonQueued();
+
+        $this->addMediaConversion('large')
+             ->width(1200)
+             ->sharpen(5)
+             ->format('webp')
+             ->quality(75)
              ->nonQueued();
 
         $this->addMediaConversion('og-image')
