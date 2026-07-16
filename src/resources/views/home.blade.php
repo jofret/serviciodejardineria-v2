@@ -12,7 +12,7 @@
                 <source srcset="{{ asset('images/banner.webp') }}" media="(min-width: 1024px)" type="image/webp">
                 <source srcset="{{ asset('images/banner-768w.webp') }}" media="(max-width: 1023px)" type="image/webp">
                 <img src="{{ asset('images/banner-768w.webp') }}" 
-                     alt="Terreno con maleza" 
+                     alt="Corte de pasto profesional"
                      class="w-full h-full object-cover"
                      loading="eager">
             </picture>
