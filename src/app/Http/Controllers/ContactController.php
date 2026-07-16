@@ -16,7 +16,7 @@ class ContactController extends Controller
             'name' => 'required|min:3|max:100',
             'email' => 'required|email',
             'phone' => 'required|min:8|max:20',
-            'service' => 'required',
+            'service' => 'required|exists:categories,name',
             'message' => 'required|min:10|max:1000',
             'zona_principal' => 'required',
         ];

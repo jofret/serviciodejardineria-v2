@@ -39,7 +39,10 @@ class PostController extends Controller
         $metaTitle = $post->meta_title;
         $metaDescription = $post->meta_description;
 
-        return view('posts.show', compact('post', 'relatedPosts', 'metaTitle', 'metaDescription'));
+        // Categorías activas para el <select> del formulario de contacto
+        $serviceCategories = Category::where('is_active', true)->orderBy('order')->get();
+
+        return view('posts.show', compact('post', 'relatedPosts', 'metaTitle', 'metaDescription', 'serviceCategories'));
     }
 
     /**

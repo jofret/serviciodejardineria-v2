@@ -167,7 +167,7 @@
     @include('partials.testimonios')
     
     {{-- FORMULARIO DE CONTACTO --}}
-    @include('partials.contact-form')
+    @include('partials.contact-form', ['serviceCategories' => $categories])
 
     {{-- Script para manejar zonas y scroll --}}
     <script>

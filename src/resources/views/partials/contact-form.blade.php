@@ -78,14 +78,13 @@
 
                                 <div>
                                     <label class="block text-gray-700 font-medium mb-1">Servicio *</label>
-                                    <select name="service" class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500" required>
+                                    <select name="service" class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 @error('service') border-red-500 @enderror" required>
                                         <option value="">Seleccione...</option>
-                                        <option value="desmalezado">Desmalezado</option>
-                                        <option value="limpieza">Limpieza de Terrenos</option>
-                                        <option value="roza">Roza</option>
-                                        <option value="prevencion">Prevención de Incendios</option>
-                                        <option value="otro">Otro</option>
+                                        @foreach($serviceCategories as $category)
+                                            <option value="{{ $category->name }}" @selected(old('service') == $category->name)>{{ $category->name }}</option>
+                                        @endforeach
                                     </select>
+                                    @error('service')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
                                 </div>
                             </div>
 

@@ -197,7 +197,7 @@
     </div>
 
     {{-- FORMULARIO DE CONTACTO (igual al de home) --}}
-    @include('partials.contact-form')
+    @include('partials.contact-form', ['serviceCategories' => $serviceCategories])
 
     {{-- TESTIMONIOS (igual al de home) --}}
     @include('partials.testimonios')
