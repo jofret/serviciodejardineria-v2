@@ -43,4 +43,17 @@ Puertos de este stack (elegidos para no chocar con los stacks que ya corren en e
 
 ## Estado de la migración
 
-Ver el documento de auditoría y plan de migración para el detalle completo de fases. Este repo corresponde a la **Fase 1** (base del código nuevo). Pendiente: adaptar `routes/web.php` a los paths actuales de jardinería (`/publicaciones/{slug}`, `/categoria/{slug}`), migrar datos preservando slugs, y portar SEO/branding.
+Ver el documento de auditoría y plan de migración para el detalle completo de fases.
+
+- [x] **Fase 1** — base del código nuevo (clonado de `limpieza-terrenos-fresh`, Docker propio).
+- [x] **Fase 2** — rutas públicas adaptadas a los paths actuales (`/publicaciones/{slug}`, `/categoria/{slug}`, `/tag/{slug}`), sin segmento de categoría en el post.
+- [x] **Fase 3** — datos migrados desde la base Laravel 8 actual preservando slugs exactos: 6 categorías, 23 tags, 41 posts (234 imágenes vía Spatie Media Library) y 31 testimonios (→ `Customer`+`Survey`). Comando: `php artisan jardineria:import-legacy` (`--fresh` para reimportar desde cero en dev; ver opciones con `--help`).
+- [ ] **Fase 4** — admin Filament (ya viene de la base, falta revisar que los Resources cubran el caso de jardinería).
+- [ ] **Fase 5** — formulario de contacto y activación del flujo de encuestas por WhatsApp.
+- [ ] **Fase 6** — SEO/branding (textos, marca, JSON-LD, robots.txt) todavía dicen "Limpieza de Terrenos" en varios lugares (contenido, no rutas).
+- [ ] **Fase 7** — validación pre-corte contra el listado real de URLs indexadas.
+- [ ] **Fase 8** — corte de DNS/dominio.
+
+### Nota sobre los testimonios migrados
+
+El formulario de testimonios viejo no pedía teléfono, y `Customer.phone` es único y es la clave del flujo de WhatsApp nuevo. Los 31 testimonios migrados generaron un `Customer` con `phone` placeholder (`legacy-cliente-{id}`) y `fuente=migracion_legacy` — **no son teléfonos reales**, no van a poder recibir el flujo de "Encuesta WhatsApp" hasta que se les cargue un teléfono real a mano si hace falta contactarlos de nuevo.
