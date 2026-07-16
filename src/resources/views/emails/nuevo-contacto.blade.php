@@ -20,7 +20,7 @@
     <div class="container">
         <div class="header">
             <h1>📬 Nuevo Contacto</h1>
-            <p>Limpieza de Terrenos</p>
+            <p>Servicio de Jardinería</p>
         </div>
         
         <div class="content">
@@ -69,7 +69,7 @@
         
         <div class="footer">
             <p>Este es un mensaje automático, por favor no responder.</p>
-            <p>&copy; {{ date('Y') }} Limpieza de Terrenos</p>
+            <p>&copy; {{ date('Y') }} Servicio de Jardinería</p>
         </div>
     </div>
 </body>

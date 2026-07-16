@@ -23,7 +23,7 @@ class NuevoContactoMailable extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '📬 Nuevo contacto - Limpieza de Terrenos',
+            subject: '📬 Nuevo contacto - Servicio de Jardinería',
         );
     }
 

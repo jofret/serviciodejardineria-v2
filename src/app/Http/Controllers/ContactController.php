@@ -58,8 +58,11 @@ class ContactController extends Controller
             ? $mensajeAnterior . "\n---\n" . $validated['message']
             : $validated['message'];
         
-        // Actualizar metadata
-        $metadata = $customer->metadata ? json_decode($customer->metadata, true) : [];
+        // Actualizar metadata (Customer::$casts ya serializa/deserializa este campo
+        // como array -- no hay que pasar por json_encode/json_decode a mano, o el
+        // segundo contacto de un mismo cliente revienta con un TypeError porque
+        // $customer->metadata ya llega como array, no como string).
+        $metadata = $customer->metadata ?? [];
         $metadata[] = [
             'fecha' => now()->toDateTimeString(),
             'user_agent' => $request->header('User-Agent'),
@@ -67,7 +70,7 @@ class ContactController extends Controller
             'zona_completa' => $zona_final,
             'servicio' => $validated['service'],
         ];
-        $customer->metadata = json_encode($metadata);
+        $customer->metadata = $metadata;
 
         $customer->save();
 

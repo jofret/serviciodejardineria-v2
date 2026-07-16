@@ -48,12 +48,16 @@ Ver el documento de auditoría y plan de migración para el detalle completo de 
 - [x] **Fase 1** — base del código nuevo (clonado de `limpieza-terrenos-fresh`, Docker propio).
 - [x] **Fase 2** — rutas públicas adaptadas a los paths actuales (`/publicaciones/{slug}`, `/categoria/{slug}`, `/tag/{slug}`), sin segmento de categoría en el post.
 - [x] **Fase 3** — datos migrados desde la base Laravel 8 actual preservando slugs exactos: 6 categorías, 23 tags, 41 posts (234 imágenes vía Spatie Media Library) y 31 testimonios (→ `Customer`+`Survey`). Comando: `php artisan jardineria:import-legacy` (`--fresh` para reimportar desde cero en dev; ver opciones con `--help`).
-- [ ] **Fase 4** — admin Filament (ya viene de la base, falta revisar que los Resources cubran el caso de jardinería).
-- [ ] **Fase 5** — formulario de contacto y activación del flujo de encuestas por WhatsApp.
-- [ ] **Fase 6** — SEO/branding (textos, marca, JSON-LD, robots.txt) todavía dicen "Limpieza de Terrenos" en varios lugares (contenido, no rutas).
+- [x] **Fase 4** — admin Filament revisado para jardinería: mensajes de WhatsApp, color del panel, y dos bugs de slug corregidos (se regeneraba solo al editar un post/categoría/tag existente) más el form de imágenes de posts reconectado a Spatie Media Library.
+- [x] **Fase 5** — formulario de contacto y flujo de encuestas por WhatsApp verificados de punta a punta (disparo desde el admin → respuesta pública → moderación → aparece en la home). Se corrigió un bug real: `ContactController` rompía con `TypeError` en el segundo contacto de un mismo cliente (doble manejo de JSON sobre un campo que el modelo ya castea como array). `/clientesformulario` (el form viejo de testimonios) queda sin ruta — cae en el 404 normal, consistente con sus 0 clics/impresiones reales en Search Console.
+- [ ] **Fase 6** — SEO/branding (textos, marca, JSON-LD, robots.txt) todavía dicen "Limpieza de Terrenos" en varios lugares (contenido, no rutas). Los mensajes de WhatsApp y el mail de contacto ya se corrigieron en las fases 4/5.
 - [ ] **Fase 7** — validación pre-corte contra el listado real de URLs indexadas.
 - [ ] **Fase 8** — corte de DNS/dominio.
 
 ### Nota sobre los testimonios migrados
 
 El formulario de testimonios viejo no pedía teléfono, y `Customer.phone` es único y es la clave del flujo de WhatsApp nuevo. Los 31 testimonios migrados generaron un `Customer` con `phone` placeholder (`legacy-cliente-{id}`) y `fuente=migracion_legacy` — **no son teléfonos reales**, no van a poder recibir el flujo de "Encuesta WhatsApp" hasta que se les cargue un teléfono real a mano si hace falta contactarlos de nuevo.
+
+### Quirk de Docker Desktop (Windows) a tener en cuenta
+
+Si corrés `docker compose exec php php artisan ...` (o `tinker`), el proceso corre como `root` dentro del contenedor. Si eso llega a crear/tocar `storage/logs/laravel.log` (por ejemplo, un comando que loguee algo), el archivo puede quedar con permisos que **php-fpm** (que sirve el tráfico HTTP real, como `www-data`) no puede escribir, y cualquier request que intente loguear algo revienta con `Permission denied`. Si aparece ese error: `docker compose exec php rm -f storage/logs/laravel.log && docker compose exec php chmod -R 777 storage bootstrap/cache`.

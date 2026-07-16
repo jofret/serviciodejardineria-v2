@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
-@section('meta_title', 'Encuesta de satisfacción - Limpieza de Terrenos')
+@section('meta_title', 'Encuesta de satisfacción - Servicio de Jardinería')
 @section('meta_description', 'Ayudanos a mejorar contándonos tu experiencia con nuestro servicio.')
+@section('meta_robots', 'noindex, nofollow')
 
 @section('content')
 <div class="max-w-2xl mx-auto">
