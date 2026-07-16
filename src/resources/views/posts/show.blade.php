@@ -36,8 +36,8 @@
                                 <a href="{{ $post->getFirstMediaUrl('featured') }}" 
                                    data-lightbox="post-gallery" 
                                    data-title="{{ $post->title }} - Imagen destacada">
-                                    <img src="{{ $post->getFirstMediaUrl('featured', 'thumb') ?? $post->getFirstMediaUrl('featured') }}" 
-                                         alt="{{ $post->title }}" 
+                                    <img src="{{ $post->getFirstMediaUrl('featured', 'large') ?? $post->getFirstMediaUrl('featured') }}"
+                                         alt="{{ $post->title }}"
                                          loading="eager"
                                          class="w-full h-auto object-cover cursor-pointer hover:opacity-95 transition">
                                 </a>
@@ -62,11 +62,11 @@
                                     @php
                                         $gallery = $post->getMedia('gallery');
                                         $total = $gallery->count();
-                                        $initial = 6;
+                                        $initial = 3;
                                         $remaining = $total - $initial;
                                     @endphp
 
-                                    {{-- Primeras 6 imágenes --}}
+                                    {{-- Primeras 3 imágenes --}}
                                     @foreach($gallery->take($initial) as $index => $image)
                                         <a href="{{ $image->getUrl() }}" 
                                            data-lightbox="post-gallery" 
@@ -205,6 +205,15 @@
     {{-- Script para el formulario de contacto (igual al de home) --}}
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const showAllGalleryBtn = document.getElementById('show-all-gallery');
+        const hiddenGallery = document.getElementById('hidden-gallery');
+        if (showAllGalleryBtn && hiddenGallery) {
+            showAllGalleryBtn.addEventListener('click', function() {
+                hiddenGallery.style.display = 'contents';
+                showAllGalleryBtn.parentElement.remove();
+            });
+        }
+
         const zonaPrincipal = document.getElementById('zona_principal');
         const partido = document.getElementById('partido');
         const otraZonaContainer = document.getElementById('otra_zona_container');
