@@ -173,7 +173,7 @@ class Post extends Model implements HasMedia
      */
     public function getMetaTitleAttribute($value)
     {
-        return $value ?? $this->title . ' - Servicio de Jardinería';
+        return $value ?? $this->title . ' - AltoParque';
     }
 
     /**

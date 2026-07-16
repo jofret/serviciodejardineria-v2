@@ -37,6 +37,40 @@ class HomeController extends Controller
             ->orderBy('order')
             ->get();
 
+        // Publicaciones para la home: solo los 3 bloques de servicio que pidió el
+        // usuario (mismos títulos que serviciodejardineria.com.ar hoy en producción),
+        // cada uno mapeado a su categoría real -- no se muestran los otros 3 categorías.
+        $homeServiceBlocks = [
+            ['slug' => 'corte-de-pasto-y-jardineria', 'heading' => 'Servicio de Corte de Pasto'],
+            ['slug' => 'poda-de-altura', 'heading' => 'Servicio de Poda de Altura'],
+            ['slug' => 'desmalezado-de-terrenos', 'heading' => 'Servicio Desmalezado y limpieza de Terrenos'],
+        ];
+
+        $categoryPosts = collect($homeServiceBlocks)->map(function ($block) {
+            $category = Category::where('slug', $block['slug'])->first();
+
+            if (! $category) {
+                return null;
+            }
+
+            $posts = Post::where('category_id', $category->id)
+                ->where('is_published', true)
+                ->where('published_at', '<=', now())
+                ->orderBy('published_at', 'desc')
+                ->limit(3)
+                ->get();
+
+            if ($posts->isEmpty()) {
+                return null;
+            }
+
+            return [
+                'category' => $category,
+                'heading' => $block['heading'],
+                'posts' => $posts,
+            ];
+        })->filter()->values();
+
         // Tags populares (con más posts)
         $popularTags = Tag::withCount('posts')
             ->orderBy('posts_count', 'desc')
@@ -56,6 +90,7 @@ class HomeController extends Controller
             'featuredPosts',
             'latestPosts',
             'categories',
+            'categoryPosts',
             'popularTags',
             'testimonials'
         ));
