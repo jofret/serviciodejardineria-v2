@@ -225,7 +225,7 @@
                         
                         @foreach($servicios as $servicio)
                             <li>
-                                <a href="/{{ $servicio->slug }}" class="text-gray-400 hover:text-white transition">
+                                <a href="{{ route('category.show', $servicio) }}" class="text-gray-400 hover:text-white transition">
                                     {{ $servicio->name }}
                                 </a>
                             </li>

@@ -41,7 +41,7 @@
                         <i class="fas fa-calculator group-hover:rotate-12 transition"></i>
                         Solicitar presupuesto
                     </a>
-                    <a href="/posts" 
+                    <a href="{{ route('posts.index') }}"
                        class="group bg-white text-green-700 px-8 py-4 rounded-lg text-lg font-bold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-xl">
                         <i class="fas fa-images group-hover:scale-110 transition"></i>
                         Ver trabajos realizados
@@ -83,7 +83,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 @foreach($featuredPosts as $post)
                 <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover border border-gray-100">
-                    <a href="/{{ $post->category->slug }}/{{ $post->slug }}" aria-label="Ver trabajo: {{ $post->title }}">
+                    <a href="{{ route('post.show', $post) }}" aria-label="Ver trabajo: {{ $post->title }}">
                         @if($post->getFirstMediaUrl('featured', 'thumb'))
                             <div class="w-full h-56 overflow-hidden">
                                 <img src="{{ $post->getFirstMediaUrl('featured', 'thumb') }}" 
@@ -112,14 +112,14 @@
                             @endif
                         </div>
                         <h3 class="font-bold text-xl mb-2">
-                            <a href="/{{ $post->category->slug }}/{{ $post->slug }}" class="hover:text-green-700">
+                            <a href="{{ route('post.show', $post) }}" class="hover:text-green-700">
                                 {{ $post->title }}
                             </a>
                         </h3>
                         <p class="text-gray-600 mb-4 line-clamp-3">{{ $post->excerpt ?? Str::limit(strip_tags($post->content), 100) }}</p>
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-500"><i class="far fa-calendar mr-1"></i>{{ $post->formatted_date }}</span>
-                            <a href="/{{ $post->category->slug }}/{{ $post->slug }}" 
+                            <a href="{{ route('post.show', $post) }}" 
                                class="text-green-700 hover:text-green-800 font-medium"
                                aria-label="Ver más detalles de {{ $post->title }}">
                                 Ver más <i class="fas fa-arrow-right ml-1"></i>
@@ -139,7 +139,7 @@
             <h2 class="text-3xl font-bold text-center mb-12">Nuestros Servicios</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 justify-items-center max-w-4xl mx-auto">
                 @foreach($categories as $category)
-                <a href="/{{ $category->slug }}" 
+                <a href="{{ route('category.show', $category) }}"
                    class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition card-hover text-center"
                    aria-label="Servicio de {{ $category->name }}">
                     <div class="text-5xl mb-4">
@@ -309,7 +309,7 @@
             "url" => url('/'),
             "potentialAction" => [
                 "@type" => "SearchAction",
-                "target" => url('/posts?search={search_term_string}'),
+                "target" => route('posts.index') . '?search={search_term_string}',
                 "query-input" => "required name=search_term_string"
             ]
         ];

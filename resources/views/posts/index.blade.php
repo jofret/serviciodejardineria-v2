@@ -4,7 +4,7 @@
 @section('meta_description', 'Limpieza y Desmalezado de terrenos WhatsApp ✅ 11 7178 9529 | Galería completa de trabajos de limpieza y desmalezado realizados en zona norte. Antes y después reales. | Tags: desmalezado, limpieza, terrenos, maquinaria, zona norte, pilar, escobar, campos')
 @section('meta_keywords', 'trabajos de limpieza de terrenos, desmalezado, roza, zona norte, galería de trabajos, antes y después')
 
-{{-- Con búsqueda, filtro de categoría o páginas siguientes se duplica el contenido de /posts o de /{categoria}, así que no deben indexarse --}}
+{{-- Con búsqueda, filtro de categoría o páginas siguientes se duplica el contenido de /publicaciones o de /categoria/{slug}, así que no deben indexarse --}}
 @if(request('search') || request('category') || $posts->currentPage() > 1)
     @section('meta_robots', 'noindex, follow')
 @endif
@@ -18,9 +18,9 @@
     {{-- Filtros --}}
     <div class="mb-6 flex flex-wrap gap-4">
         <select class="border rounded-lg px-4 py-2" onchange="window.location.href = this.value">
-            <option value="{{ url('/posts') }}">Todas las categorías</option>
+            <option value="{{ route('posts.index') }}">Todas las categorías</option>
             @foreach($categories as $cat)
-                <option value="{{ url('/posts?category=' . $cat->slug) }}" 
+                <option value="{{ route('posts.index', ['category' => $cat->slug]) }}"
                     {{ request('category') == $cat->slug ? 'selected' : '' }}>
                     {{ $cat->name }}
                 </option>
@@ -36,7 +36,7 @@
     @if($posts->count() > 0)
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         @foreach($posts as $post)
-        <a href="/{{ $post->category->slug }}/{{ $post->slug }}" class="bg-white rounded-lg shadow hover:shadow-xl transition overflow-hidden group">
+        <a href="{{ route('post.show', $post) }}" class="bg-white rounded-lg shadow hover:shadow-xl transition overflow-hidden group">
             {{-- Imagen destacada optimizada (prioriza WebP) --}}
             @if($post->featured_image)
                 <img src="{{ Storage::url($post->featured_image) }}" 
@@ -84,7 +84,7 @@
         $collectionPage['mainEntity']['itemListElement'][] = [
             "@type" => "ListItem",
             "position" => $position,
-            "url" => url('/' . $post->category->slug . '/' . $post->slug),
+            "url" => route('post.show', $post),
             "name" => $post->title
         ];
     }

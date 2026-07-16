@@ -18,7 +18,7 @@ class SitemapController extends Controller
         // Páginas estáticas
         $staticPages = [
             '/' => 1.0,
-            '/posts' => 0.9,
+            '/publicaciones' => 0.9,
         ];
 
         foreach ($staticPages as $path => $priority) {
@@ -33,7 +33,7 @@ class SitemapController extends Controller
         // Categorías (solo activas)
         Category::active()->get()->each(function (Category $category) use ($sitemap) {
             $sitemap->add(
-                Url::create("/{$category->slug}")
+                Url::create("/categoria/{$category->slug}")
                     ->setLastModificationDate($category->updated_at)
                     ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
                     ->setPriority(0.8)
@@ -46,7 +46,7 @@ class SitemapController extends Controller
             ->get()
             ->each(function (Post $post) use ($sitemap) {
                 $sitemap->add(
-                    Url::create("/{$post->category->slug}/{$post->slug}")
+                    Url::create("/publicaciones/{$post->slug}")
                         ->setLastModificationDate($post->updated_at)
                         ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
                         ->setPriority(0.7)

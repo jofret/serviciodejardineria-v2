@@ -10,16 +10,15 @@ class PostController extends Controller
 {
     /**
      * Muestra un post individual
-     * URL: /categoria/desmalezado/terreno-pilar
+     * URL: /publicaciones/terreno-pilar
+     *
+     * Sin segmento de categoría en el path: las URLs de jardinería no anidan
+     * el post bajo la categoría (a diferencia del patrón nativo de limpieza-terrenos),
+     * así que el slug de post sigue siendo la única clave de búsqueda, igual que hoy.
      */
-    public function show($categorySlug, $postSlug)
+    public function show($postSlug)
     {
-        $category = Category::where('slug', $categorySlug)
-            ->where('is_active', true)
-            ->firstOrFail();
-
         $post = Post::with(['category', 'tags'])
-            ->where('category_id', $category->id)
             ->where('slug', $postSlug)
             ->where('is_published', true)
             ->where('published_at', '<=', now())
@@ -27,7 +26,7 @@ class PostController extends Controller
 
         // Posts relacionados (misma categoría, excluyendo el actual)
         $relatedPosts = Post::with('category')
-            ->where('category_id', $category->id)
+            ->where('category_id', $post->category_id)
             ->where('id', '!=', $post->id)
             ->where('is_published', true)
             ->where('published_at', '<=', now())
