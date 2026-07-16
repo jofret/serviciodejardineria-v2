@@ -24,7 +24,9 @@ class Category extends Model
         return [
             'slug' => [
                 'source' => 'name',
-                'onUpdate' => true // 👈 ESTA LÍNEA ES LA CLAVE
+                // Sin onUpdate: si el slug se regenerara cada vez que cambia el nombre,
+                // corregir el nombre de una categoría ya publicada cambiaría su URL
+                // indexada sin que nadie lo pida explícitamente. Igual que Post y Tag.
             ]
         ];
     }

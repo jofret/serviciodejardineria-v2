@@ -250,7 +250,7 @@ class CustomerResource extends Resource
                         
                         // Mensaje personalizado
                         $mensaje = "Hola {$record->name}! 👋\n\n";
-                        $mensaje .= "Gracias por confiar en *Limpieza de Terrenos*. Queremos conocer tu opinión sobre el servicio que recibiste.\n\n";
+                        $mensaje .= "Gracias por confiar en *Servicio de Jardinería*. Queremos conocer tu opinión sobre el servicio que recibiste.\n\n";
                         $mensaje .= "📝 Por favor, completá esta breve encuesta:\n";
                         $mensaje .= $enlace . "\n\n";
                         $mensaje .= "¡Tu opinión nos ayuda a mejorar! 🌿";
