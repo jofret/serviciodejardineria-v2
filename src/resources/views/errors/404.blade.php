@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('meta_title', 'Página no encontrada - Servicio de Jardinería')
-@section('meta_description', 'Servicio de Jardinería WhatsApp ✅ 11 7178-9529 | La página que buscas no existe. Volvé al inicio.')
+@section('meta_title', 'Página no encontrada - AltoParque')
+@section('meta_description', 'AltoParque WhatsApp ✅ 11 7178-9529 | La página que buscas no existe. Volvé al inicio.')
 
 @section('content')
 <div class="min-h-[70vh] flex items-center justify-center px-4">

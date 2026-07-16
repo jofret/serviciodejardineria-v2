@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('meta_title', 'Encuesta de satisfacción - Servicio de Jardinería')
+@section('meta_title', 'Encuesta de satisfacción - AltoParque')
 @section('meta_description', 'Ayudanos a mejorar contándonos tu experiencia con nuestro servicio.')
 @section('meta_robots', 'noindex, nofollow')
 

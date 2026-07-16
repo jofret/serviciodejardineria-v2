@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('meta_title', $post->meta_title ?? $post->title)
-@section('meta_description', 'Servicio de Jardinería WhatsApp ✅ 11 7178-9529 | ' . strip_tags($post->excerpt ?? Str::limit($post->content, 150)))
+@section('meta_description', 'AltoParque WhatsApp ✅ 11 7178-9529 | ' . strip_tags($post->excerpt ?? Str::limit($post->content, 150)))
 @section('meta_keywords', collect([$post->category->name, 'servicio de jardinería', 'zona norte'])
     ->merge($post->tags->pluck('name'))
     ->merge($post->location ? [$post->location] : [])
@@ -296,12 +296,12 @@
         "dateModified" => $post->updated_at->toIso8601String(),
         "author" => [
             "@type" => "Organization",
-            "name" => "Servicio de Jardinería",
+            "name" => "AltoParque",
             "url" => url('/')
         ],
         "publisher" => [
             "@type" => "Organization",
-            "name" => "Servicio de Jardinería",
+            "name" => "AltoParque",
             "logo" => [
                 "@type" => "ImageObject",
                 "url" => asset('images/logo.jpg')

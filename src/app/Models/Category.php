@@ -48,7 +48,7 @@ class Category extends Model
 
     public function getMetaTitleAttribute($value)
     {
-        return $value ?? $this->name . ' - Servicio de Jardinería';
+        return $value ?? $this->name . ' - AltoParque';
     }
 
     public function getMetaDescriptionAttribute($value)

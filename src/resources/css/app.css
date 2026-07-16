@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Tipografía real de serviciodejardineria.com.ar (producción): Jost para
+   títulos, Open Sans para texto -- no la del template de limpieza-terrenos. */
+@layer base {
+    body {
+        font-family: 'Open Sans', sans-serif;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Jost', sans-serif;
+    }
+}
