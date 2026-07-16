@@ -19,7 +19,7 @@
     <div class="container mx-auto px-4 py-4">
         <nav class="text-sm text-gray-600">
             <a href="/" class="hover:text-green-700">Inicio</a> /
-            <a href="/{{ $post->category->slug }}" class="hover:text-green-700">{{ $post->category->name }}</a> /
+            <a href="{{ route('category.show', $post->category) }}" class="hover:text-green-700">{{ $post->category->name }}</a> /
             <span class="text-gray-800">{{ $post->title }}</span>
         </nav>
     </div>
@@ -183,7 +183,7 @@
                     <div class="space-y-3">
                         @foreach($recentPosts as $recent)
                             <div class="border-b border-gray-100 last:border-0 pb-3 last:pb-0">
-                                <a href="{{ url($recent->category->slug . '/' . $recent->slug) }}" class="block hover:text-green-700 transition">
+                                <a href="{{ route('post.show', $recent) }}" class="block hover:text-green-700 transition">
                                     <p class="font-medium">{{ $recent->title }}</p>
                                     <p class="text-sm text-gray-500">{{ $recent->formatted_date }}</p>
                                 </a>
@@ -327,7 +327,7 @@
                 "@type" => "ListItem",
                 "position" => 2,
                 "name" => $post->category->name,
-                "item" => url('/' . $post->category->slug)
+                "item" => route('category.show', $post->category)
             ],
             [
                 "@type" => "ListItem",

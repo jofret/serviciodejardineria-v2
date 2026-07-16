@@ -48,7 +48,7 @@
     @if($posts->count() > 0)
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         @foreach($posts as $post)
-        <a href="/{{ $category->slug }}/{{ $post->slug }}" class="bg-white rounded-lg shadow hover:shadow-xl transition overflow-hidden group">
+        <a href="{{ route('post.show', $post) }}" class="bg-white rounded-lg shadow hover:shadow-xl transition overflow-hidden group">
             @if($post->featured_image)
                 <img src="{{ Storage::url($post->featured_image) }}" alt="{{ $post->title }}" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300">
             @elseif($post->gallery_images && count($post->gallery_images) > 0)
@@ -110,7 +110,7 @@
         $collectionSchema["mainEntity"]["itemListElement"][] = [
             "@type" => "ListItem",
             "position" => $index + 1,
-            "url" => url('/' . $category->slug . '/' . $post->slug)
+            "url" => route('post.show', $post)
         ];
     }
 

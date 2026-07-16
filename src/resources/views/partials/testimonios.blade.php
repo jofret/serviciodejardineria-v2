@@ -17,7 +17,7 @@
                     'texto' => $t->comment,
                     'postTitulo' => $t->post && $t->post->is_published && $t->post->category ? $t->post->title : null,
                     'postUrl' => $t->post && $t->post->is_published && $t->post->category
-                        ? route('post.show', ['category' => $t->post->category, 'post' => $t->post])
+                        ? route('post.show', $t->post)
                         : null,
                 ])->values()),
                 currentIndex: 0,

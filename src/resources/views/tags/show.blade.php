@@ -23,7 +23,7 @@
     @if($posts->count() > 0)
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         @foreach($posts as $post)
-        <a href="/{{ $post->category->slug }}/{{ $post->slug }}" class="bg-white rounded-lg shadow hover:shadow-xl transition overflow-hidden">
+        <a href="{{ route('post.show', $post) }}" class="bg-white rounded-lg shadow hover:shadow-xl transition overflow-hidden">
             @if($post->getFirstMediaUrl('featured', 'thumb'))<img src="{{ $post->getFirstMediaUrl('featured', 'thumb') }}" alt="{{ $post->title }}" class="w-full h-48 object-cover">@endif
             <div class="p-4">
                 <span class="text-sm text-green-600">{{ $post->category->name }}</span>

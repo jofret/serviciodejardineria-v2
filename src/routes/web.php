@@ -27,8 +27,20 @@ Route::prefix('tag')->name('tag.')->group(function () {
     Route::get('/{tag:slug}', [TagController::class, 'show'])->name('show');
 });
 
-// Debe ir antes de las rutas dinámicas de abajo
-Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
+/*
+|--------------------------------------------------------------------------
+| Rutas semánticas heredadas del sitio actual (serviciodejardineria.com.ar)
+|--------------------------------------------------------------------------
+| Estas URLs están posicionadas en buscadores y no deben cambiar de forma.
+| A diferencia del patrón nativo de limpieza-terrenos (categoría en la raíz,
+| post anidado bajo categoría), acá el post NO lleva segmento de categoría.
+| Estructura: /publicaciones           (listado)
+|             /publicaciones/{slug}    (detalle de post)
+|             /categoria/{slug}        (listado por categoría)
+*/
+Route::get('/publicaciones', [PostController::class, 'index'])->name('posts.index');
+Route::get('/publicaciones/{post:slug}', [PostController::class, 'show'])->name('post.show');
+Route::get('/categoria/{category:slug}', [CategoryController::class, 'show'])->name('category.show');
 
 /*
 |--------------------------------------------------------------------------
@@ -53,16 +65,6 @@ Route::post('/encuesta/{token}', [App\Http\Controllers\SurveyController::class, 
 // Sitemap
 Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index']);
 
-/*
-|--------------------------------------------------------------------------
-| Rutas semánticas (sin /categoria) - URLs limpias
-|--------------------------------------------------------------------------
-| Estructura: /desmalezado
-|           /desmalezado/terreno-en-pilar
-*/
-Route::get('/{category:slug}', [CategoryController::class, 'show'])->name('category.show');
-Route::get('/{category:slug}/{post:slug}', [PostController::class, 'show'])->name('post.show');
-
 
 
 /*
@@ -71,6 +73,6 @@ Route::get('/{category:slug}/{post:slug}', [PostController::class, 'show'])->nam
 |--------------------------------------------------------------------------
 */
 Route::fallback(function () {
-    return view('errors.404');
+    return response()->view('errors.404', [], 404);
 });
 
