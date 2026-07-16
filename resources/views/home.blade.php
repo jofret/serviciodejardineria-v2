@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('meta_title', 'Limpieza y Desmalezado de Terrenos en Zona Norte')
-@section('meta_description', 'Limpieza y Desmalezado de terrenos WhatsApp ✅ 11 7178 9529 | Servicio profesional en zona norte y Gran Buenos Aires. Respuesta rápida, presupuesto sin cargo. | Tags: desmalezado, limpieza, roza, pilar, escobar, campos, terrenos, maquinaria')
-@section('meta_keywords', 'limpieza de terrenos, desmalezado, roza de campos, zona norte, desmalezado pilar, limpieza escobar, presupuesto desmalezado, prevención de incendios')
+@section('meta_title', 'Servicio de Jardinería en Zona Norte y CABA')
+@section('meta_description', 'Corte de pasto, poda de altura, desmalezado y mantenimiento de jardines WhatsApp ✅ 11 7178-9529 | Servicio profesional en zona norte, CABA y Gran Buenos Aires. Respuesta rápida, presupuesto sin cargo.')
+@section('meta_keywords', 'servicio de jardinería, corte de pasto, poda de altura, desmalezado de terrenos, mantenimiento de jardines, zona norte, caba, buenos aires')
 
 @section('content')
     {{-- BANNER PRINCIPAL (sin lazy loading, es LCP) --}}
@@ -22,16 +22,16 @@
         <div class="container mx-auto px-4 relative z-10 py-12">
             <div class="max-w-4xl mx-auto text-center">
                 <div class="inline-block bg-yellow-500 text-gray-900 px-4 py-2 rounded-full text-sm font-semibold mb-6">
-                    ⭐ +15 años de experiencia
+                    ⭐ Servicio profesional en Zona Norte y CABA
                 </div>
 
                 <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight drop-shadow-lg">
-                    Limpieza y Desmalezado <br>
-                    <span class="text-yellow-300">de Terrenos</span>
+                    Corte de Pasto y <br>
+                    <span class="text-yellow-300">Mantenimiento de Jardines</span>
                 </h1>
 
                 <p class="text-xl md:text-2xl mb-10 text-green-100 max-w-3xl mx-auto drop-shadow-lg">
-                    Servicio profesional en zona norte y Gran Buenos Aires. 
+                    Servicio profesional en zona norte y Gran Buenos Aires.
                     Respuesta rápida, presupuesto sin cargo.
                 </p>
 
@@ -51,25 +51,26 @@
         </div>
     </section>
 
-    {{-- Stats Section --}}
+    {{-- Stats Section: números reales de la propia base, nada inventado --}}
+    @php
+        $statTrabajos = App\Models\Post::where('is_published', true)->count();
+        $statTestimonios = App\Models\Survey::whereNotNull('comment')->where('comment', '!=', '')->count();
+        $statServicios = App\Models\Category::where('is_active', true)->count();
+    @endphp
     <section class="py-16 bg-white rounded-xl shadow-sm mb-8">
         <div class="container mx-auto px-4">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
                 <div>
-                    <div class="text-4xl font-bold text-green-700">500+</div>
-                    <div class="text-gray-600">Terrenos limpiados</div>
+                    <div class="text-4xl font-bold text-green-700">{{ $statTrabajos }}+</div>
+                    <div class="text-gray-600">Trabajos realizados</div>
                 </div>
                 <div>
-                    <div class="text-4xl font-bold text-green-700">15+</div>
-                    <div class="text-gray-600">Años de experiencia</div>
+                    <div class="text-4xl font-bold text-green-700">{{ $statTestimonios }}</div>
+                    <div class="text-gray-600">Clientes satisfechos</div>
                 </div>
                 <div>
-                    <div class="text-4xl font-bold text-green-700">10</div>
-                    <div class="text-gray-600">Localidades</div>
-                </div>
-                <div>
-                    <div class="text-4xl font-bold text-green-700">24/7</div>
-                    <div class="text-gray-600">Respuesta urgente</div>
+                    <div class="text-4xl font-bold text-green-700">{{ $statServicios }}</div>
+                    <div class="text-gray-600">Servicios de jardinería</div>
                 </div>
             </div>
         </div>
@@ -144,14 +145,12 @@
                    aria-label="Servicio de {{ $category->name }}">
                     <div class="text-5xl mb-4">
                         @switch($category->slug)
+                            @case('corte-de-pasto-y-jardineria') 🌱 @break
                             @case('desmalezado-de-terrenos') 🌿 @break
-                            @case('limpieza-de-terrenos') 🧹 @break
-                            @case('poda-de-altura') 📍 @break
-                            @case('precios') 💰 @break
-                            @case('prevencion') 🔥 @break
-                            @case('legal') ⚖️ @break
-                            @case('consejos') 💡 @break
-                            @case('zonas') 🚜 @break
+                            @case('corte-de-cercos-y-enredaderas') ✂️ @break
+                            @case('poda-de-altura') 🌳 @break
+                            @case('corte-de-pasto-con-tractor') 🚜 @break
+                            @case('nivelado-de-terreno') 📏 @break
                             @default 📋
                         @endswitch
                     </div>
@@ -269,8 +268,8 @@
     {{-- CTA Section --}}
     <section class="py-16 bg-green-800 text-white rounded-xl shadow-lg mb-8">
         <div class="container mx-auto px-4 text-center">
-            <h2 class="text-3xl font-bold mb-4">¿Necesitas limpiar un terreno?</h2>
-            <p class="text-xl mb-8 text-green-200">Respondemos en menos de 24 horas</p>
+            <h2 class="text-3xl font-bold mb-4">¿Necesitás mantener tu jardín impecable?</h2>
+            <p class="text-xl mb-8 text-green-200">Respuesta rápida, presupuesto sin cargo</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="#contacto-formulario" class="bg-white text-green-800 px-8 py-4 rounded-lg text-lg font-bold hover:bg-gray-100 transition" aria-label="Enviar consulta por correo">
                     <i class="fas fa-envelope mr-2"></i> Enviar consulta
@@ -287,10 +286,11 @@
         $localBusiness = [
             "@context" => "https://schema.org",
             "@type" => "LocalBusiness",
-            "name" => "Limpieza de Terrenos",
+            "name" => "Servicio de Jardinería",
             "image" => asset('images/og-default.jpg'),
             "telephone" => "+54 11 7178-9529",
             "email" => "info@serviciodejardineria.com.ar",
+            "sameAs" => ["https://www.facebook.com/cortamospastoyjardines"],
             "address" => [
                 "@type" => "PostalAddress",
                 "addressLocality" => "Buenos Aires",
@@ -305,7 +305,7 @@
         $webSite = [
             "@context" => "https://schema.org",
             "@type" => "WebSite",
-            "name" => "Limpieza de Terrenos",
+            "name" => "Servicio de Jardinería",
             "url" => url('/'),
             "potentialAction" => [
                 "@type" => "SearchAction",

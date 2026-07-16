@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('meta_title', $metaTitle ?? 'Posts etiquetados con ' . $tag->name)
-@section('meta_description', 'Limpieza y Desmalezado de terrenos WhatsApp ✅ 11 7178 9529 | Trabajos etiquetados con ' . $tag->name . ' en zona norte. | Tags: ' . $tag->name . ', desmalezado, limpieza, zona norte, terrenos')
-@section('meta_keywords', strtolower($tag->name) . ', limpieza de terrenos, desmalezado, zona norte, terrenos')
+@section('meta_description', 'Servicio de Jardinería WhatsApp ✅ 11 7178-9529 | Trabajos etiquetados con ' . $tag->name . ' en zona norte.')
+@section('meta_keywords', strtolower($tag->name) . ', servicio de jardinería, zona norte, caba')
 
 {{-- Las páginas siguientes de un tag duplican contenido ya indexado en la página 1 --}}
 @if($posts->currentPage() > 1)
@@ -46,7 +46,7 @@
         "@context" => "https://schema.org",
         "@type" => "CollectionPage",
         "name" => "Posts etiquetados con #" . $tag->name,
-        "description" => "Trabajos de limpieza etiquetados con " . $tag->name . " en zona norte",
+        "description" => "Trabajos de jardinería etiquetados con " . $tag->name . " en zona norte",
         "url" => url()->current(),
         "keywords" => $tag->name
     ];

@@ -173,7 +173,7 @@ class Post extends Model implements HasMedia
      */
     public function getMetaTitleAttribute($value)
     {
-        return $value ?? $this->title . ' - Limpieza de Terrenos';
+        return $value ?? $this->title . ' - Servicio de Jardinería';
     }
 
     /**
@@ -189,7 +189,11 @@ class Post extends Model implements HasMedia
             return $this->excerpt;
         }
 
-        return "Trabajo de limpieza en {$this->location}. Ver fotos antes/después y solicitar presupuesto.";
+        if ($this->location) {
+            return "Trabajo de jardinería en {$this->location}. Ver fotos antes/después y solicitar presupuesto.";
+        }
+
+        return "{$this->title}. Ver fotos y solicitar presupuesto sin cargo.";
     }
 
     /**

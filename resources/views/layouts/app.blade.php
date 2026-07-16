@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     {{-- TÍTULO --}}
-    <title>@yield('meta_title', 'Limpieza y Desmalezado de Terrenos en Zona Norte')</title>
+    <title>@yield('meta_title', 'Servicio de Jardinería en Zona Norte y CABA')</title>
 
     {{-- META DESCRIPTION --}}
-    <meta name="description" content="@yield('meta_description', 'Limpieza y Desmalezado de terrenos WhatsApp ✅ 11 7178 9529 | Servicio profesional en zona norte y Gran Buenos Aires. Respuesta rápida, presupuesto sin cargo. | Tags: desmalezado, limpieza, roza, pilar, escobar, campos')">
+    <meta name="description" content="@yield('meta_description', 'Corte de pasto, poda de altura, desmalezado y mantenimiento de jardines ✅ +54 11 7178-9529 | Servicio profesional en zona norte, CABA y Gran Buenos Aires. Presupuesto sin cargo.')">
 
     {{-- KEYWORDS --}}
-    <meta name="keywords" content="@yield('meta_keywords', 'limpieza de terrenos, desmalezado, roza de campos, zona norte, desmalezado pilar, limpieza escobar')">
+    <meta name="keywords" content="@yield('meta_keywords', 'servicio de jardinería, corte de pasto, poda de altura, desmalezado de terrenos, mantenimiento de jardines, zona norte, caba, buenos aires')">
 
     {{-- AUTHOR Y ROBOTS --}}
-    <meta name="author" content="Limpieza de Terrenos">
+    <meta name="author" content="Servicio de Jardinería">
     <meta name="robots" content="@yield('meta_robots', 'index, follow')">
     <meta name="geo.region" content="AR-B">
     <meta name="geo.placename" content="Buenos Aires">
@@ -23,8 +23,8 @@
     <link rel="canonical" href="{{ url()->current() }}">
 
     {{-- OPEN GRAPH --}}
-    <meta property="og:title" content="@yield('meta_title', 'Limpieza y Desmalezado de Terrenos')">
-    <meta property="og:description" content="@yield('meta_description', 'Limpieza y Desmalezado de terrenos WhatsApp ✅ 11 7178 9529')">
+    <meta property="og:title" content="@yield('meta_title', 'Servicio de Jardinería en Zona Norte y CABA')">
+    <meta property="og:description" content="@yield('meta_description', 'Corte de pasto, poda de altura, desmalezado y mantenimiento de jardines ✅ +54 11 7178-9529')">
     <meta property="og:image" content="@yield('og_image', asset('images/og-default.jpg'))">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:type" content="website">
@@ -32,8 +32,8 @@
 
     {{-- TWITTER --}}
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="@yield('meta_title', 'Limpieza y Desmalezado de Terrenos')">
-    <meta name="twitter:description" content="@yield('meta_description', 'Limpieza y Desmalezado de terrenos WhatsApp ✅ 11 7178 9529')">
+    <meta name="twitter:title" content="@yield('meta_title', 'Servicio de Jardinería en Zona Norte y CABA')">
+    <meta name="twitter:description" content="@yield('meta_description', 'Corte de pasto, poda de altura, desmalezado y mantenimiento de jardines ✅ +54 11 7178-9529')">
     <meta name="twitter:image" content="@yield('og_image', asset('images/og-default.jpg'))">
 
     {{-- 
@@ -135,8 +135,8 @@
                 <a href="/" class="flex items-center space-x-2">
                     <span class="text-3xl">🌿</span>
                     <div>
-                        <span class="text-xl font-bold text-green-800">ALTOPARQUE</span>
-                        <span class="block text-xs text-gray-600">Servicio de Limpieza y Desmalezado de Terrenos</span>
+                        <span class="text-xl font-bold text-green-800">SERVICIO DE JARDINERÍA</span>
+                        <span class="block text-xs text-gray-600">Corte de pasto, poda y mantenimiento de jardines</span>
                     </div>
                 </a>
 
@@ -146,7 +146,7 @@
                     <a href="#servicios" class="text-gray-700 hover:text-green-700 font-medium transition">Servicios</a>
                     <a href="#trabajos" class="text-gray-700 hover:text-green-700 font-medium transition">Trabajos</a>
                     <a href="#contacto-formulario" class="text-gray-700 hover:text-green-700 font-medium transition">Contacto</a>
-                    <a href="https://wa.me/5491171789529?text=Hola%21%20Necesito%20informaci%C3%B3n%20sobre%20los%20servicios%20de%20limpieza%20de%20terrenos"
+                    <a href="https://wa.me/5491171789529?text=Hola%21%20Necesito%20informaci%C3%B3n%20sobre%20los%20servicios%20de%20jardiner%C3%ADa"
                        target="_blank"
                        class="flex items-center text-green-700 font-bold hover:text-green-800 transition">
                         <i class="fab fa-whatsapp mr-2"></i> 11 7178-9529
@@ -177,7 +177,7 @@
     </header>
 
     {{-- WhatsApp flotante --}}
-    <a href="https://wa.me/5491171789529?text=Hola!%20Necesito%20información%20sobre%20limpieza%20de%20terrenos"
+    <a href="https://wa.me/5491171789529?text=Hola!%20Necesito%20información%20sobre%20servicios%20de%20jardinería"
        target="_blank"
        class="whatsapp-float bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition transform hover:scale-110">
         <i class="fab fa-whatsapp text-3xl"></i>
@@ -197,9 +197,9 @@
                 <div>
                     <h3 class="text-xl font-bold mb-4 flex items-center">
                         <span class="text-2xl mr-2">🌿</span>
-                        ALTOPARQUE
+                        Servicio de Jardinería
                     </h3>
-                    <p class="text-gray-400">Servicio profesional de limpieza y desmalezado de terrenos en CABA - Gran Buenos Aires - Zona Norte.</p>
+                    <p class="text-gray-400">Corte de pasto, poda de altura, desmalezado y mantenimiento de jardines en CABA - Gran Buenos Aires - Zona Norte.</p>
                 </div>
 
                 {{-- Columna 2: Enlaces rápidos (anclas) --}}
@@ -253,13 +253,17 @@
                             <i class="fas fa-map-marker-alt text-green-500 w-5 mr-2"></i>
                             <span class="text-gray-400">Zona Norte, Buenos Aires</span>
                         </li>
+                        <li class="flex items-center">
+                            <i class="fab fa-facebook text-green-500 w-5 mr-2"></i>
+                            <a href="https://www.facebook.com/cortamospastoyjardines" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition">Facebook</a>
+                        </li>
                     </ul>
                 </div>
             </div>
 
             {{-- Copyright --}}
             <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
-                &copy; {{ date('Y') }} Limpieza de Terrenos. Todos los derechos reservados.
+                &copy; {{ date('Y') }} Servicio de Jardinería. Todos los derechos reservados.
                 <br>
                 <span class="text-sm">Desarrollado por JOfret</span>
             </div>

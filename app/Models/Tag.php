@@ -36,11 +36,11 @@ class Tag extends Model
 
     public function getMetaTitleAttribute($value)
     {
-        return $value ?? $this->name . ' - Tag | Limpieza de Terrenos';
+        return $value ?? $this->name . ' - Tag | Servicio de Jardinería';
     }
 
     public function getMetaDescriptionAttribute($value)
     {
-        return $value ?? "Posts etiquetados con {$this->name} sobre limpieza y desmalezado de terrenos.";
+        return $value ?? "Trabajos de jardinería etiquetados con {$this->name}.";
     }
 }

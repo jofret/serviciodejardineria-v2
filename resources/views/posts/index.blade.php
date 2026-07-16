@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('meta_title', 'Todos los trabajos - Limpieza de Terrenos')
-@section('meta_description', 'Limpieza y Desmalezado de terrenos WhatsApp ✅ 11 7178 9529 | Galería completa de trabajos de limpieza y desmalezado realizados en zona norte. Antes y después reales. | Tags: desmalezado, limpieza, terrenos, maquinaria, zona norte, pilar, escobar, campos')
-@section('meta_keywords', 'trabajos de limpieza de terrenos, desmalezado, roza, zona norte, galería de trabajos, antes y después')
+@section('meta_title', 'Todos los trabajos - Servicio de Jardinería')
+@section('meta_description', 'Servicio de Jardinería WhatsApp ✅ 11 7178-9529 | Galería completa de trabajos de corte de pasto, poda y desmalezado realizados en zona norte. Antes y después reales.')
+@section('meta_keywords', 'trabajos de jardinería, corte de pasto, poda de altura, desmalezado, zona norte, galería de trabajos, antes y después')
 
 {{-- Con búsqueda, filtro de categoría o páginas siguientes se duplica el contenido de /publicaciones o de /categoria/{slug}, así que no deben indexarse --}}
 @if(request('search') || request('category') || $posts->currentPage() > 1)
@@ -70,8 +70,8 @@
     $collectionPage = [
         "@context" => "https://schema.org",
         "@type" => "CollectionPage",
-        "name" => "Todos los trabajos de limpieza de terrenos",
-        "description" => "Galería completa de trabajos de limpieza y desmalezado realizados en zona norte y Gran Buenos Aires",
+        "name" => "Todos los trabajos de jardinería",
+        "description" => "Galería completa de trabajos de corte de pasto, poda y desmalezado realizados en zona norte y Gran Buenos Aires",
         "url" => url()->current(),
         "mainEntity" => [
             "@type" => "ItemList",
