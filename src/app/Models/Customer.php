@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
 {
@@ -55,6 +55,14 @@ class Customer extends Model
     }
 
     /**
+     * Relación con órdenes de servicio
+     */
+    public function serviceOrders()
+    {
+        return $this->hasMany(ServiceOrder::class);
+    }
+
+    /**
      * Indica si corresponde ofrecer el botón de "Encuesta WhatsApp":
      * false si ya hay una encuesta respondida o publicada para este cliente.
      */
@@ -103,8 +111,9 @@ class Customer extends Model
     public function getBirthdayAttribute()
     {
         if ($this->birthday_month && $this->birthday_day) {
-            return $this->birthday_day . ' de ' . $this->birthday_month;
+            return $this->birthday_day.' de '.$this->birthday_month;
         }
+
         return null;
     }
 
@@ -130,7 +139,7 @@ class Customer extends Model
     public function scopeByZone($query, $zone)
     {
         return $query->where('zona_principal', $zone)
-                     ->orWhere('otra_zona', 'LIKE', "%{$zone}%");
+            ->orWhere('otra_zona', 'LIKE', "%{$zone}%");
     }
 
     /**
@@ -141,11 +150,11 @@ class Customer extends Model
         if ($this->zona_principal === 'Otra') {
             return $this->otra_zona;
         }
-        
+
         if ($this->partido) {
-            return $this->zona_principal . ' - ' . $this->partido;
+            return $this->zona_principal.' - '.$this->partido;
         }
-        
+
         return $this->zona_principal;
     }
 }

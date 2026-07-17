@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Relevamiento extends Model
 {
@@ -32,5 +33,10 @@ class Relevamiento extends Model
     public function relevador(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    public function serviceOrder(): HasOne
+    {
+        return $this->hasOne(ServiceOrder::class);
     }
 }
