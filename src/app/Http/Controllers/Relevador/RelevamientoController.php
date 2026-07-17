@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Property;
 use App\Models\PropertyTag;
 use App\Models\Relevamiento;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -41,11 +42,60 @@ class RelevamientoController extends Controller
         ]);
     }
 
+    public function autosave(Request $request, Relevamiento $relevamiento): JsonResponse
+    {
+        $this->authorizeEditable($request, $relevamiento);
+
+        $this->applyChanges($request, $relevamiento);
+
+        return response()->json(['status' => 'ok']);
+    }
+
     public function update(Request $request, Relevamiento $relevamiento): RedirectResponse
+    {
+        $this->authorizeEditable($request, $relevamiento);
+
+        $this->applyChanges($request, $relevamiento);
+        $relevamiento->markAsSubmitted();
+
+        return redirect()
+            ->route('relevador.show', $relevamiento)
+            ->with('status', 'Relevamiento enviado correctamente.');
+    }
+
+    public function uploadPhoto(Request $request, Relevamiento $relevamiento): JsonResponse
+    {
+        $this->authorizeEditable($request, $relevamiento);
+
+        $request->validate([
+            'photo' => ['required', 'image', 'max:10240'],
+        ]);
+
+        $media = $relevamiento->addMedia($request->file('photo'))->toMediaCollection('photos');
+
+        return response()->json([
+            'id' => $media->id,
+            'url' => $media->getUrl(),
+        ]);
+    }
+
+    public function deletePhoto(Request $request, Relevamiento $relevamiento, int $media): JsonResponse
+    {
+        $this->authorizeEditable($request, $relevamiento);
+
+        $relevamiento->media()->findOrFail($media)->delete();
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    private function authorizeEditable(Request $request, Relevamiento $relevamiento): void
     {
         abort_unless($relevamiento->assigned_to === $request->user()->id, 403);
         abort_if($relevamiento->status === 'enviado', 403);
+    }
 
+    private function applyChanges(Request $request, Relevamiento $relevamiento): void
+    {
         $data = $request->validate([
             'property_type' => ['nullable', 'string', 'in:'.implode(',', array_keys(Property::PROPERTY_TYPES))],
             'property_type_other' => ['nullable', 'string', 'max:255'],
@@ -80,9 +130,6 @@ class RelevamientoController extends Controller
 
             'tags' => ['nullable', 'string', 'max:1000'],
 
-            'photos' => ['nullable', 'array'],
-            'photos.*' => ['nullable', 'image', 'max:10240'],
-
             'notes' => ['nullable', 'string'],
         ]);
 
@@ -116,16 +163,7 @@ class RelevamientoController extends Controller
 
         $property->tags()->sync($tagIds);
 
-        foreach ($request->file('photos', []) as $photo) {
-            $relevamiento->addMedia($photo)->toMediaCollection('photos');
-        }
-
         $relevamiento->update(['notes' => $data['notes'] ?? $relevamiento->notes]);
-        $relevamiento->markAsSubmitted();
-
-        return redirect()
-            ->route('relevador.show', $relevamiento)
-            ->with('status', 'Relevamiento enviado correctamente.');
     }
 
     private function cleanRows(array $rows): array
