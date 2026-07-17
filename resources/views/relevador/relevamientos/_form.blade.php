@@ -1,5 +1,8 @@
 @php
     $property = $relevamiento->property;
+    $isCustomPropertyType = $property->property_type && ! array_key_exists($property->property_type, \App\Models\Property::PROPERTY_TYPES);
+    $selectedPropertyType = old('property_type', $isCustomPropertyType ? 'otro' : $property->property_type);
+    $propertyTypeOther = old('property_type_other', $isCustomPropertyType ? $property->property_type : '');
 @endphp
 
 <form method="POST" action="{{ route('relevador.update', $relevamiento) }}" enctype="multipart/form-data" class="mt-4 space-y-4">
@@ -20,11 +23,17 @@
         <h2 class="font-semibold text-gray-800">Datos generales</h2>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de propiedad</label>
-            <select name="property_type" class="w-full rounded-lg border-gray-300 text-base py-2 px-3">
+            <select name="property_type" id="property_type" data-toggle-select="property_type_other_wrap"
+                    data-toggle-select-value="otro" class="w-full rounded-lg border-gray-300 text-base py-2 px-3">
                 @foreach (\App\Models\Property::PROPERTY_TYPES as $value => $label)
-                    <option value="{{ $value }}" {{ old('property_type', $property->property_type) === $value ? 'selected' : '' }}>{{ $label }}</option>
+                    <option value="{{ $value }}" {{ $selectedPropertyType === $value ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
             </select>
+        </div>
+        <div id="property_type_other_wrap" class="{{ $selectedPropertyType === 'otro' ? '' : 'hidden' }}">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Especificar tipo de propiedad</label>
+            <input type="text" name="property_type_other" value="{{ $propertyTypeOther }}"
+                   class="w-full rounded-lg border-gray-300 text-base py-2 px-3">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Superficie total (m²)</label>
@@ -246,6 +255,12 @@
         var target = document.getElementById(checkbox.dataset.toggle);
         var sync = function () { target.classList.toggle('hidden', !checkbox.checked); };
         checkbox.addEventListener('change', sync);
+    });
+
+    document.querySelectorAll('[data-toggle-select]').forEach(function (select) {
+        var target = document.getElementById(select.dataset.toggleSelect);
+        var sync = function () { target.classList.toggle('hidden', select.value !== select.dataset.toggleSelectValue); };
+        select.addEventListener('change', sync);
     });
 
     document.querySelectorAll('[data-add]').forEach(function (button) {

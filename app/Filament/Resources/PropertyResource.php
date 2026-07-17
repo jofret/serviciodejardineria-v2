@@ -44,16 +44,23 @@ class PropertyResource extends Resource
                             ->numeric(),
                         Forms\Components\Select::make('property_type')
                             ->label('Tipo de propiedad')
-                            ->options([
-                                'casa' => 'Casa',
-                                'departamento' => 'Departamento',
-                                'oficina' => 'Oficina',
-                                'campo' => 'Campo',
-                                'quinta' => 'Quinta',
-                                'country' => 'Country',
-                                'otro' => 'Otro',
-                            ])
-                            ->default('casa'),
+                            ->options(Property::PROPERTY_TYPES)
+                            ->default('casa')
+                            ->live()
+                            ->afterStateHydrated(function (callable $set, $state) {
+                                if ($state && ! array_key_exists($state, Property::PROPERTY_TYPES)) {
+                                    $set('property_type_other', $state);
+                                    $set('property_type', 'otro');
+                                }
+                            })
+                            ->dehydrateStateUsing(fn ($state, callable $get) => $state === 'otro' && filled($get('property_type_other'))
+                                ? $get('property_type_other')
+                                : $state),
+                        Forms\Components\TextInput::make('property_type_other')
+                            ->label('Especificar tipo de propiedad')
+                            ->maxLength(255)
+                            ->visible(fn (callable $get) => $get('property_type') === 'otro')
+                            ->dehydrated(false),
                     ])->columns(2),
 
                 Forms\Components\Section::make('Jardines')

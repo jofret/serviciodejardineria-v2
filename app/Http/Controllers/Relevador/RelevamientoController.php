@@ -48,6 +48,7 @@ class RelevamientoController extends Controller
 
         $data = $request->validate([
             'property_type' => ['nullable', 'string', 'in:'.implode(',', array_keys(Property::PROPERTY_TYPES))],
+            'property_type_other' => ['nullable', 'string', 'max:255'],
             'total_area' => ['nullable', 'numeric'],
 
             'has_garden' => ['nullable', 'boolean'],
@@ -87,8 +88,13 @@ class RelevamientoController extends Controller
 
         $property = $relevamiento->property;
 
+        $propertyType = $data['property_type'] ?? $property->property_type;
+        if ($propertyType === 'otro' && filled($data['property_type_other'] ?? null)) {
+            $propertyType = $data['property_type_other'];
+        }
+
         $property->update([
-            'property_type' => $data['property_type'] ?? $property->property_type,
+            'property_type' => $propertyType,
             'total_area' => $data['total_area'] ?? null,
             'has_garden' => $request->boolean('has_garden'),
             'garden_areas' => $this->cleanRows($data['garden_areas'] ?? []),

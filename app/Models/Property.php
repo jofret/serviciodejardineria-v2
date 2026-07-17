@@ -15,6 +15,8 @@ class Property extends Model
         'casa' => 'Casa',
         'departamento' => 'Departamento',
         'oficina' => 'Oficina',
+        'empresa' => 'Empresa',
+        'galpon' => 'Galpón',
         'campo' => 'Campo',
         'quinta' => 'Quinta',
         'country' => 'Country',
@@ -59,6 +61,15 @@ class Property extends Model
     public function getDisplayLabelAttribute(): string
     {
         return $this->address ?: $this->zone ?: 'Propiedad #'.$this->id;
+    }
+
+    public function getPropertyTypeLabelAttribute(): ?string
+    {
+        if (! $this->property_type) {
+            return null;
+        }
+
+        return self::PROPERTY_TYPES[$this->property_type] ?? $this->property_type;
     }
 
     public function customer()

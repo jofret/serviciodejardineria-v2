@@ -13,7 +13,7 @@
 
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-3">
     <div>
-        <h1 class="text-lg font-bold text-gray-800">{{ \App\Models\Property::PROPERTY_TYPES[$relevamiento->property->property_type] ?? 'Propiedad' }}</h1>
+        <h1 class="text-lg font-bold text-gray-800">{{ $relevamiento->property->property_type_label ?? 'Propiedad' }}</h1>
         <p class="text-sm text-gray-500">{{ $relevamiento->property->customer?->name }}</p>
     </div>
 
@@ -38,7 +38,7 @@
         <h2 class="font-semibold text-gray-800">Relevamiento enviado</h2>
 
         <div class="text-sm text-gray-600 space-y-1">
-            <p><span class="font-medium text-gray-700">Tipo:</span> {{ \App\Models\Property::PROPERTY_TYPES[$relevamiento->property->property_type] ?? $relevamiento->property->property_type ?? '—' }}</p>
+            <p><span class="font-medium text-gray-700">Tipo:</span> {{ $relevamiento->property->property_type_label ?? '—' }}</p>
             <p><span class="font-medium text-gray-700">Superficie:</span> {{ $relevamiento->property->total_area ? $relevamiento->property->total_area.' m²' : '—' }}</p>
         </div>
 

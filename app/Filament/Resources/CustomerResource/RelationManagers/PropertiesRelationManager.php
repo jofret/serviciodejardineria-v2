@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\CustomerResource\RelationManagers;
 
+use App\Models\Property;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -27,16 +28,23 @@ class PropertiesRelationManager extends RelationManager
                     ->numeric(),
                 Forms\Components\Select::make('property_type')
                     ->label('Tipo de propiedad')
-                    ->options([
-                        'casa' => 'Casa',
-                        'departamento' => 'Departamento',
-                        'oficina' => 'Oficina',
-                        'campo' => 'Campo',
-                        'quinta' => 'Quinta',
-                        'country' => 'Country',
-                        'otro' => 'Otro',
-                    ])
-                    ->default('casa'),
+                    ->options(Property::PROPERTY_TYPES)
+                    ->default('casa')
+                    ->live()
+                    ->afterStateHydrated(function (callable $set, $state) {
+                        if ($state && ! array_key_exists($state, Property::PROPERTY_TYPES)) {
+                            $set('property_type_other', $state);
+                            $set('property_type', 'otro');
+                        }
+                    })
+                    ->dehydrateStateUsing(fn ($state, callable $get) => $state === 'otro' && filled($get('property_type_other'))
+                        ? $get('property_type_other')
+                        : $state),
+                Forms\Components\TextInput::make('property_type_other')
+                    ->label('Especificar tipo de propiedad')
+                    ->maxLength(255)
+                    ->visible(fn (callable $get) => $get('property_type') === 'otro')
+                    ->dehydrated(false),
                 Forms\Components\Toggle::make('has_garden')
                     ->label('¿Tiene jardín?'),
                 Forms\Components\Toggle::make('has_pool')
