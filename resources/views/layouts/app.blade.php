@@ -145,16 +145,16 @@
 
                 {{-- Menú desktop con anclas --}}
                 <div class="hidden md:flex items-center space-x-6">
-                    <a href="#inicio" class="text-gray-700 hover:text-green-700 font-medium transition">Inicio</a>
-                    <a href="#servicios" class="text-gray-700 hover:text-green-700 font-medium transition">Servicios</a>
-                    <a href="#trabajos" class="text-gray-700 hover:text-green-700 font-medium transition">Trabajos</a>
-                    <a href="#contacto-formulario" class="text-gray-700 hover:text-green-700 font-medium transition">Contacto</a>
+                    <a href="/#inicio" class="text-gray-700 hover:text-green-700 font-medium transition">Inicio</a>
+                    <a href="/#servicios" class="text-gray-700 hover:text-green-700 font-medium transition">Servicios</a>
+                    <a href="{{ route('posts.index') }}" class="text-gray-700 hover:text-green-700 font-medium transition">Trabajos</a>
+                    <a href="/#contacto-formulario" class="text-gray-700 hover:text-green-700 font-medium transition">Contacto</a>
                     <a href="https://wa.me/5491171789529?text=Hola%21%20Necesito%20informaci%C3%B3n%20sobre%20los%20servicios%20de%20jardiner%C3%ADa"
                        target="_blank"
                        class="flex items-center text-green-700 font-bold hover:text-green-800 transition">
                         <i class="fab fa-whatsapp mr-2"></i> 11 7178-9529
                     </a>
-                    <a href="#contacto-formulario" class="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition">
+                    <a href="/#contacto-formulario" class="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition">
                         Presupuesto
                     </a>
                 </div>
@@ -167,14 +167,14 @@
 
             {{-- Menú móvil con anclas --}}
             <div x-show="mobileMenuOpen" @click.away="mobileMenuOpen = false" class="md:hidden mt-4 pb-4 space-y-2">
-                <a href="#inicio" class="block py-2 px-4 hover:bg-green-50">Inicio</a>
-                <a href="#servicios" class="block py-2 px-4 hover:bg-green-50">Servicios</a>
-                <a href="#trabajos" class="block py-2 px-4 hover:bg-green-50">Trabajos</a>
-                <a href="#contacto" class="block py-2 px-4 hover:bg-green-50">Contacto</a>
+                <a href="/#inicio" class="block py-2 px-4 hover:bg-green-50">Inicio</a>
+                <a href="/#servicios" class="block py-2 px-4 hover:bg-green-50">Servicios</a>
+                <a href="{{ route('posts.index') }}" class="block py-2 px-4 hover:bg-green-50">Trabajos</a>
+                <a href="/#contacto-formulario" class="block py-2 px-4 hover:bg-green-50">Contacto</a>
                 <a href="tel:+541171789529" class="block py-2 px-4 text-green-700 font-bold">
                     <i class="fas fa-phone-alt mr-2"></i> 11 7178-9529
                 </a>
-                <a href="#contacto-formulario" class="block py-2 px-4 bg-green-700 text-white rounded">Presupuesto</a>
+                <a href="/#contacto-formulario" class="block py-2 px-4 bg-green-700 text-white rounded">Presupuesto</a>
             </div>
         </nav>
     </header>
@@ -209,10 +209,10 @@
                 <div>
                     <h4 class="font-semibold mb-4">Enlaces rápidos</h4>
                     <ul class="space-y-2">
-                        <li><a href="#inicio" class="text-gray-400 hover:text-white transition">Inicio</a></li>
-                        <li><a href="#servicios" class="text-gray-400 hover:text-white transition">Servicios</a></li>
-                        <li><a href="#trabajos" class="text-gray-400 hover:text-white transition">Trabajos</a></li>
-                        <li><a href="#contacto-formulario" class="text-gray-400 hover:text-white transition">Contacto</a></li>
+                        <li><a href="/#inicio" class="text-gray-400 hover:text-white transition">Inicio</a></li>
+                        <li><a href="/#servicios" class="text-gray-400 hover:text-white transition">Servicios</a></li>
+                        <li><a href="{{ route('posts.index') }}" class="text-gray-400 hover:text-white transition">Trabajos</a></li>
+                        <li><a href="/#contacto-formulario" class="text-gray-400 hover:text-white transition">Contacto</a></li>
                     </ul>
                 </div>
 
