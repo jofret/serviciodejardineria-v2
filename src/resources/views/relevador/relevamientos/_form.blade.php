@@ -336,16 +336,46 @@
                 body: new FormData(form),
                 headers: {'Accept': 'application/json'},
             }).then(function (response) {
-                if (!response.ok) {
-                    throw new Error('autosave failed');
-                }
                 saving = false;
-                setStatus('Guardado ✓');
-                if (dirty) {
-                    save();
+
+                if (response.ok) {
+                    setStatus('Guardado ✓');
+                    if (dirty) {
+                        save();
+                    }
+                    return;
                 }
-            }).catch(function () {
+
+                // La request llegó al servidor pero falló — no es un problema
+                // de conexión, reintentar con los mismos datos no va a
+                // arreglarlo solo. Se distingue del catch() de abajo, que es
+                // el que sí corresponde a "no hay señal".
+                if (response.status === 419) {
+                    setStatus('Tu sesión expiró — recargá la página para seguir');
+                    return;
+                }
+
+                if (response.status === 403) {
+                    setStatus('Este relevamiento ya no admite cambios');
+                    return;
+                }
+
+                if (response.status === 422) {
+                    response.json().then(function (body) {
+                        var firstError = body && body.errors ? Object.values(body.errors)[0][0] : null;
+                        setStatus(firstError ? ('No se pudo guardar: ' + firstError) : 'No se pudo guardar: revisá los datos cargados');
+                    }).catch(function () {
+                        setStatus('No se pudo guardar: revisá los datos cargados');
+                    });
+                    return;
+                }
+
+                console.error('Autoguardado: el servidor respondió ' + response.status);
+                setStatus('Error al guardar, reintentando…');
+                scheduleRetry();
+            }).catch(function (error) {
                 saving = false;
+                console.error('Autoguardado: sin respuesta del servidor', error);
                 setStatus('Sin conexión, reintentando…');
                 scheduleRetry();
             });
@@ -389,7 +419,13 @@
                     headers: {'Accept': 'application/json'},
                 }).then(function (response) {
                     if (!response.ok) {
-                        throw new Error('upload failed');
+                        if (response.status === 419) {
+                            throw new Error('Tu sesión expiró — recargá la página para seguir');
+                        }
+                        if (response.status === 403) {
+                            throw new Error('Este relevamiento ya no admite cambios');
+                        }
+                        throw new Error('No se pudo subir la foto — probá de nuevo');
                     }
                     return response.json();
                 }).then(function (photo) {
@@ -399,8 +435,9 @@
                     cell.innerHTML = '<img src="' + photo.url + '" alt="Foto de la visita" class="w-full h-full object-cover">'
                         + '<button type="button" data-remove-photo class="absolute top-1 right-1 bg-black/60 text-white text-xs w-5 h-5 rounded-full leading-none">✕</button>';
                     photoGrid.appendChild(cell);
-                }).catch(function () {
-                    setStatus('No se pudo subir una foto, probá de nuevo');
+                }).catch(function (error) {
+                    console.error('Subida de foto:', error);
+                    setStatus(error.message || 'No se pudo subir una foto, probá de nuevo');
                 });
             });
 
