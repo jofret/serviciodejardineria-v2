@@ -180,6 +180,17 @@ class PropertyResource extends Resource
                     ->schema([
                         Forms\Components\KeyValue::make('other_features')
                             ->label('Características adicionales'),
+                        Forms\Components\Select::make('tags')
+                            ->label('Tags del relevamiento')
+                            ->relationship('tags', 'name')
+                            ->multiple()
+                            ->preload()
+                            ->searchable()
+                            ->createOptionForm([
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Nombre')
+                                    ->required(),
+                            ]),
                     ]),
             ]);
     }
@@ -207,6 +218,9 @@ class PropertyResource extends Resource
                 Tables\Columns\IconColumn::make('has_trees')
                     ->label('Árboles')
                     ->boolean(),
+                Tables\Columns\TextColumn::make('tags.name')
+                    ->label('Tags')
+                    ->badge(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Creada')
                     ->dateTime('d/m/Y')
