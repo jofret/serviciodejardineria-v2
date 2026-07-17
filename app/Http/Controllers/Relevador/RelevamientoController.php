@@ -114,15 +114,8 @@ class RelevamientoController extends Controller
             $relevamiento->addMedia($photo)->toMediaCollection('photos');
         }
 
-        $relevamiento->update([
-            'status' => 'enviado',
-            'submitted_at' => now(),
-            'notes' => $data['notes'] ?? $relevamiento->notes,
-        ]);
-
-        if ($relevamiento->serviceOrder && $relevamiento->serviceOrder->status === 'visita_programada') {
-            $relevamiento->serviceOrder->update(['status' => 'visita_realizada']);
-        }
+        $relevamiento->update(['notes' => $data['notes'] ?? $relevamiento->notes]);
+        $relevamiento->markAsSubmitted();
 
         return redirect()
             ->route('relevador.show', $relevamiento)

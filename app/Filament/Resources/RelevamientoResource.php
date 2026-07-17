@@ -108,6 +108,17 @@ class RelevamientoResource extends Resource
                     ->relationship('relevador', 'name', fn ($query) => $query->where('role', 'relevador')),
             ])
             ->actions([
+                Tables\Actions\Action::make('enviar')
+                    ->label('Enviar relevamiento')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->color('success')
+                    ->visible(fn (Relevamiento $record): bool => $record->status === 'pendiente')
+                    ->requiresConfirmation()
+                    ->modalHeading('Enviar relevamiento')
+                    ->modalDescription('Revisá los ítems, tags y fotos cargados (editá el relevamiento si hace falta) antes de confirmar. Al enviarlo queda cerrado para el relevador y, si tiene una orden de servicio vinculada en "Visita programada", pasa a "Visita realizada".')
+                    ->modalSubmitActionLabel('Confirmar envío')
+                    ->action(fn (Relevamiento $record) => $record->markAsSubmitted())
+                    ->successNotificationTitle('Relevamiento enviado'),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
