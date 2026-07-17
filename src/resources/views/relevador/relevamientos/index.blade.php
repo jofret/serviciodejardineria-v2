@@ -28,7 +28,7 @@
                class="block bg-white rounded-xl shadow-sm border border-gray-100 p-4 active:bg-gray-50">
                 <div class="flex items-start justify-between gap-2">
                     <div>
-                        <p class="font-semibold text-gray-800">{{ \App\Models\Property::PROPERTY_TYPES[$relevamiento->property->property_type] ?? 'Propiedad' }}</p>
+                        <p class="font-semibold text-gray-800">{{ $relevamiento->property->property_type_label ?? 'Propiedad' }}</p>
                         <p class="text-sm text-gray-500">{{ $relevamiento->property->customer?->name }}</p>
                         <p class="text-sm text-gray-500">{{ $relevamiento->property->display_label }}</p>
                     </div>
