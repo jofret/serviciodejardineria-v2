@@ -1,12 +1,13 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\PostController;
-use App\Http\Controllers\TagController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SurveyController;
+use App\Http\Controllers\TagController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -52,8 +53,8 @@ Route::post('/contacto/enviar', [ContactController::class, 'send'])
     ->name('contacto.enviar');
 
 // Encuestas públicas
-Route::get('/encuesta/{token}', [App\Http\Controllers\SurveyController::class, 'show'])->name('survey.show');
-Route::post('/encuesta/{token}', [App\Http\Controllers\SurveyController::class, 'store'])->name('survey.store');
+Route::get('/encuesta/{token}', [SurveyController::class, 'show'])->name('survey.show');
+Route::post('/encuesta/{token}', [SurveyController::class, 'store'])->name('survey.store');
 
 /*
 |--------------------------------------------------------------------------
@@ -61,11 +62,8 @@ Route::post('/encuesta/{token}', [App\Http\Controllers\SurveyController::class, 
 |--------------------------------------------------------------------------
 */
 
-
 // Sitemap
-Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index']);
-
-
+Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 
 /*
 |--------------------------------------------------------------------------
@@ -76,3 +74,9 @@ Route::fallback(function () {
     return response()->view('errors.404', [], 404);
 });
 
+/*
+|--------------------------------------------------------------------------
+| Panel del relevador
+|--------------------------------------------------------------------------
+*/
+require __DIR__.'/relevador.php';
