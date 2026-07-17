@@ -47,6 +47,12 @@ class RelevadorResource extends Resource
                     ->required()
                     ->unique(ignoreRecord: true)
                     ->maxLength(255),
+                Forms\Components\TextInput::make('whatsapp')
+                    ->label('WhatsApp')
+                    ->tel()
+                    ->required()
+                    ->maxLength(255)
+                    ->helperText('Con código de país, ej: 5491171789529. Se usa para enviarle notificaciones.'),
                 Forms\Components\TextInput::make('password')
                     ->label('Contraseña')
                     ->password()
@@ -73,6 +79,9 @@ class RelevadorResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('email')
                     ->label('Email')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('whatsapp')
+                    ->label('WhatsApp')
                     ->searchable(),
                 Tables\Columns\ToggleColumn::make('is_active')
                     ->label('Activo'),
