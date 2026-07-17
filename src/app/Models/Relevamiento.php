@@ -15,9 +15,12 @@ class Relevamiento extends Model implements HasMedia
 
     protected $fillable = [
         'property_id',
+        'category_id',
         'assigned_to',
         'status',
         'scheduled_date',
+        'scheduled_time_from',
+        'scheduled_time_to',
         'submitted_at',
         'notes',
     ];
@@ -35,6 +38,11 @@ class Relevamiento extends Model implements HasMedia
     public function property(): BelongsTo
     {
         return $this->belongsTo(Property::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 
     public function relevador(): BelongsTo
