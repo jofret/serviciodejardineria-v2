@@ -48,8 +48,8 @@ class ServiceOrderResource extends Resource
 
                 Forms\Components\Select::make('property_id')
                     ->label('Propiedad')
-                    ->relationship('property', 'name')
-                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->customer?->name.' — '.$record->name)
+                    ->relationship('property', 'address')
+                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->customer?->name.' — '.$record->display_label)
                     ->searchable()
                     ->preload()
                     ->createOptionForm([
@@ -59,10 +59,6 @@ class ServiceOrderResource extends Resource
                             ->searchable()
                             ->preload()
                             ->required(),
-                        Forms\Components\TextInput::make('name')
-                            ->label('Nombre de la propiedad')
-                            ->required()
-                            ->maxLength(255),
                         Forms\Components\TextInput::make('address')
                             ->label('Dirección')
                             ->maxLength(255),
@@ -142,10 +138,9 @@ class ServiceOrderResource extends Resource
                     ->label('Cliente')
                     ->default('—')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('property.name')
+                Tables\Columns\TextColumn::make('property.display_label')
                     ->label('Propiedad')
-                    ->default('—')
-                    ->searchable(),
+                    ->default('—'),
                 Tables\Columns\TextColumn::make('category.name')
                     ->label('Categoría'),
                 Tables\Columns\TextColumn::make('work_date')

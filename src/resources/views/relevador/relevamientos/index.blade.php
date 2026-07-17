@@ -28,9 +28,9 @@
                class="block bg-white rounded-xl shadow-sm border border-gray-100 p-4 active:bg-gray-50">
                 <div class="flex items-start justify-between gap-2">
                     <div>
-                        <p class="font-semibold text-gray-800">{{ $relevamiento->property->name }}</p>
+                        <p class="font-semibold text-gray-800">{{ \App\Models\Property::PROPERTY_TYPES[$relevamiento->property->property_type] ?? 'Propiedad' }}</p>
                         <p class="text-sm text-gray-500">{{ $relevamiento->property->customer?->name }}</p>
-                        <p class="text-sm text-gray-500">{{ $relevamiento->property->address ?? $relevamiento->property->zone }}</p>
+                        <p class="text-sm text-gray-500">{{ $relevamiento->property->display_label }}</p>
                     </div>
                     <span class="text-xs font-medium px-2 py-1 rounded-full {{ $relevamiento->status === 'enviado' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700' }}">
                         {{ $relevamiento->status === 'enviado' ? 'Enviado' : 'Pendiente' }}

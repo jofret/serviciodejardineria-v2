@@ -36,7 +36,7 @@ class Property extends Model
     ];
 
     protected $fillable = [
-        'customer_id', 'name', 'address', 'zone', 'total_area',
+        'customer_id', 'address', 'zone', 'total_area',
         'property_type', 'has_garden', 'garden_areas', 'has_pool', 'pools',
         'has_trees', 'trees', 'has_plants', 'plants',
         'has_sport_areas', 'sport_areas', 'other_features',
@@ -55,6 +55,11 @@ class Property extends Model
         'has_plants' => 'boolean',
         'has_sport_areas' => 'boolean',
     ];
+
+    public function getDisplayLabelAttribute(): string
+    {
+        return $this->address ?: $this->zone ?: 'Propiedad #'.$this->id;
+    }
 
     public function customer()
     {
