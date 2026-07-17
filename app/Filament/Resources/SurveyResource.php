@@ -184,6 +184,11 @@ class SurveyResource extends Resource
             ->count() ?: null;
     }
 
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Testimonios respondidos y pendientes de publicar';
+    }
+
     public static function getNavigationBadgeColor(): ?string
     {
         return 'warning';
