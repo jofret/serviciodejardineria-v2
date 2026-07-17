@@ -17,6 +17,7 @@ Route::prefix('relevador')->name('relevador.')->group(function () {
     Route::middleware(EnsureUserIsRelevador::class)->group(function () {
         Route::get('/', [RelevamientoController::class, 'index'])->name('dashboard');
         Route::get('/{relevamiento}', [RelevamientoController::class, 'show'])->name('show');
+        Route::post('/{relevamiento}', [RelevamientoController::class, 'update'])->name('update');
         Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
     });
 });

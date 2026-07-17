@@ -54,6 +54,12 @@ class RelevamientoResource extends Resource
                 Forms\Components\Textarea::make('notes')
                     ->label('Notas')
                     ->columnSpanFull(),
+                Forms\Components\SpatieMediaLibraryFileUpload::make('photos')
+                    ->collection('photos')
+                    ->label('Fotos cargadas por el relevador')
+                    ->disabled()
+                    ->image()
+                    ->columnSpanFull(),
             ]);
     }
 
