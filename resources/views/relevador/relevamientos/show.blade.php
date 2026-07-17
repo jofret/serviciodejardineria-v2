@@ -14,8 +14,14 @@
     <dl class="text-sm text-gray-600 space-y-1">
         <div><dt class="inline font-medium text-gray-700">Dirección:</dt> <dd class="inline">{{ $relevamiento->property->address ?? '—' }}</dd></div>
         <div><dt class="inline font-medium text-gray-700">Zona:</dt> <dd class="inline">{{ $relevamiento->property->zone ?? '—' }}</dd></div>
-        <div><dt class="inline font-medium text-gray-700">Fecha programada:</dt> <dd class="inline">{{ optional($relevamiento->scheduled_date)->format('d/m/Y') ?? '—' }}</dd></div>
-        <div><dt class="inline font-medium text-gray-700">Estado:</dt> <dd class="inline">{{ $relevamiento->status === 'enviado' ? 'Enviado' : 'Pendiente' }}</dd></div>
+        @if ($relevamiento->serviceOrder)
+            <div><dt class="inline font-medium text-gray-700">Fecha programada:</dt> <dd class="inline">{{ optional($relevamiento->serviceOrder->work_date)->format('d/m/Y') ?? '—' }}</dd></div>
+            <div><dt class="inline font-medium text-gray-700">Franja horaria:</dt> <dd class="inline">{{ \App\Models\ServiceOrder::TIME_SLOTS[$relevamiento->serviceOrder->time_slot] ?? '—' }}</dd></div>
+            <div><dt class="inline font-medium text-gray-700">Estado de la orden:</dt> <dd class="inline">{{ (\App\Models\ServiceOrder::PIPELINE_STATUSES + \App\Models\ServiceOrder::OTHER_STATUSES)[$relevamiento->serviceOrder->status] ?? $relevamiento->serviceOrder->status }}</dd></div>
+        @else
+            <div><dt class="inline font-medium text-gray-700">Fecha programada:</dt> <dd class="inline">{{ optional($relevamiento->scheduled_date)->format('d/m/Y') ?? '—' }}</dd></div>
+        @endif
+        <div><dt class="inline font-medium text-gray-700">Estado del relevamiento:</dt> <dd class="inline">{{ $relevamiento->status === 'enviado' ? 'Enviado' : 'Pendiente' }}</dd></div>
     </dl>
 
     @if ($relevamiento->notes)

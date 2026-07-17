@@ -13,7 +13,7 @@ class RelevamientoController extends Controller
     {
         $estado = $request->query('estado', 'pendiente');
 
-        $query = $request->user()->relevamientos()->with('property.customer');
+        $query = $request->user()->relevamientos()->with('property.customer', 'serviceOrder');
 
         if (in_array($estado, ['pendiente', 'enviado'], true)) {
             $query->where('status', $estado);
@@ -31,7 +31,7 @@ class RelevamientoController extends Controller
     {
         abort_unless($relevamiento->assigned_to === $request->user()->id, 403);
 
-        $relevamiento->load('property.customer');
+        $relevamiento->load('property.customer', 'serviceOrder');
 
         return view('relevador.relevamientos.show', [
             'relevamiento' => $relevamiento,

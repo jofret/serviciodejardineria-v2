@@ -36,7 +36,14 @@
                         {{ $relevamiento->status === 'enviado' ? 'Enviado' : 'Pendiente' }}
                     </span>
                 </div>
-                @if ($relevamiento->scheduled_date)
+                @if ($relevamiento->serviceOrder?->work_date)
+                    <p class="text-xs text-gray-400 mt-2">
+                        📅 {{ $relevamiento->serviceOrder->work_date->format('d/m/Y') }}
+                        @if ($relevamiento->serviceOrder->time_slot)
+                            · {{ \App\Models\ServiceOrder::TIME_SLOTS[$relevamiento->serviceOrder->time_slot] ?? $relevamiento->serviceOrder->time_slot }}
+                        @endif
+                    </p>
+                @elseif ($relevamiento->scheduled_date)
                     <p class="text-xs text-gray-400 mt-2">📅 {{ $relevamiento->scheduled_date->format('d/m/Y') }}</p>
                 @endif
             </a>
