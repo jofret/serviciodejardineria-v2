@@ -7,8 +7,6 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PropertiesRelationManager extends RelationManager
 {
@@ -18,10 +16,6 @@ class PropertiesRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->label('Nombre de la propiedad')
-                    ->required()
-                    ->maxLength(255),
                 Forms\Components\TextInput::make('address')
                     ->label('Dirección')
                     ->maxLength(255),
@@ -55,11 +49,13 @@ class PropertiesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('name')
+            ->recordTitleAttribute('display_label')
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                Tables\Columns\TextColumn::make('display_label')
                     ->label('Propiedad')
-                    ->searchable(),
+                    ->searchable(query: fn ($query, string $search) => $query
+                        ->where('address', 'like', "%{$search}%")
+                        ->orWhere('zone', 'like', "%{$search}%")),
                 Tables\Columns\TextColumn::make('zone')
                     ->label('Zona'),
                 Tables\Columns\IconColumn::make('has_garden')

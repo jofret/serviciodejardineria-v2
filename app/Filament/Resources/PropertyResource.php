@@ -33,10 +33,6 @@ class PropertyResource extends Resource
                             ->searchable()
                             ->preload()
                             ->required(),
-                        Forms\Components\TextInput::make('name')
-                            ->label('Nombre de la propiedad')
-                            ->required()
-                            ->maxLength(255),
                         Forms\Components\TextInput::make('address')
                             ->label('Dirección')
                             ->maxLength(255),
@@ -199,10 +195,11 @@ class PropertyResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                Tables\Columns\TextColumn::make('display_label')
                     ->label('Propiedad')
-                    ->searchable()
-                    ->sortable(),
+                    ->searchable(query: fn ($query, string $search) => $query
+                        ->where('address', 'like', "%{$search}%")
+                        ->orWhere('zone', 'like', "%{$search}%")),
                 Tables\Columns\TextColumn::make('customer.name')
                     ->label('Cliente')
                     ->searchable()

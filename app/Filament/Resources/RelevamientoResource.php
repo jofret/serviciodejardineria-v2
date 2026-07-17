@@ -30,8 +30,8 @@ class RelevamientoResource extends Resource
             ->schema([
                 Forms\Components\Select::make('property_id')
                     ->label('Propiedad')
-                    ->relationship('property', 'name')
-                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->customer?->name.' — '.$record->name)
+                    ->relationship('property', 'address')
+                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->customer?->name.' — '.$record->display_label)
                     ->searchable()
                     ->preload()
                     ->required(),
@@ -71,9 +71,8 @@ class RelevamientoResource extends Resource
                     ->label('Cliente')
                     ->default('—')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('property.name')
-                    ->label('Propiedad')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('property.display_label')
+                    ->label('Propiedad'),
                 Tables\Columns\TextColumn::make('relevador.name')
                     ->label('Relevador')
                     ->default('—')
