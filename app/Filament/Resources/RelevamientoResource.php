@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Carbon;
 
 class RelevamientoResource extends Resource
 {
@@ -35,6 +36,12 @@ class RelevamientoResource extends Resource
                     ->searchable()
                     ->preload()
                     ->required(),
+                Forms\Components\Select::make('category_id')
+                    ->label('Tipo de servicio')
+                    ->relationship('category', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
                 Forms\Components\Select::make('assigned_to')
                     ->label('Relevador asignado')
                     ->relationship('relevador', 'name', fn ($query) => $query->where('role', 'relevador'))
@@ -43,6 +50,12 @@ class RelevamientoResource extends Resource
                     ->required(),
                 Forms\Components\DatePicker::make('scheduled_date')
                     ->label('Fecha programada'),
+                Forms\Components\TimePicker::make('scheduled_time_from')
+                    ->label('Hora desde')
+                    ->seconds(false),
+                Forms\Components\TimePicker::make('scheduled_time_to')
+                    ->label('Hora hasta')
+                    ->seconds(false),
                 Forms\Components\Select::make('status')
                     ->label('Estado')
                     ->options([
@@ -59,7 +72,8 @@ class RelevamientoResource extends Resource
                     ->label('Fotos cargadas por el relevador')
                     ->disabled()
                     ->image()
-                    ->columnSpanFull(),
+                    ->columnSpanFull()
+                    ->visible(fn (string $operation): bool => $operation !== 'create'),
             ]);
     }
 
@@ -73,6 +87,9 @@ class RelevamientoResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('property.display_label')
                     ->label('Propiedad'),
+                Tables\Columns\TextColumn::make('category.name')
+                    ->label('Tipo de servicio')
+                    ->default('—'),
                 Tables\Columns\TextColumn::make('relevador.name')
                     ->label('Relevador')
                     ->default('—')
@@ -81,6 +98,11 @@ class RelevamientoResource extends Resource
                     ->label('Fecha')
                     ->date('d/m/Y')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('scheduled_time_from')
+                    ->label('Horario')
+                    ->formatStateUsing(fn ($state, $record) => $state
+                        ? Carbon::parse($state)->format('H:i').($record->scheduled_time_to ? ' - '.Carbon::parse($record->scheduled_time_to)->format('H:i') : '')
+                        : '—'),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
@@ -105,6 +127,9 @@ class RelevamientoResource extends Resource
                 Tables\Filters\SelectFilter::make('assigned_to')
                     ->label('Relevador')
                     ->relationship('relevador', 'name', fn ($query) => $query->where('role', 'relevador')),
+                Tables\Filters\SelectFilter::make('category_id')
+                    ->label('Tipo de servicio')
+                    ->relationship('category', 'name'),
             ])
             ->actions([
                 Tables\Actions\Action::make('enviar')

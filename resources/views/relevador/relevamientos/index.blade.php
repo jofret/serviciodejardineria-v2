@@ -44,7 +44,15 @@
                         @endif
                     </p>
                 @elseif ($relevamiento->scheduled_date)
-                    <p class="text-xs text-gray-400 mt-2">📅 {{ $relevamiento->scheduled_date->format('d/m/Y') }}</p>
+                    <p class="text-xs text-gray-400 mt-2">
+                        📅 {{ $relevamiento->scheduled_date->format('d/m/Y') }}
+                        @if ($relevamiento->scheduled_time_from)
+                            · {{ \Illuminate\Support\Carbon::parse($relevamiento->scheduled_time_from)->format('H:i') }}
+                            @if ($relevamiento->scheduled_time_to)
+                                - {{ \Illuminate\Support\Carbon::parse($relevamiento->scheduled_time_to)->format('H:i') }}
+                            @endif
+                        @endif
+                    </p>
                 @endif
             </a>
         @endforeach

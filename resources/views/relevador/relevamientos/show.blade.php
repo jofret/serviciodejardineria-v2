@@ -20,12 +20,26 @@
     <dl class="text-sm text-gray-600 space-y-1">
         <div><dt class="inline font-medium text-gray-700">Dirección:</dt> <dd class="inline">{{ $relevamiento->property->address ?? '—' }}</dd></div>
         <div><dt class="inline font-medium text-gray-700">Zona:</dt> <dd class="inline">{{ $relevamiento->property->zone ?? '—' }}</dd></div>
+        @if ($relevamiento->category)
+            <div><dt class="inline font-medium text-gray-700">Tipo de servicio:</dt> <dd class="inline">{{ $relevamiento->category->name }}</dd></div>
+        @endif
         @if ($relevamiento->serviceOrder)
             <div><dt class="inline font-medium text-gray-700">Fecha programada:</dt> <dd class="inline">{{ optional($relevamiento->serviceOrder->work_date)->format('d/m/Y') ?? '—' }}</dd></div>
             <div><dt class="inline font-medium text-gray-700">Franja horaria:</dt> <dd class="inline">{{ \App\Models\ServiceOrder::TIME_SLOTS[$relevamiento->serviceOrder->time_slot] ?? '—' }}</dd></div>
             <div><dt class="inline font-medium text-gray-700">Estado de la orden:</dt> <dd class="inline">{{ (\App\Models\ServiceOrder::PIPELINE_STATUSES + \App\Models\ServiceOrder::OTHER_STATUSES)[$relevamiento->serviceOrder->status] ?? $relevamiento->serviceOrder->status }}</dd></div>
         @else
             <div><dt class="inline font-medium text-gray-700">Fecha programada:</dt> <dd class="inline">{{ optional($relevamiento->scheduled_date)->format('d/m/Y') ?? '—' }}</dd></div>
+            @if ($relevamiento->scheduled_time_from)
+                <div>
+                    <dt class="inline font-medium text-gray-700">Horario:</dt>
+                    <dd class="inline">
+                        {{ \Illuminate\Support\Carbon::parse($relevamiento->scheduled_time_from)->format('H:i') }}
+                        @if ($relevamiento->scheduled_time_to)
+                            - {{ \Illuminate\Support\Carbon::parse($relevamiento->scheduled_time_to)->format('H:i') }}
+                        @endif
+                    </dd>
+                </div>
+            @endif
         @endif
         <div><dt class="inline font-medium text-gray-700">Estado del relevamiento:</dt> <dd class="inline">{{ $relevamiento->status === 'enviado' ? 'Enviado' : 'Pendiente' }}</dd></div>
     </dl>
