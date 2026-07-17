@@ -5,7 +5,11 @@
     $propertyTypeOther = old('property_type_other', $isCustomPropertyType ? $property->property_type : '');
 @endphp
 
-<form method="POST" action="{{ route('relevador.update', $relevamiento) }}" enctype="multipart/form-data" class="mt-4 space-y-4">
+<div id="autosave-status" class="mt-4 text-xs text-gray-400 flex items-center gap-1" data-state="idle">
+    <span>Los cambios se guardan solos mientras completás el formulario.</span>
+</div>
+
+<form method="POST" action="{{ route('relevador.update', $relevamiento) }}" id="relevamiento-form" class="mt-2 space-y-4">
     @csrf
 
     @if ($errors->any())
@@ -175,13 +179,6 @@
                class="w-full rounded-lg border-gray-300 text-base py-2 px-3">
     </div>
 
-    {{-- Fotos --}}
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-2">
-        <label class="block text-sm font-medium text-gray-700">Fotos de la visita</label>
-        <input type="file" name="photos[]" multiple accept="image/*" capture="environment"
-               class="w-full text-sm">
-    </div>
-
     {{-- Notas --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-2">
         <label class="block text-sm font-medium text-gray-700">Notas</label>
@@ -192,6 +189,20 @@
         Enviar relevamiento
     </button>
 </form>
+
+{{-- Fotos: widget aparte del <form>, sube cada foto apenas se elige --}}
+<div class="mt-4 bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-2">
+    <label class="block text-sm font-medium text-gray-700">Fotos de la visita</label>
+    <input type="file" id="photo-input" multiple accept="image/*" capture="environment" class="w-full text-sm">
+    <div id="photo-grid" class="grid grid-cols-3 gap-2 mt-2">
+        @foreach ($relevamiento->getMedia('photos') as $photo)
+            <div class="relative aspect-square rounded-lg overflow-hidden bg-gray-100" data-photo-id="{{ $photo->id }}">
+                <img src="{{ $photo->getUrl() }}" alt="Foto de la visita" class="w-full h-full object-cover">
+                <button type="button" data-remove-photo class="absolute top-1 right-1 bg-black/60 text-white text-xs w-5 h-5 rounded-full leading-none">✕</button>
+            </div>
+        @endforeach
+    </div>
+</div>
 
 {{--
     Templates para agregar filas dinámicamente. Usan el placeholder __INDEX__
@@ -281,4 +292,136 @@
             event.target.closest('[data-row]').remove();
         }
     });
+</script>
+
+{{-- Autoguardado en tiempo real + subida de fotos al toque, para no perder
+     lo cargado si se corta la conexión a mitad de la visita. --}}
+<script>
+    (function () {
+        var form = document.getElementById('relevamiento-form');
+        var statusEl = document.getElementById('autosave-status');
+        var autosaveUrl = @json(route('relevador.autosave', $relevamiento));
+        var csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+        var debounceTimer = null;
+        var retryTimer = null;
+        var saving = false;
+        var dirty = false;
+
+        function setStatus(text) {
+            statusEl.textContent = text;
+        }
+
+        function scheduleRetry() {
+            if (retryTimer) {
+                return;
+            }
+            retryTimer = setTimeout(function () {
+                retryTimer = null;
+                save();
+            }, 5000);
+        }
+
+        function save() {
+            if (saving) {
+                dirty = true;
+                return;
+            }
+            saving = true;
+            dirty = false;
+            setStatus('Guardando…');
+
+            fetch(autosaveUrl, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: {'Accept': 'application/json'},
+            }).then(function (response) {
+                if (!response.ok) {
+                    throw new Error('autosave failed');
+                }
+                saving = false;
+                setStatus('Guardado ✓');
+                if (dirty) {
+                    save();
+                }
+            }).catch(function () {
+                saving = false;
+                setStatus('Sin conexión, reintentando…');
+                scheduleRetry();
+            });
+        }
+
+        form.addEventListener('change', function (event) {
+            if (event.target.matches('select, input[type="checkbox"], input[type="radio"]')) {
+                clearTimeout(debounceTimer);
+                save();
+            }
+        });
+
+        form.addEventListener('input', function (event) {
+            if (event.target.matches('input[type="text"], input[type="number"], textarea')) {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(save, 1000);
+            }
+        });
+
+        window.addEventListener('online', function () {
+            if (retryTimer) {
+                clearTimeout(retryTimer);
+                retryTimer = null;
+            }
+            save();
+        });
+
+        var photoInput = document.getElementById('photo-input');
+        var photoGrid = document.getElementById('photo-grid');
+        var photosBaseUrl = @json(route('relevador.photos.store', $relevamiento));
+
+        photoInput.addEventListener('change', function () {
+            Array.prototype.forEach.call(photoInput.files, function (file) {
+                var data = new FormData();
+                data.append('photo', file);
+                data.append('_token', csrfToken);
+
+                fetch(photosBaseUrl, {
+                    method: 'POST',
+                    body: data,
+                    headers: {'Accept': 'application/json'},
+                }).then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('upload failed');
+                    }
+                    return response.json();
+                }).then(function (photo) {
+                    var cell = document.createElement('div');
+                    cell.className = 'relative aspect-square rounded-lg overflow-hidden bg-gray-100';
+                    cell.dataset.photoId = photo.id;
+                    cell.innerHTML = '<img src="' + photo.url + '" alt="Foto de la visita" class="w-full h-full object-cover">'
+                        + '<button type="button" data-remove-photo class="absolute top-1 right-1 bg-black/60 text-white text-xs w-5 h-5 rounded-full leading-none">✕</button>';
+                    photoGrid.appendChild(cell);
+                }).catch(function () {
+                    setStatus('No se pudo subir una foto, probá de nuevo');
+                });
+            });
+
+            photoInput.value = '';
+        });
+
+        photoGrid.addEventListener('click', function (event) {
+            if (!event.target.matches('[data-remove-photo]')) {
+                return;
+            }
+
+            var cell = event.target.closest('[data-photo-id]');
+
+            fetch(photosBaseUrl + '/' + cell.dataset.photoId, {
+                method: 'DELETE',
+                headers: {'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json'},
+            }).then(function (response) {
+                if (response.ok) {
+                    cell.remove();
+                }
+            });
+        });
+    })();
 </script>
