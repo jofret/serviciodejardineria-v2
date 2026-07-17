@@ -46,4 +46,16 @@ class Relevamiento extends Model implements HasMedia
     {
         return $this->hasOne(ServiceOrder::class);
     }
+
+    public function markAsSubmitted(): void
+    {
+        $this->update([
+            'status' => 'enviado',
+            'submitted_at' => now(),
+        ]);
+
+        if ($this->serviceOrder && $this->serviceOrder->status === 'visita_programada') {
+            $this->serviceOrder->update(['status' => 'visita_realizada']);
+        }
+    }
 }
