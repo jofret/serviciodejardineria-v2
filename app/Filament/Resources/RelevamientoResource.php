@@ -25,6 +25,17 @@ class RelevamientoResource extends Resource
 
     protected static ?string $pluralModelLabel = 'relevamientos';
 
+    public static function normalizeCategoryData(array $data): array
+    {
+        if (($data['category_id'] ?? null) === 'otro') {
+            $data['category_id'] = null;
+        } else {
+            $data['category_other'] = null;
+        }
+
+        return $data;
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -38,10 +49,16 @@ class RelevamientoResource extends Resource
                     ->required(),
                 Forms\Components\Select::make('category_id')
                     ->label('Tipo de servicio')
-                    ->relationship('category', 'name')
+                    ->options(fn () => \App\Models\Category::query()->orderBy('order')->pluck('name', 'id')->put('otro', 'Otro'))
                     ->searchable()
                     ->preload()
+                    ->live()
                     ->required(),
+                Forms\Components\TextInput::make('category_other')
+                    ->label('Especificar tipo de servicio')
+                    ->maxLength(255)
+                    ->visible(fn (callable $get): bool => $get('category_id') === 'otro')
+                    ->required(fn (callable $get): bool => $get('category_id') === 'otro'),
                 Forms\Components\Select::make('assigned_to')
                     ->label('Relevador asignado')
                     ->relationship('relevador', 'name', fn ($query) => $query->where('role', 'relevador'))
@@ -59,10 +76,11 @@ class RelevamientoResource extends Resource
                 Forms\Components\Select::make('status')
                     ->label('Estado')
                     ->options([
+                        'borrador' => 'Borrador',
                         'pendiente' => 'Pendiente',
                         'enviado' => 'Enviado',
                     ])
-                    ->default('pendiente')
+                    ->default('borrador')
                     ->required(),
                 Forms\Components\Textarea::make('notes')
                     ->label('Notas')
@@ -87,7 +105,7 @@ class RelevamientoResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('property.display_label')
                     ->label('Propiedad'),
-                Tables\Columns\TextColumn::make('category.name')
+                Tables\Columns\TextColumn::make('service_type_label')
                     ->label('Tipo de servicio')
                     ->default('—'),
                 Tables\Columns\TextColumn::make('relevador.name')
@@ -107,11 +125,13 @@ class RelevamientoResource extends Resource
                     ->label('Estado')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
+                        'borrador' => 'gray',
                         'pendiente' => 'warning',
                         'enviado' => 'success',
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'borrador' => 'Borrador',
                         'pendiente' => 'Pendiente',
                         'enviado' => 'Enviado',
                         default => $state,
@@ -121,6 +141,7 @@ class RelevamientoResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Estado')
                     ->options([
+                        'borrador' => 'Borrador',
                         'pendiente' => 'Pendiente',
                         'enviado' => 'Enviado',
                     ]),
@@ -132,6 +153,17 @@ class RelevamientoResource extends Resource
                     ->relationship('category', 'name'),
             ])
             ->actions([
+                Tables\Actions\Action::make('asignar')
+                    ->label('Asignar al relevador')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('primary')
+                    ->visible(fn (Relevamiento $record): bool => $record->status === 'borrador')
+                    ->requiresConfirmation()
+                    ->modalHeading('Asignar relevamiento al relevador')
+                    ->modalDescription('Revisá que la propiedad, el relevador asignado y la fecha/horario estén correctos antes de confirmar. Al asignarlo, el relevador va a poder verlo y completarlo desde su panel.')
+                    ->modalSubmitActionLabel('Confirmar asignación')
+                    ->action(fn (Relevamiento $record) => $record->update(['status' => 'pendiente']))
+                    ->successNotificationTitle('Relevamiento asignado al relevador'),
                 Tables\Actions\Action::make('enviar')
                     ->label('Enviar relevamiento')
                     ->icon('heroicon-o-paper-airplane')

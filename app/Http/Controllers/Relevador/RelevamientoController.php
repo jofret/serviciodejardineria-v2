@@ -17,7 +17,11 @@ class RelevamientoController extends Controller
     {
         $estado = $request->query('estado', 'pendiente');
 
-        $query = $request->user()->relevamientos()->with('property.customer', 'category', 'serviceOrder');
+        // El relevador nunca ve relevamientos en 'borrador': todavía no fueron
+        // asignados/publicados por el admin, ver RelevamientoResource::asignar.
+        $query = $request->user()->relevamientos()
+            ->whereIn('status', ['pendiente', 'enviado'])
+            ->with('property.customer', 'category', 'serviceOrder');
 
         if (in_array($estado, ['pendiente', 'enviado'], true)) {
             $query->where('status', $estado);
@@ -34,6 +38,7 @@ class RelevamientoController extends Controller
     public function show(Request $request, Relevamiento $relevamiento): View
     {
         abort_unless($relevamiento->assigned_to === $request->user()->id, 403);
+        abort_if($relevamiento->status === 'borrador', 404);
 
         $relevamiento->load('property.customer', 'property.tags', 'category', 'serviceOrder');
 
@@ -91,7 +96,7 @@ class RelevamientoController extends Controller
     private function authorizeEditable(Request $request, Relevamiento $relevamiento): void
     {
         abort_unless($relevamiento->assigned_to === $request->user()->id, 403);
-        abort_if($relevamiento->status === 'enviado', 403);
+        abort_if(in_array($relevamiento->status, ['borrador', 'enviado'], true), 403);
     }
 
     private function applyChanges(Request $request, Relevamiento $relevamiento): void
@@ -135,13 +140,12 @@ class RelevamientoController extends Controller
 
         $property = $relevamiento->property;
 
-        $propertyType = $data['property_type'] ?? $property->property_type;
+        $propertyType = $data['property_type'] ?? $relevamiento->property_type;
         if ($propertyType === 'otro' && filled($data['property_type_other'] ?? null)) {
             $propertyType = $data['property_type_other'];
         }
 
         $property->update([
-            'property_type' => $propertyType,
             'total_area' => $data['total_area'] ?? null,
             'has_garden' => $request->boolean('has_garden'),
             'garden_areas' => $this->cleanRows($data['garden_areas'] ?? []),
@@ -163,7 +167,10 @@ class RelevamientoController extends Controller
 
         $property->tags()->sync($tagIds);
 
-        $relevamiento->update(['notes' => $data['notes'] ?? $relevamiento->notes]);
+        $relevamiento->update([
+            'property_type' => $propertyType,
+            'notes' => $data['notes'] ?? $relevamiento->notes,
+        ]);
     }
 
     private function cleanRows(array $rows): array

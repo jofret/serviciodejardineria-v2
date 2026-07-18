@@ -1,8 +1,9 @@
 @php
     $property = $relevamiento->property;
-    $isCustomPropertyType = $property->property_type && ! array_key_exists($property->property_type, \App\Models\Property::PROPERTY_TYPES);
-    $selectedPropertyType = old('property_type', $isCustomPropertyType ? 'otro' : $property->property_type);
-    $propertyTypeOther = old('property_type_other', $isCustomPropertyType ? $property->property_type : '');
+    $currentPropertyType = $relevamiento->property_type ?? $property->property_type;
+    $isCustomPropertyType = $currentPropertyType && ! array_key_exists($currentPropertyType, \App\Models\Property::PROPERTY_TYPES);
+    $selectedPropertyType = old('property_type', $isCustomPropertyType ? 'otro' : $currentPropertyType);
+    $propertyTypeOther = old('property_type_other', $isCustomPropertyType ? $currentPropertyType : '');
 @endphp
 
 <div id="autosave-status" class="mt-4 text-xs text-gray-400 flex items-center gap-1" data-state="idle">
@@ -27,6 +28,7 @@
         <h2 class="font-semibold text-gray-800">Datos generales</h2>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de propiedad</label>
+            <p class="text-xs text-gray-500 mb-1">Cargado por administración: {{ $property->property_type_label ?? '—' }}. Corregí acá si al llegar a la visita ves algo distinto — no modifica el dato original.</p>
             <select name="property_type" id="property_type" data-toggle-select="property_type_other_wrap"
                     data-toggle-select-value="otro" class="w-full rounded-lg border-gray-300 text-base py-2 px-3">
                 @foreach (\App\Models\Property::PROPERTY_TYPES as $value => $label)

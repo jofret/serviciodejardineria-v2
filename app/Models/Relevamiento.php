@@ -16,6 +16,7 @@ class Relevamiento extends Model implements HasMedia
     protected $fillable = [
         'property_id',
         'category_id',
+        'category_other',
         'assigned_to',
         'status',
         'scheduled_date',
@@ -23,6 +24,7 @@ class Relevamiento extends Model implements HasMedia
         'scheduled_time_to',
         'submitted_at',
         'notes',
+        'property_type',
     ];
 
     protected $casts = [
@@ -30,9 +32,32 @@ class Relevamiento extends Model implements HasMedia
         'submitted_at' => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function (Relevamiento $relevamiento) {
+            if (! $relevamiento->property_type && $relevamiento->property_id) {
+                $relevamiento->property_type = Property::find($relevamiento->property_id)?->property_type;
+            }
+        });
+    }
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('photos');
+    }
+
+    public function getPropertyTypeLabelAttribute(): ?string
+    {
+        if (! $this->property_type) {
+            return null;
+        }
+
+        return Property::PROPERTY_TYPES[$this->property_type] ?? $this->property_type;
+    }
+
+    public function getServiceTypeLabelAttribute(): ?string
+    {
+        return $this->category?->name ?? $this->category_other;
     }
 
     public function property(): BelongsTo
