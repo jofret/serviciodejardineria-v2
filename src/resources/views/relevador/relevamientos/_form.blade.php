@@ -64,6 +64,37 @@
         <button type="button" id="add-work-item" class="text-sm text-green-700 font-medium">+ Agregar ítem de trabajo</button>
     </div>
 
+    {{--
+        Template del ítem nuevo: se clona en el cliente sin pegarle todavía al
+        servidor. Un ítem recién agregado no tiene data-item-id — solo se
+        crea (ensureItemCreated) la primera vez que tiene algo real que
+        guardar (texto tipeado o una foto), así nunca queda un registro vacío
+        en la base si el relevador agrega un ítem y no llega a cargar nada.
+    --}}
+    <template id="work_item_template">
+        <div data-work-item class="border border-gray-200 rounded-lg p-3 space-y-2">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-gray-500">Ítem de trabajo</span>
+                <button type="button" data-remove-item class="text-red-600 text-xs">Eliminar ítem</button>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Descripción del trabajo</label>
+                <textarea data-item-field="description" rows="2" placeholder="Ej: poda del árbol grande"
+                          class="w-full rounded-lg border-gray-300 text-base py-2 px-3"></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
+                <textarea data-item-field="observations" rows="2" placeholder="Detalles adicionales"
+                          class="w-full rounded-lg border-gray-300 text-base py-2 px-3"></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Fotos del ítem</label>
+                <input type="file" data-item-photo-input multiple accept="image/*" capture="environment" class="w-full text-sm">
+                <div data-item-photo-grid class="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-2"></div>
+            </div>
+        </div>
+    </template>
+
     {{-- Jardín --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-3">
         <label class="flex items-center gap-2">
@@ -212,7 +243,7 @@
 <div class="mt-4 bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-2">
     <label class="block text-sm font-medium text-gray-700">Fotos de la visita</label>
     <input type="file" id="photo-input" multiple accept="image/*" capture="environment" class="w-full text-sm">
-    <div id="photo-grid" class="grid grid-cols-3 gap-2 mt-2">
+    <div id="photo-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-2">
         @foreach ($relevamiento->getMedia('photos') as $photo)
             <div class="relative aspect-square rounded-lg overflow-hidden bg-gray-100" data-photo-id="{{ $photo->id }}">
                 <img src="{{ $photo->getUrl() }}" alt="Foto de la visita" class="w-full h-full object-cover">
@@ -481,16 +512,22 @@
     })();
 </script>
 
-{{-- Ítems de "Trabajo a realizar": cada uno vive como su propio registro desde
-     que se crea (para poder subirle fotos), con descripción/observaciones
-     autoguardadas igual que el resto del formulario. --}}
+{{-- Ítems de "Trabajo a realizar": un ítem recién agregado no existe en el
+     servidor hasta que tiene algo real que guardar (texto tipeado o una
+     foto) — ensureItemCreated() se encarga de crearlo recién en ese
+     momento, así nunca queda un registro vacío en la base si se agrega un
+     ítem y no se llega a cargar nada. Los ítems ya existentes (cargados
+     por el foreach de arriba) ya tienen data-item-id de entrada. --}}
 <script>
     (function () {
         var container = document.getElementById('work-items');
         var addButton = document.getElementById('add-work-item');
+        var template = document.getElementById('work_item_template');
         var csrfToken = document.querySelector('meta[name="csrf-token"]').content;
         var itemsBaseUrl = @json(route('relevador.items.store', $relevamiento));
         var debounceTimers = {};
+        var creationPromises = {};
+        var nextClientId = 0;
 
         function itemUrl(itemId) {
             return itemsBaseUrl + '/' + itemId;
@@ -500,21 +537,64 @@
             return itemsBaseUrl + '/' + itemId + '/fotos';
         }
 
-        addButton.addEventListener('click', function () {
+        function getClientId(itemEl) {
+            if (!itemEl.dataset.clientId) {
+                itemEl.dataset.clientId = 'c' + (nextClientId++);
+            }
+            return itemEl.dataset.clientId;
+        }
+
+        function collectFields(itemEl) {
+            var data = {};
+            itemEl.querySelectorAll('[data-item-field]').forEach(function (el) {
+                data[el.dataset.itemField] = el.value;
+            });
+            return data;
+        }
+
+        function hasAnyContent(fields) {
+            return Object.keys(fields).some(function (key) {
+                return fields[key] && fields[key].trim();
+            });
+        }
+
+        // Crea el ítem en el servidor la primera vez que hace falta (texto
+        // real o una foto). Si ya se está creando (dos campos debounceados
+        // casi al mismo tiempo), reutiliza la misma promesa en vez de
+        // duplicar el registro.
+        function ensureItemCreated(itemEl, initialFields) {
+            if (itemEl.dataset.itemId) {
+                return Promise.resolve(itemEl.dataset.itemId);
+            }
+
+            var clientId = getClientId(itemEl);
+            if (creationPromises[clientId]) {
+                return creationPromises[clientId];
+            }
+
             var data = new FormData();
             data.append('_token', csrfToken);
+            Object.keys(initialFields || {}).forEach(function (key) {
+                data.append(key, initialFields[key]);
+            });
 
-            fetch(itemsBaseUrl, {
+            creationPromises[clientId] = fetch(itemsBaseUrl, {
                 method: 'POST',
                 body: data,
                 headers: {'Accept': 'application/json'},
             }).then(function (response) {
                 return response.json();
             }).then(function (item) {
-                var wrapper = document.createElement('div');
-                wrapper.innerHTML = item.html.trim();
-                container.appendChild(wrapper.firstElementChild);
+                itemEl.dataset.itemId = item.id;
+                delete creationPromises[clientId];
+                return item.id;
             });
+
+            return creationPromises[clientId];
+        }
+
+        addButton.addEventListener('click', function () {
+            container.appendChild(template.content.cloneNode(true));
         });
 
         container.addEventListener('input', function (event) {
@@ -524,20 +604,28 @@
             }
 
             var itemEl = event.target.closest('[data-work-item]');
-            var itemId = itemEl.dataset.itemId;
-            var timerKey = itemId + ':' + field;
+            var clientId = getClientId(itemEl);
+            var timerKey = clientId + ':' + field;
 
             clearTimeout(debounceTimers[timerKey]);
             debounceTimers[timerKey] = setTimeout(function () {
-                var data = new FormData();
-                data.append('_token', csrfToken);
-                data.append(field, event.target.value);
+                if (itemEl.dataset.itemId) {
+                    var data = new FormData();
+                    data.append('_token', csrfToken);
+                    data.append(field, event.target.value);
 
-                fetch(itemUrl(itemId), {
-                    method: 'POST',
-                    body: data,
-                    headers: {'Accept': 'application/json'},
-                });
+                    fetch(itemUrl(itemEl.dataset.itemId), {
+                        method: 'POST',
+                        body: data,
+                        headers: {'Accept': 'application/json'},
+                    });
+                    return;
+                }
+
+                var fields = collectFields(itemEl);
+                if (hasAnyContent(fields)) {
+                    ensureItemCreated(itemEl, fields);
+                }
             }, 1000);
         });
 
@@ -548,36 +636,49 @@
 
             var input = event.target;
             var itemEl = input.closest('[data-work-item]');
-            var itemId = itemEl.dataset.itemId;
             var grid = itemEl.querySelector('[data-item-photo-grid]');
+            // input.files es una FileList "viva": si se lee la referencia acá
+            // pero se la recorre recién dentro del .then() de más abajo (async),
+            // el input.value = '' de unas líneas después ya la vació para
+            // cuando el callback corre, y la foto nunca llega a subirse sin
+            // ningún error visible. Por eso se copia a un array común ya
+            // mismo, antes de cualquier operación asincrónica.
+            var files = Array.prototype.slice.call(input.files);
+            input.value = '';
 
-            Array.prototype.forEach.call(input.files, function (file) {
-                var data = new FormData();
-                data.append('photo', file);
-                data.append('_token', csrfToken);
+            ensureItemCreated(itemEl, collectFields(itemEl)).then(function (itemId) {
+                files.forEach(function (file) {
+                    var data = new FormData();
+                    data.append('photo', file);
+                    data.append('_token', csrfToken);
 
-                fetch(itemPhotosUrl(itemId), {
-                    method: 'POST',
-                    body: data,
-                    headers: {'Accept': 'application/json'},
-                }).then(function (response) {
-                    return response.json();
-                }).then(function (photo) {
-                    var cell = document.createElement('div');
-                    cell.className = 'relative aspect-square rounded-lg overflow-hidden bg-gray-100';
-                    cell.dataset.photoId = photo.id;
-                    cell.innerHTML = '<img src="' + photo.url + '" alt="Foto del ítem" class="w-full h-full object-cover">'
-                        + '<button type="button" data-remove-item-photo class="absolute top-1 right-1 bg-black/60 text-white text-xs w-5 h-5 rounded-full leading-none">✕</button>';
-                    grid.appendChild(cell);
+                    fetch(itemPhotosUrl(itemId), {
+                        method: 'POST',
+                        body: data,
+                        headers: {'Accept': 'application/json'},
+                    }).then(function (response) {
+                        return response.json();
+                    }).then(function (photo) {
+                        var cell = document.createElement('div');
+                        cell.className = 'relative aspect-square rounded-lg overflow-hidden bg-gray-100';
+                        cell.dataset.photoId = photo.id;
+                        cell.innerHTML = '<img src="' + photo.url + '" alt="Foto del ítem" class="w-full h-full object-cover">'
+                            + '<button type="button" data-remove-item-photo class="absolute top-1 right-1 bg-black/60 text-white text-xs w-5 h-5 rounded-full leading-none">✕</button>';
+                        grid.appendChild(cell);
+                    });
                 });
             });
-
-            input.value = '';
         });
 
         container.addEventListener('click', function (event) {
             if (event.target.matches('[data-remove-item]')) {
                 var itemEl = event.target.closest('[data-work-item]');
+
+                if (!itemEl.dataset.itemId) {
+                    // Nunca se guardó en el servidor, no hay nada que borrar ahí.
+                    itemEl.remove();
+                    return;
+                }
 
                 if (! confirm('¿Eliminar este ítem de trabajo?')) {
                     return;

@@ -17,14 +17,21 @@ class RelevamientoWorkItemController extends Controller
     {
         $this->authorizeEditable($request, $relevamiento);
 
+        // El cliente solo llama a este endpoint cuando ya hay algo que
+        // guardar (texto tipeado o una foto por subir) — ver el JS de
+        // ensureItemCreated() en _form.blade.php. No se crean ítems vacíos.
+        $data = $request->validate([
+            'description' => ['nullable', 'string'],
+            'observations' => ['nullable', 'string'],
+        ]);
+
         $item = $relevamiento->workItems()->create([
+            'description' => $data['description'] ?? null,
+            'observations' => $data['observations'] ?? null,
             'order' => $relevamiento->workItems()->count(),
         ]);
 
-        return response()->json([
-            'id' => $item->id,
-            'html' => view('relevador.relevamientos._work_item', ['item' => $item])->render(),
-        ]);
+        return response()->json(['id' => $item->id]);
     }
 
     public function update(Request $request, Relevamiento $relevamiento, RelevamientoWorkItem $item): JsonResponse
