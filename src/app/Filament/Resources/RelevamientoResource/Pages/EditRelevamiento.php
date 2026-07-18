@@ -16,4 +16,18 @@ class EditRelevamiento extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        if (empty($data['category_id']) && filled($data['category_other'] ?? null)) {
+            $data['category_id'] = 'otro';
+        }
+
+        return $data;
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        return RelevamientoResource::normalizeCategoryData($data);
+    }
 }

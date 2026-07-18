@@ -20,8 +20,10 @@
     <dl class="text-sm text-gray-600 space-y-1">
         <div><dt class="inline font-medium text-gray-700">Dirección:</dt> <dd class="inline">{{ $relevamiento->property->address ?? '—' }}</dd></div>
         <div><dt class="inline font-medium text-gray-700">Zona:</dt> <dd class="inline">{{ $relevamiento->property->zone ?? '—' }}</dd></div>
-        @if ($relevamiento->category)
-            <div><dt class="inline font-medium text-gray-700">Tipo de servicio:</dt> <dd class="inline">{{ $relevamiento->category->name }}</dd></div>
+        <div><dt class="inline font-medium text-gray-700">Tipo de propiedad (administración):</dt> <dd class="inline">{{ $relevamiento->property->property_type_label ?? '—' }}</dd></div>
+        <div><dt class="inline font-medium text-gray-700">Tipo de propiedad (relevamiento):</dt> <dd class="inline">{{ $relevamiento->property_type_label ?? '—' }}</dd></div>
+        @if ($relevamiento->service_type_label)
+            <div><dt class="inline font-medium text-gray-700">Tipo de servicio:</dt> <dd class="inline">{{ $relevamiento->service_type_label }}</dd></div>
         @endif
         @if ($relevamiento->serviceOrder)
             <div><dt class="inline font-medium text-gray-700">Fecha programada:</dt> <dd class="inline">{{ optional($relevamiento->serviceOrder->work_date)->format('d/m/Y') ?? '—' }}</dd></div>
@@ -52,7 +54,8 @@
         <h2 class="font-semibold text-gray-800">Relevamiento enviado</h2>
 
         <div class="text-sm text-gray-600 space-y-1">
-            <p><span class="font-medium text-gray-700">Tipo:</span> {{ $relevamiento->property->property_type_label ?? '—' }}</p>
+            <p><span class="font-medium text-gray-700">Tipo (administración):</span> {{ $relevamiento->property->property_type_label ?? '—' }}</p>
+            <p><span class="font-medium text-gray-700">Tipo (relevamiento):</span> {{ $relevamiento->property_type_label ?? '—' }}</p>
             <p><span class="font-medium text-gray-700">Superficie:</span> {{ $relevamiento->property->total_area ? $relevamiento->property->total_area.' m²' : '—' }}</p>
         </div>
 
