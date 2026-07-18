@@ -30,7 +30,7 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de propiedad</label>
             <p class="text-xs text-gray-500 mb-1">Cargado por administración: {{ $property->property_type_label ?? '—' }}. Corregí acá si al llegar a la visita ves algo distinto — no modifica el dato original.</p>
             <select name="property_type" id="property_type" data-toggle-select="property_type_other_wrap"
-                    data-toggle-select-value="otro" class="w-full rounded-lg border-gray-300 text-base py-2 px-3">
+                    data-toggle-select-value="otro" class="w-full rounded-lg border border-gray-300 text-base py-2 px-3">
                 @foreach (\App\Models\Property::PROPERTY_TYPES as $value => $label)
                     <option value="{{ $value }}" {{ $selectedPropertyType === $value ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
@@ -39,12 +39,12 @@
         <div id="property_type_other_wrap" class="{{ $selectedPropertyType === 'otro' ? '' : 'hidden' }}">
             <label class="block text-sm font-medium text-gray-700 mb-1">Especificar tipo de propiedad</label>
             <input type="text" name="property_type_other" value="{{ $propertyTypeOther }}"
-                   class="w-full rounded-lg border-gray-300 text-base py-2 px-3">
+                   class="w-full rounded-lg border border-gray-300 text-base py-2 px-3">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Superficie total (m²)</label>
             <input type="number" step="0.01" name="total_area" value="{{ old('total_area', $property->total_area) }}"
-                   class="w-full rounded-lg border-gray-300 text-base py-2 px-3">
+                   class="w-full rounded-lg border border-gray-300 text-base py-2 px-3">
         </div>
     </div>
 
@@ -80,12 +80,12 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Descripción del trabajo</label>
                 <textarea data-item-field="description" rows="2" placeholder="Ej: poda del árbol grande"
-                          class="w-full rounded-lg border-gray-300 text-base py-2 px-3"></textarea>
+                          class="w-full rounded-lg border border-gray-300 text-base py-2 px-3"></textarea>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
                 <textarea data-item-field="observations" rows="2" placeholder="Detalles adicionales"
-                          class="w-full rounded-lg border-gray-300 text-base py-2 px-3"></textarea>
+                          class="w-full rounded-lg border border-gray-300 text-base py-2 px-3"></textarea>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Fotos del ítem</label>
@@ -106,8 +106,8 @@
             <div id="garden_areas_rows" class="space-y-2">
                 @foreach ($property->garden_areas ?? [] as $row)
                     <div data-row class="flex gap-2 items-start bg-gray-50 rounded-lg p-2">
-                        <input type="text" name="garden_areas[{{ $loop->index }}][name]" placeholder="Nombre" value="{{ $row['name'] ?? '' }}" class="flex-1 rounded-lg border-gray-300 text-sm py-2 px-2">
-                        <input type="number" step="0.01" name="garden_areas[{{ $loop->index }}][size]" placeholder="m²" value="{{ $row['size'] ?? '' }}" class="w-20 rounded-lg border-gray-300 text-sm py-2 px-2">
+                        <input type="text" name="garden_areas[{{ $loop->index }}][name]" placeholder="Nombre" value="{{ $row['name'] ?? '' }}" class="flex-1 rounded-lg border border-gray-300 text-sm py-2 px-2">
+                        <input type="number" step="0.01" name="garden_areas[{{ $loop->index }}][size]" placeholder="m²" value="{{ $row['size'] ?? '' }}" class="w-20 rounded-lg border border-gray-300 text-sm py-2 px-2">
                         <button type="button" data-remove class="text-red-600 px-2 py-2">✕</button>
                     </div>
                 @endforeach
@@ -129,13 +129,13 @@
             <div id="pools_rows" class="space-y-2">
                 @foreach ($property->pools ?? [] as $row)
                     <div data-row class="flex gap-2 items-start bg-gray-50 rounded-lg p-2">
-                        <select name="pools[{{ $loop->index }}][type]" class="flex-1 rounded-lg border-gray-300 text-sm py-2 px-2">
+                        <select name="pools[{{ $loop->index }}][type]" class="flex-1 rounded-lg border border-gray-300 text-sm py-2 px-2">
                             @foreach (\App\Models\Property::POOL_TYPES as $value => $label)
                                 <option value="{{ $value }}" {{ ($row['type'] ?? '') === $value ? 'selected' : '' }}>{{ $label }}</option>
                             @endforeach
                         </select>
-                        <input type="number" name="pools[{{ $loop->index }}][liters]" placeholder="Litros" value="{{ $row['liters'] ?? '' }}" class="w-20 rounded-lg border-gray-300 text-sm py-2 px-2">
-                        <input type="number" step="0.01" name="pools[{{ $loop->index }}][size_m2]" placeholder="m²" value="{{ $row['size_m2'] ?? '' }}" class="w-20 rounded-lg border-gray-300 text-sm py-2 px-2">
+                        <input type="number" name="pools[{{ $loop->index }}][liters]" placeholder="Litros" value="{{ $row['liters'] ?? '' }}" class="w-20 rounded-lg border border-gray-300 text-sm py-2 px-2">
+                        <input type="number" step="0.01" name="pools[{{ $loop->index }}][size_m2]" placeholder="m²" value="{{ $row['size_m2'] ?? '' }}" class="w-20 rounded-lg border border-gray-300 text-sm py-2 px-2">
                         <button type="button" data-remove class="text-red-600 px-2 py-2">✕</button>
                     </div>
                 @endforeach
@@ -157,9 +157,9 @@
             <div id="trees_rows" class="space-y-2">
                 @foreach ($property->trees ?? [] as $row)
                     <div data-row class="flex gap-2 items-start bg-gray-50 rounded-lg p-2">
-                        <input type="text" name="trees[{{ $loop->index }}][species]" placeholder="Especie" value="{{ $row['species'] ?? '' }}" class="flex-1 rounded-lg border-gray-300 text-sm py-2 px-2">
-                        <input type="number" name="trees[{{ $loop->index }}][quantity]" placeholder="Cant." value="{{ $row['quantity'] ?? '' }}" class="w-16 rounded-lg border-gray-300 text-sm py-2 px-2">
-                        <input type="number" step="0.01" name="trees[{{ $loop->index }}][height]" placeholder="Altura m" value="{{ $row['height'] ?? '' }}" class="w-20 rounded-lg border-gray-300 text-sm py-2 px-2">
+                        <input type="text" name="trees[{{ $loop->index }}][species]" placeholder="Especie" value="{{ $row['species'] ?? '' }}" class="flex-1 rounded-lg border border-gray-300 text-sm py-2 px-2">
+                        <input type="number" name="trees[{{ $loop->index }}][quantity]" placeholder="Cant." value="{{ $row['quantity'] ?? '' }}" class="w-16 rounded-lg border border-gray-300 text-sm py-2 px-2">
+                        <input type="number" step="0.01" name="trees[{{ $loop->index }}][height]" placeholder="Altura m" value="{{ $row['height'] ?? '' }}" class="w-20 rounded-lg border border-gray-300 text-sm py-2 px-2">
                         <button type="button" data-remove class="text-red-600 px-2 py-2">✕</button>
                     </div>
                 @endforeach
@@ -181,8 +181,8 @@
             <div id="plants_rows" class="space-y-2">
                 @foreach ($property->plants ?? [] as $row)
                     <div data-row class="flex gap-2 items-start bg-gray-50 rounded-lg p-2">
-                        <input type="text" name="plants[{{ $loop->index }}][species]" placeholder="Especie" value="{{ $row['species'] ?? '' }}" class="flex-1 rounded-lg border-gray-300 text-sm py-2 px-2">
-                        <input type="number" name="plants[{{ $loop->index }}][quantity]" placeholder="Cant." value="{{ $row['quantity'] ?? '' }}" class="w-16 rounded-lg border-gray-300 text-sm py-2 px-2">
+                        <input type="text" name="plants[{{ $loop->index }}][species]" placeholder="Especie" value="{{ $row['species'] ?? '' }}" class="flex-1 rounded-lg border border-gray-300 text-sm py-2 px-2">
+                        <input type="number" name="plants[{{ $loop->index }}][quantity]" placeholder="Cant." value="{{ $row['quantity'] ?? '' }}" class="w-16 rounded-lg border border-gray-300 text-sm py-2 px-2">
                         <button type="button" data-remove class="text-red-600 px-2 py-2">✕</button>
                     </div>
                 @endforeach
@@ -204,12 +204,12 @@
             <div id="sport_areas_rows" class="space-y-2">
                 @foreach ($property->sport_areas ?? [] as $row)
                     <div data-row class="flex gap-2 items-start bg-gray-50 rounded-lg p-2">
-                        <select name="sport_areas[{{ $loop->index }}][type]" class="flex-1 rounded-lg border-gray-300 text-sm py-2 px-2">
+                        <select name="sport_areas[{{ $loop->index }}][type]" class="flex-1 rounded-lg border border-gray-300 text-sm py-2 px-2">
                             @foreach (\App\Models\Property::SPORT_AREA_TYPES as $value => $label)
                                 <option value="{{ $value }}" {{ ($row['type'] ?? '') === $value ? 'selected' : '' }}>{{ $label }}</option>
                             @endforeach
                         </select>
-                        <input type="number" name="sport_areas[{{ $loop->index }}][quantity]" placeholder="Cant." value="{{ $row['quantity'] ?? '' }}" class="w-16 rounded-lg border-gray-300 text-sm py-2 px-2">
+                        <input type="number" name="sport_areas[{{ $loop->index }}][quantity]" placeholder="Cant." value="{{ $row['quantity'] ?? '' }}" class="w-16 rounded-lg border border-gray-300 text-sm py-2 px-2">
                         <button type="button" data-remove class="text-red-600 px-2 py-2">✕</button>
                     </div>
                 @endforeach
@@ -225,13 +225,13 @@
         <label class="block text-sm font-medium text-gray-700">Tags</label>
         <input type="text" name="tags" placeholder="separados por coma, ej: riego automático, césped deteriorado"
                value="{{ old('tags', $property->tags->pluck('name')->join(', ')) }}"
-               class="w-full rounded-lg border-gray-300 text-base py-2 px-3">
+               class="w-full rounded-lg border border-gray-300 text-base py-2 px-3">
     </div>
 
     {{-- Notas --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-2">
         <label class="block text-sm font-medium text-gray-700">Notas</label>
-        <textarea name="notes" rows="3" class="w-full rounded-lg border-gray-300 text-base py-2 px-3">{{ old('notes', $relevamiento->notes) }}</textarea>
+        <textarea name="notes" rows="3" class="w-full rounded-lg border border-gray-300 text-base py-2 px-3">{{ old('notes', $relevamiento->notes) }}</textarea>
     </div>
 
     <button type="submit" class="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-3 rounded-lg text-base">
@@ -262,50 +262,50 @@
 --}}
 <template id="garden_areas_template">
     <div data-row class="flex gap-2 items-start bg-gray-50 rounded-lg p-2">
-        <input type="text" name="garden_areas[__INDEX__][name]" placeholder="Nombre" class="flex-1 rounded-lg border-gray-300 text-sm py-2 px-2">
-        <input type="number" step="0.01" name="garden_areas[__INDEX__][size]" placeholder="m²" class="w-20 rounded-lg border-gray-300 text-sm py-2 px-2">
+        <input type="text" name="garden_areas[__INDEX__][name]" placeholder="Nombre" class="flex-1 rounded-lg border border-gray-300 text-sm py-2 px-2">
+        <input type="number" step="0.01" name="garden_areas[__INDEX__][size]" placeholder="m²" class="w-20 rounded-lg border border-gray-300 text-sm py-2 px-2">
         <button type="button" data-remove class="text-red-600 px-2 py-2">✕</button>
     </div>
 </template>
 
 <template id="pools_template">
     <div data-row class="flex gap-2 items-start bg-gray-50 rounded-lg p-2">
-        <select name="pools[__INDEX__][type]" class="flex-1 rounded-lg border-gray-300 text-sm py-2 px-2">
+        <select name="pools[__INDEX__][type]" class="flex-1 rounded-lg border border-gray-300 text-sm py-2 px-2">
             @foreach (\App\Models\Property::POOL_TYPES as $value => $label)
                 <option value="{{ $value }}">{{ $label }}</option>
             @endforeach
         </select>
-        <input type="number" name="pools[__INDEX__][liters]" placeholder="Litros" class="w-20 rounded-lg border-gray-300 text-sm py-2 px-2">
-        <input type="number" step="0.01" name="pools[__INDEX__][size_m2]" placeholder="m²" class="w-20 rounded-lg border-gray-300 text-sm py-2 px-2">
+        <input type="number" name="pools[__INDEX__][liters]" placeholder="Litros" class="w-20 rounded-lg border border-gray-300 text-sm py-2 px-2">
+        <input type="number" step="0.01" name="pools[__INDEX__][size_m2]" placeholder="m²" class="w-20 rounded-lg border border-gray-300 text-sm py-2 px-2">
         <button type="button" data-remove class="text-red-600 px-2 py-2">✕</button>
     </div>
 </template>
 
 <template id="trees_template">
     <div data-row class="flex gap-2 items-start bg-gray-50 rounded-lg p-2">
-        <input type="text" name="trees[__INDEX__][species]" placeholder="Especie" class="flex-1 rounded-lg border-gray-300 text-sm py-2 px-2">
-        <input type="number" name="trees[__INDEX__][quantity]" placeholder="Cant." class="w-16 rounded-lg border-gray-300 text-sm py-2 px-2">
-        <input type="number" step="0.01" name="trees[__INDEX__][height]" placeholder="Altura m" class="w-20 rounded-lg border-gray-300 text-sm py-2 px-2">
+        <input type="text" name="trees[__INDEX__][species]" placeholder="Especie" class="flex-1 rounded-lg border border-gray-300 text-sm py-2 px-2">
+        <input type="number" name="trees[__INDEX__][quantity]" placeholder="Cant." class="w-16 rounded-lg border border-gray-300 text-sm py-2 px-2">
+        <input type="number" step="0.01" name="trees[__INDEX__][height]" placeholder="Altura m" class="w-20 rounded-lg border border-gray-300 text-sm py-2 px-2">
         <button type="button" data-remove class="text-red-600 px-2 py-2">✕</button>
     </div>
 </template>
 
 <template id="plants_template">
     <div data-row class="flex gap-2 items-start bg-gray-50 rounded-lg p-2">
-        <input type="text" name="plants[__INDEX__][species]" placeholder="Especie" class="flex-1 rounded-lg border-gray-300 text-sm py-2 px-2">
-        <input type="number" name="plants[__INDEX__][quantity]" placeholder="Cant." class="w-16 rounded-lg border-gray-300 text-sm py-2 px-2">
+        <input type="text" name="plants[__INDEX__][species]" placeholder="Especie" class="flex-1 rounded-lg border border-gray-300 text-sm py-2 px-2">
+        <input type="number" name="plants[__INDEX__][quantity]" placeholder="Cant." class="w-16 rounded-lg border border-gray-300 text-sm py-2 px-2">
         <button type="button" data-remove class="text-red-600 px-2 py-2">✕</button>
     </div>
 </template>
 
 <template id="sport_areas_template">
     <div data-row class="flex gap-2 items-start bg-gray-50 rounded-lg p-2">
-        <select name="sport_areas[__INDEX__][type]" class="flex-1 rounded-lg border-gray-300 text-sm py-2 px-2">
+        <select name="sport_areas[__INDEX__][type]" class="flex-1 rounded-lg border border-gray-300 text-sm py-2 px-2">
             @foreach (\App\Models\Property::SPORT_AREA_TYPES as $value => $label)
                 <option value="{{ $value }}">{{ $label }}</option>
             @endforeach
         </select>
-        <input type="number" name="sport_areas[__INDEX__][quantity]" placeholder="Cant." class="w-16 rounded-lg border-gray-300 text-sm py-2 px-2">
+        <input type="number" name="sport_areas[__INDEX__][quantity]" placeholder="Cant." class="w-16 rounded-lg border border-gray-300 text-sm py-2 px-2">
         <button type="button" data-remove class="text-red-600 px-2 py-2">✕</button>
     </div>
 </template>

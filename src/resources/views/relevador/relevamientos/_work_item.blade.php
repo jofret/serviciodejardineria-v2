@@ -7,13 +7,13 @@
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Descripción del trabajo</label>
         <textarea data-item-field="description" rows="2" placeholder="Ej: poda del árbol grande"
-                  class="w-full rounded-lg border-gray-300 text-base py-2 px-3">{{ $item->description }}</textarea>
+                  class="w-full rounded-lg border border-gray-300 text-base py-2 px-3">{{ $item->description }}</textarea>
     </div>
 
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
         <textarea data-item-field="observations" rows="2" placeholder="Detalles adicionales"
-                  class="w-full rounded-lg border-gray-300 text-base py-2 px-3">{{ $item->observations }}</textarea>
+                  class="w-full rounded-lg border border-gray-300 text-base py-2 px-3">{{ $item->observations }}</textarea>
     </div>
 
     <div>
