@@ -15,7 +15,7 @@ Base de la migración de [serviciodejardineria.com.ar](https://serviciodejardine
 
 - Docker Desktop
 
-Todo lo demás (PHP, Composer, Node) corre dentro de los contenedores — no hace falta instalarlo en el host.
+PHP y Composer corren dentro de los contenedores — no hace falta instalarlos en el host. Node **sí** hace falta en el host (ver la sección "CSS de Tailwind" más abajo): el contenedor `php` no lo incluye.
 
 ## 🛠️ Instalación
 
@@ -32,6 +32,20 @@ docker-compose exec php php artisan key:generate
 # Migrar base de datos
 docker-compose exec php php artisan migrate
 ```
+
+## 🎨 CSS de Tailwind: hay que reconstruirlo a mano
+
+`public/css/tailwind-generated.css` es un archivo generado y **commiteado al repo** (a propósito, para que el sitio funcione out-of-the-box sin depender de Node en runtime) — pero eso significa que **no se regenera solo**. Si agregás o cambiás clases de Tailwind en cualquier `.blade.php` y no lo reconstruís, vas a ver el HTML correcto pero sin estilos nuevos (clases "fantasma": existen en el HTML pero no tienen ninguna regla CSS que las respalde). Así se manifestó un bug real: una miniatura de foto se veía gigante en vez de recortada en cuadradito, porque `aspect-square`/`grid-cols-*` no estaban compiladas — ni `view:clear` ni reiniciar OPcache lo arreglan, porque el problema nunca fue de caché de Laravel/PHP.
+
+Node no está instalado en el contenedor `php` (su Dockerfile es PHP puro), así que este paso se corre **desde el host**, no con `docker compose exec`:
+
+```bash
+cd src
+npm install    # una sola vez
+npm run css    # reconstruye el CSS — correlo después de cualquier cambio de clases en un .blade.php
+```
+
+`npm run build` (el build "oficial" del proyecto, el que corre `composer run setup`) también reconstruye este CSS como parte del proceso normal — corre `vite build` y al final `npm run css`. Pero como el día a día en este proyecto es Docker + edición directa de Blade sin pasar por Vite, en la práctica **`npm run css` es el comando que hay que acordarse de correr** después de tocar clases de Tailwind.
 
 Puertos de este stack (elegidos para no chocar con los stacks que ya corren en esta máquina: `limpieza_*` en 8080/8081/3307, `jardineria_*` del sitio actual en 8082/8083/3308, `isolu_*` en 8085/8086/3310):
 
