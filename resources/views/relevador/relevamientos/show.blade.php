@@ -20,10 +20,8 @@
     <dl class="text-sm text-gray-600 space-y-1">
         <div><dt class="inline font-medium text-gray-700">Dirección:</dt> <dd class="inline">{{ $relevamiento->property->address ?? '—' }}</dd></div>
         <div><dt class="inline font-medium text-gray-700">Zona:</dt> <dd class="inline">{{ $relevamiento->property->zone ?? '—' }}</dd></div>
-        <div><dt class="inline font-medium text-gray-700">Tipo de propiedad (administración):</dt> <dd class="inline">{{ $relevamiento->property->property_type_label ?? '—' }}</dd></div>
-        <div><dt class="inline font-medium text-gray-700">Tipo de propiedad (relevamiento):</dt> <dd class="inline">{{ $relevamiento->property_type_label ?? '—' }}</dd></div>
         @if ($relevamiento->service_type_label)
-            <div><dt class="inline font-medium text-gray-700">Tipo de servicio:</dt> <dd class="inline">{{ $relevamiento->service_type_label }}</dd></div>
+            <div><dt class="inline font-medium text-gray-700">Tipo de servicio:</dt> <dd class="inline font-bold text-base text-gray-800">{{ $relevamiento->service_type_label }}</dd></div>
         @endif
         @if ($relevamiento->serviceOrder)
             <div><dt class="inline font-medium text-gray-700">Fecha programada:</dt> <dd class="inline">{{ optional($relevamiento->serviceOrder->work_date)->format('d/m/Y') ?? '—' }}</dd></div>
@@ -54,10 +52,31 @@
         <h2 class="font-semibold text-gray-800">Relevamiento enviado</h2>
 
         <div class="text-sm text-gray-600 space-y-1">
-            <p><span class="font-medium text-gray-700">Tipo (administración):</span> {{ $relevamiento->property->property_type_label ?? '—' }}</p>
-            <p><span class="font-medium text-gray-700">Tipo (relevamiento):</span> {{ $relevamiento->property_type_label ?? '—' }}</p>
             <p><span class="font-medium text-gray-700">Superficie:</span> {{ $relevamiento->property->total_area ? $relevamiento->property->total_area.' m²' : '—' }}</p>
         </div>
+
+        @if ($relevamiento->workItems->isNotEmpty())
+            <div class="pt-2 border-t border-gray-100 space-y-3">
+                <p class="text-sm font-medium text-gray-700">Trabajo a realizar</p>
+                @foreach ($relevamiento->workItems as $item)
+                    <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+                        <p class="text-sm text-gray-800">{{ $item->description ?: '—' }}</p>
+                        @if ($item->observations)
+                            <p class="text-xs text-gray-500">{{ $item->observations }}</p>
+                        @endif
+                        @if ($item->getMedia('photos')->isNotEmpty())
+                            <div class="grid grid-cols-3 gap-2 mt-2">
+                                @foreach ($item->getMedia('photos') as $photo)
+                                    <a href="{{ $photo->getUrl() }}" target="_blank" class="block aspect-square rounded-lg overflow-hidden bg-gray-100">
+                                        <img src="{{ $photo->getUrl() }}" alt="Foto del ítem" class="w-full h-full object-cover">
+                                    </a>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        @endif
 
         @foreach ([
             'garden_areas' => ['¿Tiene jardín?', $relevamiento->property->has_garden, fn ($row) => ($row['name'] ?? '—').($row['size'] ?? null ? ' — '.$row['size'].' m²' : '')],

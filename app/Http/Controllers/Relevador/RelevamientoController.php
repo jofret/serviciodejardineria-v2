@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Relevador;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Relevador\Concerns\AuthorizesRelevamientoEditing;
 use App\Models\Property;
 use App\Models\PropertyTag;
 use App\Models\Relevamiento;
@@ -13,6 +14,8 @@ use Illuminate\View\View;
 
 class RelevamientoController extends Controller
 {
+    use AuthorizesRelevamientoEditing;
+
     public function index(Request $request): View
     {
         $estado = $request->query('estado', 'pendiente');
@@ -44,7 +47,7 @@ class RelevamientoController extends Controller
         abort_unless($relevamiento->assigned_to === $request->user()->id, 403);
         abort_if($relevamiento->status !== 'enviado_a_relevador', 404);
 
-        $relevamiento->load('property.customer', 'property.tags', 'category', 'serviceOrder');
+        $relevamiento->load('property.customer', 'property.tags', 'category', 'serviceOrder', 'workItems.media');
 
         return view('relevador.relevamientos.show', [
             'relevamiento' => $relevamiento,
@@ -95,13 +98,6 @@ class RelevamientoController extends Controller
         $relevamiento->media()->findOrFail($media)->delete();
 
         return response()->json(['status' => 'ok']);
-    }
-
-    private function authorizeEditable(Request $request, Relevamiento $relevamiento): void
-    {
-        abort_unless($relevamiento->assigned_to === $request->user()->id, 403);
-        abort_if($relevamiento->status !== 'enviado_a_relevador', 403);
-        abort_if($relevamiento->submitted_at !== null, 403);
     }
 
     private function applyChanges(Request $request, Relevamiento $relevamiento): void

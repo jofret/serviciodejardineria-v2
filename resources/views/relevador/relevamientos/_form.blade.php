@@ -48,6 +48,22 @@
         </div>
     </div>
 
+    {{-- Trabajo a realizar: fuera del guardado del <form> — cada ítem se crea,
+         edita y le suben fotos por su cuenta contra el endpoint de items, igual
+         que el widget de fotos generales de más abajo. --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-3">
+        <h2 class="font-semibold text-gray-800">Trabajo a realizar</h2>
+        <p class="text-xs text-gray-500">Cargá cada tarea como un ítem aparte (ej. "poda del árbol grande", "limpieza del cerco"), con su propia descripción, observaciones y fotos.</p>
+
+        <div id="work-items" class="space-y-3">
+            @foreach ($relevamiento->workItems as $item)
+                @include('relevador.relevamientos._work_item', ['item' => $item])
+            @endforeach
+        </div>
+
+        <button type="button" id="add-work-item" class="text-sm text-green-700 font-medium">+ Agregar ítem de trabajo</button>
+    </div>
+
     {{-- Jardín --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-3">
         <label class="flex items-center gap-2">
@@ -461,6 +477,137 @@
                     cell.remove();
                 }
             });
+        });
+    })();
+</script>
+
+{{-- Ítems de "Trabajo a realizar": cada uno vive como su propio registro desde
+     que se crea (para poder subirle fotos), con descripción/observaciones
+     autoguardadas igual que el resto del formulario. --}}
+<script>
+    (function () {
+        var container = document.getElementById('work-items');
+        var addButton = document.getElementById('add-work-item');
+        var csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        var itemsBaseUrl = @json(route('relevador.items.store', $relevamiento));
+        var debounceTimers = {};
+
+        function itemUrl(itemId) {
+            return itemsBaseUrl + '/' + itemId;
+        }
+
+        function itemPhotosUrl(itemId) {
+            return itemsBaseUrl + '/' + itemId + '/fotos';
+        }
+
+        addButton.addEventListener('click', function () {
+            var data = new FormData();
+            data.append('_token', csrfToken);
+
+            fetch(itemsBaseUrl, {
+                method: 'POST',
+                body: data,
+                headers: {'Accept': 'application/json'},
+            }).then(function (response) {
+                return response.json();
+            }).then(function (item) {
+                var wrapper = document.createElement('div');
+                wrapper.innerHTML = item.html.trim();
+                container.appendChild(wrapper.firstElementChild);
+            });
+        });
+
+        container.addEventListener('input', function (event) {
+            var field = event.target.dataset.itemField;
+            if (!field) {
+                return;
+            }
+
+            var itemEl = event.target.closest('[data-work-item]');
+            var itemId = itemEl.dataset.itemId;
+            var timerKey = itemId + ':' + field;
+
+            clearTimeout(debounceTimers[timerKey]);
+            debounceTimers[timerKey] = setTimeout(function () {
+                var data = new FormData();
+                data.append('_token', csrfToken);
+                data.append(field, event.target.value);
+
+                fetch(itemUrl(itemId), {
+                    method: 'POST',
+                    body: data,
+                    headers: {'Accept': 'application/json'},
+                });
+            }, 1000);
+        });
+
+        container.addEventListener('change', function (event) {
+            if (!event.target.matches('[data-item-photo-input]')) {
+                return;
+            }
+
+            var input = event.target;
+            var itemEl = input.closest('[data-work-item]');
+            var itemId = itemEl.dataset.itemId;
+            var grid = itemEl.querySelector('[data-item-photo-grid]');
+
+            Array.prototype.forEach.call(input.files, function (file) {
+                var data = new FormData();
+                data.append('photo', file);
+                data.append('_token', csrfToken);
+
+                fetch(itemPhotosUrl(itemId), {
+                    method: 'POST',
+                    body: data,
+                    headers: {'Accept': 'application/json'},
+                }).then(function (response) {
+                    return response.json();
+                }).then(function (photo) {
+                    var cell = document.createElement('div');
+                    cell.className = 'relative aspect-square rounded-lg overflow-hidden bg-gray-100';
+                    cell.dataset.photoId = photo.id;
+                    cell.innerHTML = '<img src="' + photo.url + '" alt="Foto del ítem" class="w-full h-full object-cover">'
+                        + '<button type="button" data-remove-item-photo class="absolute top-1 right-1 bg-black/60 text-white text-xs w-5 h-5 rounded-full leading-none">✕</button>';
+                    grid.appendChild(cell);
+                });
+            });
+
+            input.value = '';
+        });
+
+        container.addEventListener('click', function (event) {
+            if (event.target.matches('[data-remove-item]')) {
+                var itemEl = event.target.closest('[data-work-item]');
+
+                if (! confirm('¿Eliminar este ítem de trabajo?')) {
+                    return;
+                }
+
+                fetch(itemUrl(itemEl.dataset.itemId), {
+                    method: 'DELETE',
+                    headers: {'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json'},
+                }).then(function (response) {
+                    if (response.ok) {
+                        itemEl.remove();
+                    }
+                });
+
+                return;
+            }
+
+            if (event.target.matches('[data-remove-item-photo]')) {
+                var cell = event.target.closest('[data-photo-id]');
+                var itemId = event.target.closest('[data-work-item]').dataset.itemId;
+
+                fetch(itemPhotosUrl(itemId) + '/' + cell.dataset.photoId, {
+                    method: 'DELETE',
+                    headers: {'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json'},
+                }).then(function (response) {
+                    if (response.ok) {
+                        cell.remove();
+                    }
+                });
+            }
         });
     })();
 </script>
