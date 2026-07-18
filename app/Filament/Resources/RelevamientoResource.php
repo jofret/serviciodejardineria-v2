@@ -76,11 +76,10 @@ class RelevamientoResource extends Resource
                 Forms\Components\Select::make('status')
                     ->label('Estado')
                     ->options([
-                        'borrador' => 'Borrador',
                         'pendiente' => 'Pendiente',
-                        'enviado' => 'Enviado',
+                        'enviado_a_relevador' => 'Enviado a relevador',
                     ])
-                    ->default('borrador')
+                    ->default('pendiente')
                     ->required(),
                 Forms\Components\Textarea::make('notes')
                     ->label('Notas')
@@ -125,25 +124,26 @@ class RelevamientoResource extends Resource
                     ->label('Estado')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'borrador' => 'gray',
-                        'pendiente' => 'warning',
-                        'enviado' => 'success',
+                        'pendiente' => 'gray',
+                        'enviado_a_relevador' => 'warning',
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'borrador' => 'Borrador',
                         'pendiente' => 'Pendiente',
-                        'enviado' => 'Enviado',
+                        'enviado_a_relevador' => 'Enviado a relevador',
                         default => $state,
                     }),
+                Tables\Columns\IconColumn::make('submitted_at')
+                    ->label('Completado por relevador')
+                    ->boolean()
+                    ->getStateUsing(fn (Relevamiento $record): bool => $record->submitted_at !== null),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Estado')
                     ->options([
-                        'borrador' => 'Borrador',
                         'pendiente' => 'Pendiente',
-                        'enviado' => 'Enviado',
+                        'enviado_a_relevador' => 'Enviado a relevador',
                     ]),
                 Tables\Filters\SelectFilter::make('assigned_to')
                     ->label('Relevador')
@@ -155,26 +155,15 @@ class RelevamientoResource extends Resource
             ->actions([
                 Tables\Actions\Action::make('asignar')
                     ->label('Asignar al relevador')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('primary')
-                    ->visible(fn (Relevamiento $record): bool => $record->status === 'borrador')
-                    ->requiresConfirmation()
-                    ->modalHeading('Asignar relevamiento al relevador')
-                    ->modalDescription('Revisá que la propiedad, el relevador asignado y la fecha/horario estén correctos antes de confirmar. Al asignarlo, el relevador va a poder verlo y completarlo desde su panel.')
-                    ->modalSubmitActionLabel('Confirmar asignación')
-                    ->action(fn (Relevamiento $record) => $record->update(['status' => 'pendiente']))
-                    ->successNotificationTitle('Relevamiento asignado al relevador'),
-                Tables\Actions\Action::make('enviar')
-                    ->label('Enviar relevamiento')
                     ->icon('heroicon-o-paper-airplane')
                     ->color('success')
                     ->visible(fn (Relevamiento $record): bool => $record->status === 'pendiente')
                     ->requiresConfirmation()
-                    ->modalHeading('Enviar relevamiento')
-                    ->modalDescription('Revisá los ítems, tags y fotos cargados (editá el relevamiento si hace falta) antes de confirmar. Al enviarlo queda cerrado para el relevador y, si tiene una orden de servicio vinculada en "Visita programada", pasa a "Visita realizada".')
-                    ->modalSubmitActionLabel('Confirmar envío')
-                    ->action(fn (Relevamiento $record) => $record->markAsSubmitted())
-                    ->successNotificationTitle('Relevamiento enviado'),
+                    ->modalHeading('Asignar relevamiento al relevador')
+                    ->modalDescription('Revisá que la propiedad, el relevador asignado y la fecha/horario estén correctos antes de confirmar. Al asignarlo, el relevador va a poder verlo y completarlo desde su panel.')
+                    ->modalSubmitActionLabel('Confirmar asignación')
+                    ->action(fn (Relevamiento $record) => $record->update(['status' => 'enviado_a_relevador']))
+                    ->successNotificationTitle('Relevamiento asignado al relevador'),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
