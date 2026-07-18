@@ -153,17 +153,17 @@ class RelevamientoResource extends Resource
                     ->relationship('category', 'name'),
             ])
             ->actions([
-                Tables\Actions\Action::make('asignar')
-                    ->label('Asignar al relevador')
+                Tables\Actions\Action::make('enviar')
+                    ->label('Enviar a relevador')
                     ->icon('heroicon-o-paper-airplane')
                     ->color('success')
                     ->visible(fn (Relevamiento $record): bool => $record->status === 'pendiente')
                     ->requiresConfirmation()
-                    ->modalHeading('Asignar relevamiento al relevador')
-                    ->modalDescription('Revisá que la propiedad, el relevador asignado y la fecha/horario estén correctos antes de confirmar. Al asignarlo, el relevador va a poder verlo y completarlo desde su panel.')
-                    ->modalSubmitActionLabel('Confirmar asignación')
+                    ->modalHeading('Enviar relevamiento a relevador')
+                    ->modalDescription('Revisá que la propiedad, el relevador asignado y la fecha/horario estén correctos antes de confirmar. Al enviarlo, el relevador va a poder verlo y completarlo desde su panel.')
+                    ->modalSubmitActionLabel('Confirmar envío')
                     ->action(fn (Relevamiento $record) => $record->update(['status' => 'enviado_a_relevador']))
-                    ->successNotificationTitle('Relevamiento asignado al relevador'),
+                    ->successNotificationTitle('Relevamiento enviado a relevador'),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

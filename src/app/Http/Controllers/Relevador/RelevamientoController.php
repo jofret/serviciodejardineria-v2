@@ -18,7 +18,7 @@ class RelevamientoController extends Controller
         $estado = $request->query('estado', 'pendiente');
 
         // El relevador nunca ve relevamientos en 'pendiente' (todavía no
-        // asignados/enviados por el admin, ver RelevamientoResource::asignar).
+        // enviados por el admin, ver la acción 'enviar' de RelevamientoResource).
         // Dentro de lo ya asignado, submitted_at distingue lo que todavía
         // tiene que visitar/completar de lo que ya mandó.
         $query = $request->user()->relevamientos()
