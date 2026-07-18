@@ -65,7 +65,7 @@
                             <p class="text-xs text-gray-500">{{ $item->observations }}</p>
                         @endif
                         @if ($item->getMedia('photos')->isNotEmpty())
-                            <div class="grid grid-cols-3 gap-2 mt-2">
+                            <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-2">
                                 @foreach ($item->getMedia('photos') as $photo)
                                     <a href="{{ $photo->getUrl() }}" target="_blank" class="block aspect-square rounded-lg overflow-hidden bg-gray-100">
                                         <img src="{{ $photo->getUrl() }}" alt="Foto del ítem" class="w-full h-full object-cover">
@@ -118,7 +118,7 @@
         @if ($relevamiento->getMedia('photos')->isNotEmpty())
             <div class="pt-2 border-t border-gray-100">
                 <p class="text-sm font-medium text-gray-700 mb-2">Fotos</p>
-                <div class="grid grid-cols-3 gap-2">
+                <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
                     @foreach ($relevamiento->getMedia('photos') as $photo)
                         <a href="{{ $photo->getUrl() }}" target="_blank" class="block aspect-square rounded-lg overflow-hidden bg-gray-100">
                             <img src="{{ $photo->getUrl() }}" alt="Foto de la visita" class="w-full h-full object-cover">

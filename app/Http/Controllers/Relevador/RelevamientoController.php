@@ -47,6 +47,7 @@ class RelevamientoController extends Controller
         abort_unless($relevamiento->assigned_to === $request->user()->id, 403);
         abort_if($relevamiento->status !== 'enviado_a_relevador', 404);
 
+        $relevamiento->pruneEmptyWorkItems();
         $relevamiento->load('property.customer', 'property.tags', 'category', 'serviceOrder', 'workItems.media');
 
         return view('relevador.relevamientos.show', [

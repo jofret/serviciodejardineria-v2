@@ -19,7 +19,7 @@
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Fotos del ítem</label>
         <input type="file" data-item-photo-input multiple accept="image/*" capture="environment" class="w-full text-sm">
-        <div data-item-photo-grid class="grid grid-cols-3 gap-2 mt-2">
+        <div data-item-photo-grid class="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-2">
             @foreach ($item->getMedia('photos') as $photo)
                 <div class="relative aspect-square rounded-lg overflow-hidden bg-gray-100" data-photo-id="{{ $photo->id }}">
                     <img src="{{ $photo->getUrl() }}" alt="Foto del ítem" class="w-full h-full object-cover">

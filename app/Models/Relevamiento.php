@@ -86,6 +86,15 @@ class Relevamiento extends Model implements HasMedia
         return $this->hasMany(RelevamientoWorkItem::class)->orderBy('order')->orderBy('id');
     }
 
+    public function pruneEmptyWorkItems(): void
+    {
+        $this->workItems()
+            ->whereDoesntHave('media')
+            ->where(fn ($query) => $query->whereNull('description')->orWhere('description', ''))
+            ->where(fn ($query) => $query->whereNull('observations')->orWhere('observations', ''))
+            ->delete();
+    }
+
     public function markAsSubmitted(): void
     {
         $this->update(['submitted_at' => now()]);
