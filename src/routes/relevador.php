@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Relevador\AuthController;
 use App\Http\Controllers\Relevador\RelevamientoController;
+use App\Http\Controllers\Relevador\RelevamientoWorkItemController;
 use App\Http\Middleware\EnsureUserIsRelevador;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +22,13 @@ Route::prefix('relevador')->name('relevador.')->group(function () {
         Route::post('/{relevamiento}/autoguardar', [RelevamientoController::class, 'autosave'])->name('autosave');
         Route::post('/{relevamiento}/fotos', [RelevamientoController::class, 'uploadPhoto'])->name('photos.store');
         Route::delete('/{relevamiento}/fotos/{media}', [RelevamientoController::class, 'deletePhoto'])->name('photos.destroy');
+
+        Route::post('/{relevamiento}/items', [RelevamientoWorkItemController::class, 'store'])->name('items.store');
+        Route::post('/{relevamiento}/items/{item}', [RelevamientoWorkItemController::class, 'update'])->name('items.update');
+        Route::delete('/{relevamiento}/items/{item}', [RelevamientoWorkItemController::class, 'destroy'])->name('items.destroy');
+        Route::post('/{relevamiento}/items/{item}/fotos', [RelevamientoWorkItemController::class, 'uploadPhoto'])->name('items.photos.store');
+        Route::delete('/{relevamiento}/items/{item}/fotos/{media}', [RelevamientoWorkItemController::class, 'deletePhoto'])->name('items.photos.destroy');
+
         Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
     });
 });

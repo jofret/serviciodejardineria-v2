@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -78,6 +79,11 @@ class Relevamiento extends Model implements HasMedia
     public function serviceOrder(): HasOne
     {
         return $this->hasOne(ServiceOrder::class);
+    }
+
+    public function workItems(): HasMany
+    {
+        return $this->hasMany(RelevamientoWorkItem::class)->orderBy('order')->orderBy('id');
     }
 
     public function markAsSubmitted(): void
