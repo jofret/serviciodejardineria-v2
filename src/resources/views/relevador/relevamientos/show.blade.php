@@ -43,11 +43,11 @@
                 </div>
             @endif
         @endif
-        <div><dt class="inline font-medium text-gray-700">Estado del relevamiento:</dt> <dd class="inline">{{ $relevamiento->status === 'enviado' ? 'Enviado' : 'Pendiente' }}</dd></div>
+        <div><dt class="inline font-medium text-gray-700">Estado del relevamiento:</dt> <dd class="inline">{{ $relevamiento->submitted_at ? 'Enviado' : 'Pendiente' }}</dd></div>
     </dl>
 </div>
 
-@if ($relevamiento->status === 'pendiente')
+@if (! $relevamiento->submitted_at)
     @include('relevador.relevamientos._form')
 @else
     <div class="mt-4 bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-4">

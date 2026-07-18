@@ -32,8 +32,8 @@
                         <p class="text-sm text-gray-500">{{ $relevamiento->property->customer?->name }}</p>
                         <p class="text-sm text-gray-500">{{ $relevamiento->property->display_label }}</p>
                     </div>
-                    <span class="text-xs font-medium px-2 py-1 rounded-full {{ $relevamiento->status === 'enviado' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700' }}">
-                        {{ $relevamiento->status === 'enviado' ? 'Enviado' : 'Pendiente' }}
+                    <span class="text-xs font-medium px-2 py-1 rounded-full {{ $relevamiento->submitted_at ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700' }}">
+                        {{ $relevamiento->submitted_at ? 'Enviado' : 'Pendiente' }}
                     </span>
                 </div>
                 @if ($relevamiento->serviceOrder?->work_date)

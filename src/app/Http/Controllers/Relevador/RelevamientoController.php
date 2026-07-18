@@ -17,14 +17,18 @@ class RelevamientoController extends Controller
     {
         $estado = $request->query('estado', 'pendiente');
 
-        // El relevador nunca ve relevamientos en 'borrador': todavía no fueron
-        // asignados/publicados por el admin, ver RelevamientoResource::asignar.
+        // El relevador nunca ve relevamientos en 'pendiente' (todavía no
+        // asignados/enviados por el admin, ver RelevamientoResource::asignar).
+        // Dentro de lo ya asignado, submitted_at distingue lo que todavía
+        // tiene que visitar/completar de lo que ya mandó.
         $query = $request->user()->relevamientos()
-            ->whereIn('status', ['pendiente', 'enviado'])
+            ->where('status', 'enviado_a_relevador')
             ->with('property.customer', 'category', 'serviceOrder');
 
-        if (in_array($estado, ['pendiente', 'enviado'], true)) {
-            $query->where('status', $estado);
+        if ($estado === 'pendiente') {
+            $query->whereNull('submitted_at');
+        } elseif ($estado === 'enviado') {
+            $query->whereNotNull('submitted_at');
         }
 
         $relevamientos = $query->orderByDesc('scheduled_date')->get();
@@ -38,7 +42,7 @@ class RelevamientoController extends Controller
     public function show(Request $request, Relevamiento $relevamiento): View
     {
         abort_unless($relevamiento->assigned_to === $request->user()->id, 403);
-        abort_if($relevamiento->status === 'borrador', 404);
+        abort_if($relevamiento->status !== 'enviado_a_relevador', 404);
 
         $relevamiento->load('property.customer', 'property.tags', 'category', 'serviceOrder');
 
@@ -96,7 +100,8 @@ class RelevamientoController extends Controller
     private function authorizeEditable(Request $request, Relevamiento $relevamiento): void
     {
         abort_unless($relevamiento->assigned_to === $request->user()->id, 403);
-        abort_if(in_array($relevamiento->status, ['borrador', 'enviado'], true), 403);
+        abort_if($relevamiento->status !== 'enviado_a_relevador', 403);
+        abort_if($relevamiento->submitted_at !== null, 403);
     }
 
     private function applyChanges(Request $request, Relevamiento $relevamiento): void
