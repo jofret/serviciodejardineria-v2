@@ -14,6 +14,11 @@ class ViewServiceOrder extends ViewRecord
 {
     protected static string $resource = ServiceOrderResource::class;
 
+    public function getTitle(): string
+    {
+        return 'Orden de servicio';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

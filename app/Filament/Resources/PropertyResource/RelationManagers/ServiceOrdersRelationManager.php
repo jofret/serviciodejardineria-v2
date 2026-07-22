@@ -191,7 +191,8 @@ class ServiceOrdersRelationManager extends RelationManager
                             ->success()
                             ->send();
                     }),
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->modalHeading('Orden de servicio'),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
