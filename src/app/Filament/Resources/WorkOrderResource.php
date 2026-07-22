@@ -120,13 +120,6 @@ class WorkOrderResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('work_order_number')
-                    ->label('N° Orden de Trabajo')
-                    ->searchable(query: fn ($query, string $search) => $query->whereHas(
-                        'serviceOrder',
-                        fn ($query) => $query->whereDocumentNumberLike($search),
-                    ))
-                    ->toggleable(),
                 Tables\Columns\TextColumn::make('serviceOrder.customer.name')
                     ->label('Cliente')
                     ->default('—')

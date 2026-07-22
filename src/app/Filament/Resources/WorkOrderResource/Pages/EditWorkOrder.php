@@ -23,12 +23,6 @@ class EditWorkOrder extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('work_order_number')
-                ->label(fn (WorkOrder $record): string => 'N° '.$record->work_order_number)
-                ->icon('heroicon-o-document-text')
-                ->color('gray')
-                ->disabled(),
-
             Actions\Action::make('conformity_confirmed')
                 ->label('Conformidad Confirmada')
                 ->icon('heroicon-o-check-circle')

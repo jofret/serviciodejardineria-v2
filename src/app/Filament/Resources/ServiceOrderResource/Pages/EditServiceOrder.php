@@ -16,12 +16,6 @@ class EditServiceOrder extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('budget_number')
-                ->label(fn (ServiceOrder $record): string => 'N° '.$record->budget_number)
-                ->icon('heroicon-o-document-text')
-                ->color('gray')
-                ->disabled(),
-
             Actions\Action::make('budget_status_sent')
                 ->label('Presupuestado y Enviado')
                 ->icon('heroicon-o-paper-airplane')

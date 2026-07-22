@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\PropertyResource\RelationManagers;
 
-use App\Filament\Resources\ServiceOrderResource;
 use App\Models\ServiceOrder;
+use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -17,24 +17,75 @@ class ServiceOrdersRelationManager extends RelationManager
 
     protected static ?string $modelLabel = 'orden de servicio';
 
-    /**
-     * Reutiliza los campos de ServiceOrderResource (sin customer_id ni
-     * property_id, que acá ya vienen dados por la Property dueña de esta
-     * pestaña) para que este form no se desincronice del principal — ver
-     * el comentario en ServiceOrderResource::flowAndRelevamientoFields().
-     */
     public function form(Form $form): Form
     {
         return $form
             ->schema([
-                ...ServiceOrderResource::flowAndRelevamientoFields(
-                    relevamientoQueryModifier: fn ($query) => $query->where('property_id', $this->getOwnerRecord()->id),
-                    relevamientoOptionLabel: fn ($record) => collect([
-                        $record->relevador?->name,
-                        $record->scheduled_date?->format('d/m/Y') ?? 'sin fecha',
-                    ])->filter()->join(' — '),
-                ),
-                ...ServiceOrderResource::detailFields(),
+                Forms\Components\Radio::make('flow_type')
+                    ->label('Tipo de flujo')
+                    ->options(ServiceOrder::FLOW_TYPES)
+                    ->default('con_relevamiento')
+                    ->live()
+                    ->afterStateUpdated(function (string $state, callable $set): void {
+                        $set('status', $state === 'presupuesto_directo' ? 'presupuestado_enviado' : 'visita_programada');
+                    })
+                    ->required()
+                    ->columnSpanFull(),
+
+                Forms\Components\Select::make('relevamiento_id')
+                    ->label('Relevamiento vinculado')
+                    ->relationship('relevamiento', 'id', fn ($query) => $query->where('property_id', $this->getOwnerRecord()->id))
+                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->relevador?->name.' — '.($record->scheduled_date?->format('d/m/Y') ?? 'sin fecha'))
+                    ->searchable()
+                    ->preload()
+                    ->visible(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento'),
+
+                Forms\Components\Select::make('category_id')
+                    ->label('Categoría')
+                    ->relationship('category', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
+                Forms\Components\Select::make('post_id')
+                    ->label('Trabajo relacionado')
+                    ->relationship('post', 'title')
+                    ->searchable()
+                    ->preload(),
+
+                Forms\Components\DatePicker::make('work_date')
+                    ->label('Fecha de trabajo')
+                    ->visible(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento')
+                    ->required(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento'),
+
+                Forms\Components\Select::make('time_slot')
+                    ->label('Franja horaria')
+                    ->options(ServiceOrder::TIME_SLOTS)
+                    ->visible(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento'),
+
+                Forms\Components\SpatieMediaLibraryFileUpload::make('budget_photos')
+                    ->collection('budget_photos')
+                    ->label('Fotos para presupuesto')
+                    ->multiple()
+                    ->image()
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/jfif', 'image/bmp', 'image/gif'])
+                    ->imageEditor()
+                    ->reorderable()
+                    ->openable()
+                    ->columnSpanFull()
+                    ->visible(fn (callable $get): bool => $get('flow_type') === 'presupuesto_directo'),
+
+                Forms\Components\Select::make('status')
+                    ->label('Estado')
+                    ->options(ServiceOrder::allStatusOptions())
+                    ->default('visita_programada')
+                    ->required(),
+                Forms\Components\TextInput::make('price')
+                    ->label('Precio')
+                    ->numeric()
+                    ->prefix('$'),
+                Forms\Components\Textarea::make('observations')
+                    ->label('Observaciones')
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -43,25 +94,31 @@ class ServiceOrdersRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('id')
             ->columns([
-                Tables\Columns\TextColumn::make('budget_number')
-                    ->label('N° Presupuesto')
-                    ->searchable(query: fn ($query, string $search) => $query->whereDocumentNumberLike($search)),
                 Tables\Columns\TextColumn::make('category.name')
                     ->label('Categoría'),
+                Tables\Columns\TextColumn::make('work_date')
+                    ->label('Fecha')
+                    ->date('d/m/Y')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('time_slot')
+                    ->label('Franja')
+                    ->formatStateUsing(fn (?string $state): string => $state ? ServiceOrder::TIME_SLOTS[$state] ?? $state : '—'),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
-                    ->color(fn (string $state): string => ServiceOrderResource::statusColor($state))
-                    ->formatStateUsing(fn (string $state): string => ServiceOrderResource::statusLabel($state)),
+                    ->color(fn (string $state): string => match ($state) {
+                        'visita_programada', 'visita_realizada' => 'info',
+                        'presupuestado_enviado', 'presupuesto_aceptado' => 'warning',
+                        'trabajo_programado', 'conformidad_cliente' => 'primary',
+                        'servicio_pagado', 'factura_enviada' => 'success',
+                        'cancelado' => 'danger',
+                        'reprogramado' => 'gray',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => (ServiceOrder::PIPELINE_STATUSES + ServiceOrder::OTHER_STATUSES)[$state] ?? $state),
                 Tables\Columns\TextColumn::make('price')
                     ->label('Precio')
-                    ->getStateUsing(fn (ServiceOrder $record) => $record->relevamiento?->estimated_price ?? $record->price)
                     ->money('ARS'),
-                Tables\Columns\TextColumn::make('final_price')
-                    ->label('Precio final')
-                    ->money('ARS')
-                    ->color('success')
-                    ->placeholder('—'),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
