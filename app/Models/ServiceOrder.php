@@ -143,32 +143,10 @@ class ServiceOrder extends Model implements HasMedia
      * prefijo "00") y el de la Orden de Trabajo (work_order_number, prefijo
      * "OT") — mismo código para ambos documentos de una misma operación,
      * solo cambia el prefijo.
-     *
-     * Usa el año de creación (no el año actual): el número de un documento
-     * ya emitido no puede cambiar solo porque cambió el año calendario en
-     * el que se lo está mirando.
      */
     public function documentNumberBase(): string
     {
-        return $this->customer_id.$this->created_at->year.($this->relevamiento_id ?? 0).$this->id;
-    }
-
-    /**
-     * Búsqueda por budget_number / work_order_number desde las tablas del
-     * admin — ambos números se arman con la misma fórmula de
-     * documentNumberBase(), replicada acá en SQL porque son atributos
-     * calculados (no columnas reales de la tabla). Se pelan los prefijos
-     * "OT" y "00" del término buscado para que funcione sin importar cuál
-     * de los dos números copió el admin.
-     */
-    public static function scopeWhereDocumentNumberLike($query, string $search)
-    {
-        $normalized = preg_replace('/^00/', '', preg_replace('/^OT/i', '', trim($search)));
-
-        return $query->whereRaw(
-            'CONCAT(customer_id, YEAR(created_at), COALESCE(relevamiento_id, 0), id) LIKE ?',
-            ['%'.$normalized.'%']
-        );
+        return $this->customer_id.now()->year.($this->relevamiento_id ?? 0).$this->id;
     }
 
     /**
