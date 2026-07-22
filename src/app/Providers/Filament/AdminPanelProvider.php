@@ -63,6 +63,40 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::BODY_END,
                 fn (): string => '<div wire:poll.15s style="display:none" aria-hidden="true"></div>',
+            )
+            // Formatea "Precio Estimativo" con punto de miles y coma decimal
+            // (ej. "1.234.567,50") en el form de Presupuestos por foto — ver
+            // PresupuestoPorFotoResource::estimatedPriceField(). Escopeado a
+            // las páginas de ese recurso nada más (no es un hook de panel
+            // entero) porque el bundle de Filament instalado acá no trae el
+            // plugin de Alpine ($money) que el ->mask() nativo necesitaría.
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => request()->routeIs('filament.admin.resources.presupuestos-por-foto.*') ? <<<'HTML'
+                    <script>
+                        window.formatThousandsInput = function (event) {
+                            var input = event.target;
+                            var raw = input.value.replace(/[^\d,]/g, '');
+
+                            var firstComma = raw.indexOf(',');
+                            if (firstComma !== -1) {
+                                raw = raw.slice(0, firstComma + 1) + raw.slice(firstComma + 1).replace(/,/g, '');
+                            }
+
+                            var parts = raw.split(',');
+                            var intDigits = parts[0].replace(/^0+(?=\d)/, '');
+                            var decDigits = parts.length > 1 ? parts[1].slice(0, 2) : null;
+
+                            var formattedInt = intDigits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                            var formatted = decDigits !== null ? (formattedInt + ',' + decDigits) : formattedInt;
+
+                            if (input.value !== formatted) {
+                                input.value = formatted;
+                                input.dispatchEvent(new Event('input'));
+                            }
+                        };
+                    </script>
+                    HTML : '',
             );
     }
 }
