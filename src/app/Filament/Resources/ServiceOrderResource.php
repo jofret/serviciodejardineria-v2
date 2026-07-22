@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Concerns\FormatsThousandsInput;
 use App\Filament\Concerns\HasPendingAttentionBadge;
 use App\Filament\Resources\ServiceOrderResource\Pages;
 use App\Filament\Resources\WorkOrderResource;
@@ -17,7 +16,6 @@ use Filament\Tables\Table;
 
 class ServiceOrderResource extends Resource
 {
-    use FormatsThousandsInput;
     use HasPendingAttentionBadge;
 
     protected static ?string $model = ServiceOrder::class;
@@ -37,71 +35,48 @@ class ServiceOrderResource extends Resource
         return $form
             ->schema([
                 ...static::flowAndRelevamientoFields(),
-                ...static::customerAndPropertyFields(),
-                ...static::detailFields(),
-            ]);
-    }
 
-    /**
-     * Cliente/Propiedad — compartidos entre ServiceOrderResource::form()
-     * y CreateServiceOrder (el form reducido de "Crear orden con foto",
-     * que solo usa propertyField() — el cliente sale solo de la Propiedad
-     * elegida, ver CreateServiceOrder::mutateFormDataBeforeCreate()).
-     * Los closures de disabled()/helperText() dependen de flow_type: en
-     * un form que no tiene ese campo $get('flow_type') da null, así que
-     * quedan habilitados sin texto de ayuda — el comportamiento correcto.
-     */
-    public static function customerAndPropertyFields(): array
-    {
-        return [
-            static::customerField(),
-            static::propertyField(),
-        ];
-    }
-
-    public static function customerField(): Forms\Components\Select
-    {
-        return Forms\Components\Select::make('customer_id')
-            ->label('Cliente')
-            ->relationship('customer', 'name')
-            ->searchable()
-            ->preload()
-            ->disabled(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento')
-            ->dehydrated(true)
-            ->helperText(fn (callable $get): ?string => $get('flow_type') === 'con_relevamiento'
-                ? 'Se completa solo a partir del Relevamiento elegido arriba.'
-                : null)
-            ->required();
-    }
-
-    public static function propertyField(): Forms\Components\Select
-    {
-        return Forms\Components\Select::make('property_id')
-            ->label('Propiedad')
-            ->relationship('property', 'address')
-            ->getOptionLabelFromRecordUsing(fn ($record) => $record->customer?->name.' — '.$record->display_label)
-            ->searchable()
-            ->preload()
-            ->createOptionForm([
                 Forms\Components\Select::make('customer_id')
                     ->label('Cliente')
                     ->relationship('customer', 'name')
                     ->searchable()
                     ->preload()
+                    ->disabled(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento')
+                    ->dehydrated(true)
+                    ->helperText(fn (callable $get): ?string => $get('flow_type') === 'con_relevamiento'
+                        ? 'Se completa solo a partir del Relevamiento elegido arriba.'
+                        : null)
                     ->required(),
-                Forms\Components\TextInput::make('address')
-                    ->label('Dirección')
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('zone')
-                    ->label('Zona')
-                    ->maxLength(255),
-            ])
-            ->disabled(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento')
-            ->dehydrated(true)
-            ->helperText(fn (callable $get): ?string => $get('flow_type') === 'con_relevamiento'
-                ? 'Se completa sola a partir del Relevamiento elegido arriba.'
-                : null)
-            ->required();
+
+                Forms\Components\Select::make('property_id')
+                    ->label('Propiedad')
+                    ->relationship('property', 'address')
+                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->customer?->name.' — '.$record->display_label)
+                    ->searchable()
+                    ->preload()
+                    ->createOptionForm([
+                        Forms\Components\Select::make('customer_id')
+                            ->label('Cliente')
+                            ->relationship('customer', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+                        Forms\Components\TextInput::make('address')
+                            ->label('Dirección')
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('zone')
+                            ->label('Zona')
+                            ->maxLength(255),
+                    ])
+                    ->disabled(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento')
+                    ->dehydrated(true)
+                    ->helperText(fn (callable $get): ?string => $get('flow_type') === 'con_relevamiento'
+                        ? 'Se completa sola a partir del Relevamiento elegido arriba.'
+                        : null)
+                    ->required(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento'),
+
+                ...static::detailFields(),
+            ]);
     }
 
     /**
@@ -109,13 +84,21 @@ class ServiceOrderResource extends Resource
      * Órdenes de Servicio dentro de una Property) — se separan de
      * customer_id/property_id porque esos dos no tienen sentido ahí (la
      * Property y su cliente ya están dados por el contexto).
+     *
+     * "Presupuesto directo por foto" queda deshabilitado por ahora: no
+     * tiene una pantalla de "Revisar y presupuestar" propia (esa requiere
+     * relevamiento_id), así que una orden creada con ese flujo no tiene
+     * forma de llegar a generar y enviar un presupuesto. Se deja la
+     * constante ServiceOrder::FLOW_TYPES intacta y toda la lógica
+     * condicional de estos campos por si se retoma más adelante — alcanza
+     * con agregar la opción de nuevo acá para reactivarlo.
      */
     public static function flowAndRelevamientoFields(?Closure $relevamientoQueryModifier = null, ?Closure $relevamientoOptionLabel = null): array
     {
         return [
             Forms\Components\Radio::make('flow_type')
                 ->label('Tipo de flujo')
-                ->options(ServiceOrder::FLOW_TYPES)
+                ->options(['con_relevamiento' => ServiceOrder::FLOW_TYPES['con_relevamiento']])
                 ->default('con_relevamiento')
                 ->live()
                 ->afterStateUpdated(function (string $state, callable $set): void {
@@ -163,7 +146,16 @@ class ServiceOrderResource extends Resource
                 ->options(ServiceOrder::TIME_SLOTS)
                 ->visible(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento'),
 
-            static::itemsRepeaterField()
+            Forms\Components\SpatieMediaLibraryFileUpload::make('budget_photos')
+                ->collection('budget_photos')
+                ->label('Fotos para presupuesto')
+                ->multiple()
+                ->image()
+                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/jfif', 'image/bmp', 'image/gif'])
+                ->imageEditor()
+                ->reorderable()
+                ->openable()
+                ->columnSpanFull()
                 ->visible(fn (callable $get): bool => $get('flow_type') === 'presupuesto_directo'),
 
             Forms\Components\Select::make('category_id')
@@ -175,19 +167,16 @@ class ServiceOrderResource extends Resource
 
             Forms\Components\Select::make('status')
                 ->label('Estado')
-                ->options(function (string $operation, callable $get): array {
-                    if ($operation !== 'create') {
-                        return ServiceOrder::allStatusOptions();
-                    }
-
-                    $initialStatus = $get('flow_type') === 'presupuesto_directo' ? 'presupuestado_enviado' : 'visita_programada';
-
-                    return [$initialStatus => ServiceOrder::PIPELINE_STATUSES[$initialStatus]];
-                })
+                ->options(fn (string $operation): array => $operation === 'create'
+                    ? ['visita_programada' => ServiceOrder::PIPELINE_STATUSES['visita_programada']]
+                    : ServiceOrder::allStatusOptions())
                 ->default('visita_programada')
                 ->required(),
 
-            static::priceField()
+            Forms\Components\TextInput::make('price')
+                ->label('Precio')
+                ->numeric()
+                ->prefix('$')
                 ->visible(fn (callable $get): bool => $get('flow_type') === 'presupuesto_directo'),
 
             Forms\Components\Textarea::make('observations')
@@ -201,84 +190,6 @@ class ServiceOrderResource extends Resource
                 ->searchable()
                 ->preload(),
         ];
-    }
-
-    /**
-     * Ítems del flujo "presupuesto directo por foto" — mismo esquema que
-     * los ítems del Relevamiento (descripción, observaciones, incluye
-     * retiro, fotos), para que "Revisar y presupuestar" y la proforma
-     * pública los muestren con el mismo componente sin importar el
-     * origen. Se usa tanto acá (form completo, condicionado a
-     * flow_type) como en el form reducido de "Crear orden con foto".
-     */
-    public static function itemsRepeaterField(): Forms\Components\Repeater
-    {
-        return Forms\Components\Repeater::make('items')
-            ->relationship()
-            ->label('Ítems')
-            ->schema([
-                Forms\Components\Textarea::make('description')
-                    ->label('Descripción')
-                    ->rows(2),
-                Forms\Components\Textarea::make('observations')
-                    ->label('Observaciones')
-                    ->rows(2),
-                Forms\Components\Toggle::make('includes_pickup')
-                    ->label('Incluye retiro'),
-                Forms\Components\SpatieMediaLibraryFileUpload::make('photos')
-                    ->collection('photos')
-                    ->label('Fotos')
-                    ->helperText('La(s) foto(s) que mandó el cliente para este ítem.')
-                    ->multiple()
-                    ->image()
-                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/jfif', 'image/bmp', 'image/gif'])
-                    ->imageEditor()
-                    ->reorderable()
-                    ->openable()
-                    ->required()
-                    ->columnSpanFull(),
-            ])
-            ->columns(2)
-            ->addActionLabel('+ Agregar ítem')
-            ->collapsible()
-            ->itemLabel(fn (array $state): ?string => $state['description'] ?? null)
-            ->columnSpanFull()
-            ->minItems(1);
-    }
-
-    /**
-     * Campos del form reducido de "Crear orden con foto" (sin
-     * customer_id/property_id, que cada contexto de creación resuelve
-     * distinto — ver CreateServiceOrder y ServiceOrdersRelationManager).
-     */
-    public static function photoFlowFields(): array
-    {
-        return [
-            Forms\Components\Select::make('category_id')
-                ->label('Categoría')
-                ->relationship('category', 'name')
-                ->searchable()
-                ->preload()
-                ->required(),
-
-            static::itemsRepeaterField(),
-
-            static::priceField(),
-        ];
-    }
-
-    /**
-     * Campo "Precio" — compartido entre detailFields() (form completo) y
-     * photoFlowFields() (form reducido de "Crear orden con foto"), con
-     * separador de miles mientras se escribe (ver
-     * App\Filament\Concerns\FormatsThousandsInput).
-     */
-    public static function priceField(): Forms\Components\TextInput
-    {
-        return static::thousandsFormattedTextInput('price')
-            ->label('Precio')
-            ->prefix('$')
-            ->helperText('Precio de referencia inicial. El precio que se le manda al cliente se carga después, en "Revisar y presupuestar".');
     }
 
     public static function table(Table $table): Table

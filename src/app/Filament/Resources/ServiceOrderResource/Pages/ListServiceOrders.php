@@ -13,9 +13,7 @@ class ListServiceOrders extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
-                ->label('Crear orden con foto')
-                ->icon('heroicon-o-camera'),
+            Actions\CreateAction::make(),
         ];
     }
 }

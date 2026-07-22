@@ -52,11 +52,7 @@
             </tr>
         </table>
 
-        @php
-            $items = $order->relevamiento?->workItems ?? $order->items;
-        @endphp
-
-        @if ($items->isNotEmpty())
+        @if ($order->relevamiento && $order->relevamiento->workItems->isNotEmpty())
             <h2 class="section-title">Trabajo a realizar</h2>
             <table class="items">
                 <thead>
@@ -67,7 +63,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($items as $item)
+                    @foreach ($order->relevamiento->workItems as $item)
                         <tr>
                             <td>{{ $item->description ?: '—' }}</td>
                             <td>{{ $item->observations ?: '—' }}</td>

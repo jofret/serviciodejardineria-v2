@@ -21,15 +21,11 @@
                 </div>
             @endif
 
-            @php
-                $items = $order->relevamiento?->workItems ?? $order->items;
-            @endphp
-
-            @if ($items->isNotEmpty())
+            @if ($order->relevamiento && $order->relevamiento->workItems->isNotEmpty())
                 <div>
                     <p class="text-sm text-gray-500 mb-2">Trabajo a realizar</p>
                     <ul class="space-y-3">
-                        @foreach ($items as $item)
+                        @foreach ($order->relevamiento->workItems as $item)
                             <li class="bg-gray-50 rounded-lg p-3">
                                 <p class="text-gray-800">{{ $item->description ?: '—' }}</p>
                                 @if ($item->observations)

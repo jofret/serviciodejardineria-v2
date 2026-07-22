@@ -18,24 +18,13 @@ class ServiceOrdersRelationManager extends RelationManager
     protected static ?string $modelLabel = 'orden de servicio';
 
     /**
-     * Reutiliza los campos de ServiceOrderResource para que este form no
-     * se desincronice del principal (ver comentario en
-     * ServiceOrderResource::flowAndRelevamientoFields()).
-     *
-     * Al crear, solo tiene sentido "presupuesto directo por foto" — el
-     * flujo con relevamiento ya no se crea a mano (ver CreateServiceOrder).
-     * Cliente y Propiedad ni siquiera hacen falta acá: la Propiedad es el
-     * registro dueño de esta pestaña, y el Cliente sale de ella
-     * (mutateFormDataUsing en el CreateAction de la tabla). Al editar una
-     * orden ya existente sí se muestra el form completo, para no perder
-     * acceso a los datos de una orden con relevamiento vieja.
+     * Reutiliza los campos de ServiceOrderResource (sin customer_id ni
+     * property_id, que acá ya vienen dados por la Property dueña de esta
+     * pestaña) para que este form no se desincronice del principal — ver
+     * el comentario en ServiceOrderResource::flowAndRelevamientoFields().
      */
     public function form(Form $form): Form
     {
-        if ($form->getOperation() === 'create') {
-            return $form->schema(ServiceOrderResource::photoFlowFields());
-        }
-
         return $form
             ->schema([
                 ...ServiceOrderResource::flowAndRelevamientoFields(
@@ -81,12 +70,9 @@ class ServiceOrdersRelationManager extends RelationManager
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
-                    ->label('Crear orden con foto')
-                    ->icon('heroicon-o-camera')
+                    ->label('Crear orden de servicio')
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['customer_id'] = $this->getOwnerRecord()->customer_id;
-                        $data['flow_type'] = 'presupuesto_directo';
-                        $data['status'] = 'presupuestado_enviado';
 
                         return $data;
                     }),

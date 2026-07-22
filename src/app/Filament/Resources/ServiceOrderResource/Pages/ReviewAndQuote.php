@@ -2,11 +2,11 @@
 
 namespace App\Filament\Resources\ServiceOrderResource\Pages;
 
-use App\Filament\Concerns\FormatsThousandsInput;
 use App\Filament\Concerns\OpensWhatsAppInNewTab;
 use App\Filament\Resources\ServiceOrderResource;
 use App\Mail\BudgetMailable;
 use App\Models\ServiceOrder;
+use Closure;
 use Filament\Actions;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\Mail;
 
 class ReviewAndQuote extends Page implements HasForms
 {
-    use FormatsThousandsInput;
     use InteractsWithForms;
     use OpensWhatsAppInNewTab;
 
@@ -37,7 +36,6 @@ class ReviewAndQuote extends Page implements HasForms
             'customer',
             'property',
             'category',
-            'items.media',
             'relevamiento.workItems.media',
             'relevamiento.workTools',
         ])->findOrFail($record);
@@ -62,10 +60,20 @@ class ReviewAndQuote extends Page implements HasForms
                 Forms\Components\Section::make('Precio final')
                     ->description('Propio de esta orden de servicio — independiente del precio estimativo que cargó el relevador.')
                     ->schema([
-                        static::thousandsFormattedTextInput('final_price')
+                        Forms\Components\TextInput::make('final_price')
                             ->label('Precio final')
+                            ->type('text')
+                            ->inputMode('decimal')
                             ->prefix('$')
-                            ->required(),
+                            ->required()
+                            ->extraInputAttributes(['x-on:input' => 'window.formatThousandsInput($event)'])
+                            ->afterStateHydrated(fn ($component, $state) => $component->state(static::formatPriceDisplay($state)))
+                            ->dehydrateStateUsing(fn ($state) => static::parsePriceInput($state))
+                            ->rule(static fn (): Closure => function (string $attribute, $value, Closure $fail) {
+                                if (filled($value) && ! is_numeric(static::parsePriceInput($value))) {
+                                    $fail('El precio final debe ser un valor numérico.');
+                                }
+                            }),
                         Forms\Components\Textarea::make('final_price_notes')
                             ->label('Observaciones del precio final')
                             ->helperText('Justificá acá si el precio final difiere del estimado por el relevador.')
@@ -115,6 +123,44 @@ class ReviewAndQuote extends Page implements HasForms
 
         return 'Se guarda el precio final cargado y se envía por '.implode(' y ', $canales).
             '. El cliente va a poder ver el presupuesto, aceptarlo y descargarlo.';
+    }
+
+    /**
+     * Convierte el valor crudo (numérico, o ya formateado si el usuario
+     * está editando) a la representación con punto de miles y coma
+     * decimal que se muestra en el campo (ej. "1.234.567,50").
+     */
+    private static function formatPriceDisplay($state): ?string
+    {
+        if (blank($state)) {
+            return null;
+        }
+
+        $normalized = static::parsePriceInput($state);
+
+        if (! is_numeric($normalized)) {
+            return (string) $state;
+        }
+
+        [$intPart, $decPart] = array_pad(explode('.', $normalized, 2), 2, null);
+
+        $formattedInt = number_format((float) $intPart, 0, '', '.');
+
+        return $decPart !== null ? $formattedInt.','.$decPart : $formattedInt;
+    }
+
+    /**
+     * Inversa de formatPriceDisplay(): saca los puntos de miles y
+     * convierte la coma decimal en punto, para validar y guardar el
+     * valor numérico real.
+     */
+    private static function parsePriceInput($state): ?string
+    {
+        if (blank($state)) {
+            return null;
+        }
+
+        return str_replace(['.', ','], ['', '.'], (string) $state);
     }
 
     public function save(): void

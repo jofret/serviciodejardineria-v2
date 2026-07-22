@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -134,15 +133,6 @@ class ServiceOrder extends Model implements HasMedia
         return $this->hasOne(WorkOrder::class);
     }
 
-    /**
-     * Ítems del flujo "presupuesto directo por foto" (sin relevamiento) —
-     * ver ServiceOrderItem.
-     */
-    public function items(): HasMany
-    {
-        return $this->hasMany(ServiceOrderItem::class)->orderBy('order')->orderBy('id');
-    }
-
     public function getBudgetNumberAttribute(): string
     {
         return '00'.$this->documentNumberBase();
@@ -182,18 +172,11 @@ class ServiceOrder extends Model implements HasMedia
     }
 
     /**
-     * Habilita la pantalla "Revisar y presupuestar": con relevamiento,
-     * necesita que el relevador ya lo haya enviado (submitted_at seteado).
-     * Con presupuesto directo por foto no hay relevamiento — la orden ya
-     * nace con lo que hace falta para presupuestar (fotos y precio de
-     * referencia cargados al crearla).
+     * Habilita la pantalla "Revisar y presupuestar": necesita un Relevamiento
+     * vinculado y que el relevador ya lo haya enviado (submitted_at seteado).
      */
     public function canReviewAndQuote(): bool
     {
-        if ($this->flow_type === 'presupuesto_directo') {
-            return true;
-        }
-
         return $this->relevamiento_id !== null && $this->relevamiento?->submitted_at !== null;
     }
 
@@ -237,11 +220,8 @@ class ServiceOrder extends Model implements HasMedia
     /**
      * Genera la Orden de Trabajo la primera vez que se acepta el
      * presupuesto, con su checklist heredado de los ítems del Relevamiento
-     * (con relevamiento) o de los ítems propios (presupuesto directo por
-     * foto) — mismo esquema en los dos casos (description, observations,
-     * includes_pickup), así el checklist queda igual sin importar el
-     * origen. Idempotente — mismo criterio que Relevamiento::markAsSubmitted()
-     * al generar la Orden de Servicio.
+     * vinculado (si lo hay). Idempotente — mismo criterio que
+     * Relevamiento::markAsSubmitted() al generar la Orden de Servicio.
      */
     public function generateWorkOrder(): void
     {
@@ -251,9 +231,7 @@ class ServiceOrder extends Model implements HasMedia
 
         $workOrder = $this->workOrder()->create(['status' => 'nueva']);
 
-        $items = $this->relevamiento ? $this->relevamiento->workItems : $this->items;
-
-        foreach ($items as $index => $item) {
+        foreach ($this->relevamiento?->workItems ?? [] as $index => $item) {
             $workOrder->checklistItems()->create([
                 'description' => $item->description,
                 'observations' => $item->observations,
