@@ -6,16 +6,38 @@ use App\Filament\Resources\ServiceOrderResource;
 use App\Filament\Resources\WorkOrderResource;
 use App\Models\ServiceOrder;
 use Filament\Actions;
+use Filament\Forms;
 use Filament\Notifications\Notification;
-use Filament\Resources\Pages\EditRecord;
+use Filament\Resources\Pages\ViewRecord;
 
-class EditServiceOrder extends EditRecord
+class ViewServiceOrder extends ViewRecord
 {
     protected static string $resource = ServiceOrderResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('edit_observations')
+                ->label('Editar observaciones')
+                ->icon('heroicon-o-pencil-square')
+                ->color('gray')
+                ->form([
+                    Forms\Components\Textarea::make('observations')
+                        ->label('Observaciones')
+                        ->columnSpanFull(),
+                ])
+                ->fillForm(fn (ServiceOrder $record): array => [
+                    'observations' => $record->observations,
+                ])
+                ->action(function (ServiceOrder $record, array $data): void {
+                    $record->update($data);
+
+                    Notification::make()
+                        ->title('Observaciones actualizadas')
+                        ->success()
+                        ->send();
+                }),
+
             Actions\Action::make('budget_status_sent')
                 ->label('Presupuestado y Enviado')
                 ->icon('heroicon-o-paper-airplane')

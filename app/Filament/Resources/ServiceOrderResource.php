@@ -8,6 +8,8 @@ use App\Filament\Resources\WorkOrderResource;
 use App\Models\ServiceOrder;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -32,16 +34,16 @@ class ServiceOrderResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Radio::make('flow_type')
-                    ->label('Tipo de flujo')
-                    ->options(ServiceOrder::FLOW_TYPES)
-                    ->default('con_relevamiento')
-                    ->live()
-                    ->afterStateUpdated(function (string $state, callable $set): void {
-                        $set('status', $state === 'presupuesto_directo' ? 'presupuestado_enviado' : 'visita_programada');
-                    })
-                    ->required()
-                    ->columnSpanFull(),
+                // Sin selector visible: hoy el único flujo funcional es
+                // "con_relevamiento" (el de foto directa quedó sin
+                // pantalla propia de "Revisar y presupuestar" — ver
+                // ServiceOrder::canReviewAndQuote()). Se mantiene como
+                // campo oculto, no como valor hardcodeado en el modelo,
+                // para no romper las condiciones visible()/required() de
+                // los campos de más abajo, que siguen chequeando
+                // $get('flow_type') === 'con_relevamiento'.
+                Forms\Components\Hidden::make('flow_type')
+                    ->default('con_relevamiento'),
 
                 Forms\Components\Select::make('relevamiento_id')
                     ->label('Relevamiento vinculado')
@@ -102,16 +104,6 @@ class ServiceOrderResource extends Resource
                         : null)
                     ->required(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento'),
 
-                Forms\Components\DatePicker::make('work_date')
-                    ->label('Fecha de trabajo')
-                    ->visible(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento')
-                    ->required(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento'),
-
-                Forms\Components\Select::make('time_slot')
-                    ->label('Franja horaria')
-                    ->options(ServiceOrder::TIME_SLOTS)
-                    ->visible(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento'),
-
                 Forms\Components\SpatieMediaLibraryFileUpload::make('budget_photos')
                     ->collection('budget_photos')
                     ->label('Fotos para presupuesto')
@@ -131,12 +123,6 @@ class ServiceOrderResource extends Resource
                     ->preload()
                     ->required(),
 
-                Forms\Components\Select::make('post_id')
-                    ->label('Trabajo relacionado')
-                    ->relationship('post', 'title')
-                    ->searchable()
-                    ->preload(),
-
                 Forms\Components\Select::make('status')
                     ->label('Estado')
                     ->options(ServiceOrder::allStatusOptions())
@@ -150,6 +136,69 @@ class ServiceOrderResource extends Resource
 
                 Forms\Components\Textarea::make('observations')
                     ->label('Observaciones')
+                    ->columnSpanFull(),
+            ]);
+    }
+
+    /**
+     * Vista de solo lectura para una orden ya creada — nada de esto se
+     * edita a mano: el estado y los datos base avanzan solos a través de
+     * acciones puntuales (ver ViewServiceOrder::getHeaderActions()). La
+     * única excepción es "Observaciones", editable desde su propia acción.
+     */
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Infolists\Components\TextEntry::make('relevamiento_id')
+                    ->label('Relevamiento vinculado')
+                    ->getStateUsing(fn (ServiceOrder $record): string => $record->relevamiento ? collect([
+                        $record->relevamiento->property?->customer?->name,
+                        $record->relevamiento->property?->display_label,
+                        $record->relevamiento->relevador?->name,
+                        $record->relevamiento->scheduled_date?->format('d/m/Y') ?? 'sin fecha',
+                    ])->filter()->join(' — ') : '—'),
+
+                Infolists\Components\TextEntry::make('customer.name')
+                    ->label('Cliente')
+                    ->placeholder('—'),
+
+                Infolists\Components\TextEntry::make('property.display_label')
+                    ->label('Propiedad')
+                    ->placeholder('—'),
+
+                Infolists\Components\TextEntry::make('category.name')
+                    ->label('Categoría'),
+
+                Infolists\Components\TextEntry::make('status')
+                    ->label('Estado')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'visita_programada', 'visita_realizada' => 'info',
+                        'presupuestado_enviado' => 'warning',
+                        'presupuesto_aceptado' => 'success',
+                        'trabajo_programado', 'conformidad_cliente' => 'primary',
+                        'servicio_pagado', 'factura_enviada' => 'success',
+                        'cancelado' => 'danger',
+                        'reprogramado' => 'gray',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => (ServiceOrder::PIPELINE_STATUSES + ServiceOrder::OTHER_STATUSES)[$state] ?? $state),
+
+                Infolists\Components\TextEntry::make('price')
+                    ->label('Precio')
+                    ->getStateUsing(fn (ServiceOrder $record) => $record->relevamiento?->estimated_price ?? $record->price)
+                    ->money('ARS')
+                    ->placeholder('—'),
+
+                Infolists\Components\TextEntry::make('final_price')
+                    ->label('Precio final')
+                    ->money('ARS')
+                    ->placeholder('—'),
+
+                Infolists\Components\TextEntry::make('observations')
+                    ->label('Observaciones')
+                    ->placeholder('Sin observaciones')
                     ->columnSpanFull(),
             ]);
     }
@@ -226,14 +275,14 @@ class ServiceOrderResource extends Resource
                     ->color('gray')
                     ->visible(fn (ServiceOrder $record): bool => $record->status === 'presupuesto_aceptado' && $record->workOrder !== null)
                     ->url(fn (ServiceOrder $record): string => WorkOrderResource::getUrl('edit', ['record' => $record->workOrder])),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('work_date', 'desc');
+            ->defaultSort('created_at', 'desc');
     }
 
     public static function getRelations(): array
@@ -248,7 +297,7 @@ class ServiceOrderResource extends Resource
         return [
             'index' => Pages\ListServiceOrders::route('/'),
             'create' => Pages\CreateServiceOrder::route('/create'),
-            'edit' => Pages\EditServiceOrder::route('/{record}/edit'),
+            'view' => Pages\ViewServiceOrder::route('/{record}'),
             'review-and-quote' => Pages\ReviewAndQuote::route('/{record}/revisar-presupuestar'),
         ];
     }

@@ -5,6 +5,9 @@ namespace App\Filament\Resources\PropertyResource\RelationManagers;
 use App\Models\ServiceOrder;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -21,16 +24,13 @@ class ServiceOrdersRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                Forms\Components\Radio::make('flow_type')
-                    ->label('Tipo de flujo')
-                    ->options(ServiceOrder::FLOW_TYPES)
-                    ->default('con_relevamiento')
-                    ->live()
-                    ->afterStateUpdated(function (string $state, callable $set): void {
-                        $set('status', $state === 'presupuesto_directo' ? 'presupuestado_enviado' : 'visita_programada');
-                    })
-                    ->required()
-                    ->columnSpanFull(),
+                // Sin selector visible: hoy el único flujo funcional es
+                // "con_relevamiento" — ver el mismo comentario en
+                // ServiceOrderResource::form(). Se mantiene como campo
+                // oculto, no como valor hardcodeado en el modelo, para no
+                // romper las condiciones visible()/required() de abajo.
+                Forms\Components\Hidden::make('flow_type')
+                    ->default('con_relevamiento'),
 
                 Forms\Components\Select::make('relevamiento_id')
                     ->label('Relevamiento vinculado')
@@ -38,6 +38,7 @@ class ServiceOrdersRelationManager extends RelationManager
                     ->getOptionLabelFromRecordUsing(fn ($record) => $record->relevador?->name.' — '.($record->scheduled_date?->format('d/m/Y') ?? 'sin fecha'))
                     ->searchable()
                     ->preload()
+                    ->required(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento')
                     ->visible(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento'),
 
                 Forms\Components\Select::make('category_id')
@@ -46,21 +47,6 @@ class ServiceOrdersRelationManager extends RelationManager
                     ->searchable()
                     ->preload()
                     ->required(),
-                Forms\Components\Select::make('post_id')
-                    ->label('Trabajo relacionado')
-                    ->relationship('post', 'title')
-                    ->searchable()
-                    ->preload(),
-
-                Forms\Components\DatePicker::make('work_date')
-                    ->label('Fecha de trabajo')
-                    ->visible(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento')
-                    ->required(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento'),
-
-                Forms\Components\Select::make('time_slot')
-                    ->label('Franja horaria')
-                    ->options(ServiceOrder::TIME_SLOTS)
-                    ->visible(fn (callable $get): bool => $get('flow_type') === 'con_relevamiento'),
 
                 Forms\Components\SpatieMediaLibraryFileUpload::make('budget_photos')
                     ->collection('budget_photos')
@@ -85,6 +71,56 @@ class ServiceOrdersRelationManager extends RelationManager
                     ->prefix('$'),
                 Forms\Components\Textarea::make('observations')
                     ->label('Observaciones')
+                    ->columnSpanFull(),
+            ]);
+    }
+
+    /**
+     * Vista de solo lectura para una orden ya creada — mismo criterio que
+     * ServiceOrderResource::infolist(). La única excepción editable es
+     * "Observaciones", vía la acción de fila "edit_observations".
+     */
+    public function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Infolists\Components\TextEntry::make('relevamiento_id')
+                    ->label('Relevamiento vinculado')
+                    ->getStateUsing(fn (ServiceOrder $record): string => $record->relevamiento
+                        ? $record->relevamiento->relevador?->name.' — '.($record->relevamiento->scheduled_date?->format('d/m/Y') ?? 'sin fecha')
+                        : '—'),
+
+                Infolists\Components\TextEntry::make('category.name')
+                    ->label('Categoría'),
+
+                Infolists\Components\TextEntry::make('status')
+                    ->label('Estado')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'visita_programada', 'visita_realizada' => 'info',
+                        'presupuestado_enviado', 'presupuesto_aceptado' => 'warning',
+                        'trabajo_programado', 'conformidad_cliente' => 'primary',
+                        'servicio_pagado', 'factura_enviada' => 'success',
+                        'cancelado' => 'danger',
+                        'reprogramado' => 'gray',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => (ServiceOrder::PIPELINE_STATUSES + ServiceOrder::OTHER_STATUSES)[$state] ?? $state),
+
+                Infolists\Components\TextEntry::make('price')
+                    ->label('Precio')
+                    ->getStateUsing(fn (ServiceOrder $record) => $record->relevamiento?->estimated_price ?? $record->price)
+                    ->money('ARS')
+                    ->placeholder('—'),
+
+                Infolists\Components\TextEntry::make('final_price')
+                    ->label('Precio final')
+                    ->money('ARS')
+                    ->placeholder('—'),
+
+                Infolists\Components\TextEntry::make('observations')
+                    ->label('Observaciones')
+                    ->placeholder('Sin observaciones')
                     ->columnSpanFull(),
             ]);
     }
@@ -135,7 +171,27 @@ class ServiceOrdersRelationManager extends RelationManager
                     }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('edit_observations')
+                    ->label('Editar observaciones')
+                    ->icon('heroicon-o-pencil-square')
+                    ->color('gray')
+                    ->form([
+                        Forms\Components\Textarea::make('observations')
+                            ->label('Observaciones')
+                            ->columnSpanFull(),
+                    ])
+                    ->fillForm(fn (ServiceOrder $record): array => [
+                        'observations' => $record->observations,
+                    ])
+                    ->action(function (ServiceOrder $record, array $data): void {
+                        $record->update($data);
+
+                        Notification::make()
+                            ->title('Observaciones actualizadas')
+                            ->success()
+                            ->send();
+                    }),
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
