@@ -21,7 +21,7 @@ class PublicBudgetController extends Controller
 
     public function show(string $token)
     {
-        $order = ServiceOrder::with(['customer', 'property', 'category', 'items.media', 'relevamiento.workItems.media'])
+        $order = ServiceOrder::with(['customer', 'property', 'category', 'relevamiento.workItems.media'])
             ->where('budget_token', $token)
             ->firstOrFail();
 
@@ -59,7 +59,7 @@ class PublicBudgetController extends Controller
 
     public function download(string $token): Response
     {
-        $order = ServiceOrder::with(['customer', 'property', 'category', 'items', 'relevamiento.workItems'])
+        $order = ServiceOrder::with(['customer', 'property', 'category', 'relevamiento.workItems'])
             ->where('budget_token', $token)
             ->firstOrFail();
 
