@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Concerns\HasPendingAttentionBadge;
+use App\Filament\Concerns\SendsBankAccountDetails;
 use App\Filament\Resources\WorkOrderResource\Pages;
 use App\Models\ServiceOrder;
 use App\Models\WorkOrder;
@@ -15,6 +16,7 @@ use Filament\Tables\Table;
 class WorkOrderResource extends Resource
 {
     use HasPendingAttentionBadge;
+    use SendsBankAccountDetails;
 
     protected static ?string $model = WorkOrder::class;
 
@@ -149,6 +151,11 @@ class WorkOrderResource extends Resource
                     ->date('d/m/Y')
                     ->placeholder('—')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('conformity_confirmed_at')
+                    ->label('Cliente conforme')
+                    ->badge()
+                    ->getStateUsing(fn (WorkOrder $record): string => $record->conformity_confirmed_at !== null ? 'Sí' : 'No')
+                    ->color(fn (WorkOrder $record): string => $record->conformity_confirmed_at !== null ? 'success' : 'gray'),
             ])
             ->modifyQueryUsing(fn ($query) => $query->with('serviceOrder.customer', 'serviceOrder.property', 'serviceOrder.category'))
             ->filters([
@@ -157,6 +164,7 @@ class WorkOrderResource extends Resource
                     ->options(WorkOrder::allStatusOptions()),
             ])
             ->actions([
+                static::configureBankAccountDetailsAction(Tables\Actions\Action::make('send_bank_account_details')),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
