@@ -2,17 +2,22 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\HasPendingAttentionBadge;
 use App\Filament\Resources\RelevamientoResource\Pages;
 use App\Models\Relevamiento;
+use App\Models\ServiceOrder;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class RelevamientoResource extends Resource
 {
+    use HasPendingAttentionBadge;
+
     protected static ?string $model = Relevamiento::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
@@ -24,6 +29,8 @@ class RelevamientoResource extends Resource
     protected static ?string $modelLabel = 'relevamiento';
 
     protected static ?string $pluralModelLabel = 'relevamientos';
+
+    protected static ?int $navigationSort = 1;
 
     public static function normalizeCategoryData(array $data): array
     {
@@ -137,6 +144,11 @@ class RelevamientoResource extends Resource
                     ->label('Completado por relevador')
                     ->boolean()
                     ->getStateUsing(fn (Relevamiento $record): bool => $record->submitted_at !== null),
+                Tables\Columns\TextColumn::make('reopen_requested_at')
+                    ->label('Reapertura')
+                    ->badge()
+                    ->color('warning')
+                    ->getStateUsing(fn (Relevamiento $record): ?string => $record->reopen_requested_at ? 'Solicitada' : null),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
@@ -164,11 +176,23 @@ class RelevamientoResource extends Resource
                     ->modalSubmitActionLabel('Confirmar envío')
                     ->action(fn (Relevamiento $record) => $record->update(['status' => 'enviado_a_relevador']))
                     ->successNotificationTitle('Relevamiento enviado a relevador'),
+                Tables\Actions\Action::make('approve_reopen')
+                    ->label('Aprobar reapertura')
+                    ->icon('heroicon-o-lock-open')
+                    ->color('warning')
+                    ->visible(fn (Relevamiento $record): bool => $record->reopen_requested_at !== null)
+                    ->requiresConfirmation()
+                    ->modalHeading('Aprobar reapertura del relevamiento')
+                    ->modalDescription('El relevamiento vuelve a quedar editable para el relevador, que va a poder modificarlo y volver a enviarlo.')
+                    ->modalSubmitActionLabel('Aprobar reapertura')
+                    ->action(fn (Relevamiento $record) => $record->approveReopen())
+                    ->successNotificationTitle('Reapertura aprobada'),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->modalDescription(fn (Collection $records): ?string => static::deleteWarningForRecords($records)),
                 ]),
             ])
             ->defaultSort('scheduled_date', 'desc');
@@ -188,5 +212,59 @@ class RelevamientoResource extends Resource
             'create' => Pages\CreateRelevamiento::route('/create'),
             'edit' => Pages\EditRelevamiento::route('/{record}/edit'),
         ];
+    }
+
+    protected static function pendingAttentionCount(): int
+    {
+        return static::getModel()::whereNotNull('reopen_requested_at')->count();
+    }
+
+    protected static function pendingAttentionTooltip(): ?string
+    {
+        return 'Relevamientos con reapertura solicitada, pendiente de aprobar';
+    }
+
+    protected static function pendingAttentionColor(): string
+    {
+        return 'danger';
+    }
+
+    /**
+     * Aviso dinámico para el modal de "Eliminar" (un solo Relevamiento) —
+     * el borrado arrastra en cascada sus ítems de trabajo (y fotos), y
+     * desvincula (sin borrar) la Orden de Servicio que lo tuviera cargado.
+     */
+    public static function deleteWarning(Relevamiento $record): ?string
+    {
+        return static::deleteWarningForRecords(collect([$record]));
+    }
+
+    /**
+     * Misma lógica que deleteWarning() pero agregada para el borrado
+     * masivo (DeleteBulkAction), sobre todos los Relevamientos seleccionados.
+     */
+    public static function deleteWarningForRecords(Collection $records): ?string
+    {
+        $relevamientoIds = $records->pluck('id');
+        $orders = ServiceOrder::whereIn('relevamiento_id', $relevamientoIds)->get();
+
+        if ($orders->isEmpty()) {
+            return null;
+        }
+
+        $sujeto = $records->count() === 1 ? 'Este relevamiento tiene' : 'Los relevamientos seleccionados tienen';
+        $ordenPalabra = $orders->count() === 1 ? 'la orden va' : 'las órdenes van';
+        $noSeBorra = $orders->count() === 1 ? 'no se borra' : 'no se borran';
+
+        $mensaje = "{$sujeto} {$orders->count()} orden(es) de servicio vinculada(s). "
+            .'Sus ítems de trabajo y fotos se van a borrar definitivamente, '
+            ."y {$ordenPalabra} a quedar sin relevamiento vinculado ({$noSeBorra}).";
+
+        $acceptedCount = $orders->whereNotNull('budget_accepted_at')->count();
+        if ($acceptedCount > 0) {
+            $mensaje .= " ⚠️ {$acceptedCount} de esas órdenes ya tiene(n) un presupuesto ACEPTADO por el cliente.";
+        }
+
+        return $mensaje;
     }
 }

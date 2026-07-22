@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\RelevamientoResource\Pages;
 
 use App\Filament\Resources\RelevamientoResource;
+use App\Models\Relevamiento;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
@@ -13,7 +14,22 @@ class EditRelevamiento extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\Action::make('approve_reopen')
+                ->label('Aprobar reapertura')
+                ->icon('heroicon-o-lock-open')
+                ->color('warning')
+                ->visible(fn (Relevamiento $record): bool => $record->reopen_requested_at !== null)
+                ->requiresConfirmation()
+                ->modalHeading('Aprobar reapertura del relevamiento')
+                ->modalDescription('El relevamiento vuelve a quedar editable para el relevador, que va a poder modificarlo y volver a enviarlo.')
+                ->modalSubmitActionLabel('Aprobar reapertura')
+                ->action(function (Relevamiento $record) {
+                    $record->approveReopen();
+                    $this->fillForm();
+                })
+                ->successNotificationTitle('Reapertura aprobada'),
+            Actions\DeleteAction::make()
+                ->modalDescription(fn (Relevamiento $record): ?string => RelevamientoResource::deleteWarning($record)),
         ];
     }
 

@@ -49,20 +49,26 @@
     @include('relevador.relevamientos._form')
 @else
     <div class="mt-4 bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-4">
-        <h2 class="font-semibold text-gray-800">Relevamiento enviado</h2>
+        <h2 class="font-semibold text-gray-800">Relevamiento Enviado</h2>
 
         <div class="text-sm text-gray-600 space-y-1">
             <p><span class="font-medium text-gray-700">Superficie:</span> {{ $relevamiento->property->total_area ? $relevamiento->property->total_area.' m²' : '—' }}</p>
+            <p><span class="font-medium text-gray-700">Precio Estimativo:</span> {{ $relevamiento->estimated_price ? '$'.number_format($relevamiento->estimated_price, 2, ',', '.') : '—' }}</p>
+            <p><span class="font-medium text-gray-700">Trabajadores para la Obra:</span> {{ $relevamiento->workers_count ?? '—' }}</p>
+            <p><span class="font-medium text-gray-700">Duración Aproximada de la Obra:</span> {{ $relevamiento->estimated_duration_days ? $relevamiento->estimated_duration_days.' día(s)' : '—' }}</p>
         </div>
 
         @if ($relevamiento->workItems->isNotEmpty())
             <div class="pt-2 border-t border-gray-100 space-y-3">
-                <p class="text-sm font-medium text-gray-700">Trabajo a realizar</p>
+                <p class="text-sm font-medium text-gray-700">Trabajo a Realizar</p>
                 @foreach ($relevamiento->workItems as $item)
                     <div class="bg-gray-50 rounded-lg p-3 space-y-1">
                         <p class="text-sm text-gray-800">{{ $item->description ?: '—' }}</p>
                         @if ($item->observations)
                             <p class="text-xs text-gray-500">{{ $item->observations }}</p>
+                        @endif
+                        @if ($item->includes_pickup)
+                            <p class="text-xs text-green-700 font-medium">Incluye retiro</p>
                         @endif
                         @if ($item->getMedia('photos')->isNotEmpty())
                             <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-2">
@@ -78,31 +84,16 @@
             </div>
         @endif
 
-        @foreach ([
-            'garden_areas' => ['¿Tiene jardín?', $relevamiento->property->has_garden, fn ($row) => ($row['name'] ?? '—').($row['size'] ?? null ? ' — '.$row['size'].' m²' : '')],
-            'pools' => ['¿Tiene piscina?', $relevamiento->property->has_pool, fn ($row) => \App\Models\Property::POOL_TYPES[$row['type'] ?? null] ?? ($row['type'] ?? '—')],
-            'trees' => ['¿Tiene árboles?', $relevamiento->property->has_trees, fn ($row) => ($row['species'] ?? '—').' x'.($row['quantity'] ?? 1)],
-            'plants' => ['¿Tiene plantas?', $relevamiento->property->has_plants, fn ($row) => ($row['species'] ?? '—').' x'.($row['quantity'] ?? 1)],
-            'sport_areas' => ['¿Tiene áreas deportivas?', $relevamiento->property->has_sport_areas, fn ($row) => \App\Models\Property::SPORT_AREA_TYPES[$row['type'] ?? null] ?? ($row['type'] ?? '—')],
-        ] as $field => [$label, $has, $formatter])
-            @if ($has)
-                <div class="pt-2 border-t border-gray-100">
-                    <p class="text-sm font-medium text-gray-700 mb-1">{{ $label }}</p>
-                    <ul class="text-sm text-gray-600 list-disc list-inside">
-                        @foreach ($relevamiento->property->{$field} ?? [] as $row)
-                            <li>{{ $formatter($row) }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-        @endforeach
+        <div class="pt-2 border-t border-gray-100 space-y-1">
+            <p class="text-sm text-gray-600"><span class="font-medium text-gray-700">Requiere Cláusula de No-Repetición:</span> {{ $relevamiento->requires_non_compete_clause ? 'Sí' : 'No' }}</p>
+        </div>
 
-        @if ($relevamiento->property->tags->isNotEmpty())
+        @if ($relevamiento->workTools->isNotEmpty())
             <div class="pt-2 border-t border-gray-100">
-                <p class="text-sm font-medium text-gray-700 mb-1">Tags</p>
+                <p class="text-sm font-medium text-gray-700 mb-1">Herramientas para Realizar el Trabajo</p>
                 <div class="flex flex-wrap gap-1">
-                    @foreach ($relevamiento->property->tags as $tag)
-                        <span class="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full">{{ $tag->name }}</span>
+                    @foreach ($relevamiento->workTools as $tool)
+                        <span class="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full">{{ $tool->name }}</span>
                     @endforeach
                 </div>
             </div>
@@ -128,5 +119,18 @@
             </div>
         @endif
     </div>
+
+    @if ($relevamiento->reopen_requested_at)
+        <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+            Solicitaste la reapertura el {{ $relevamiento->reopen_requested_at->format('d/m/Y H:i') }}. Vas a poder volver a editarlo cuando el administrador la apruebe.
+        </div>
+    @else
+        <form method="POST" action="{{ route('relevador.reopen.request', $relevamiento) }}" class="mt-4">
+            @csrf
+            <button type="submit" class="w-full bg-white border border-amber-300 text-amber-700 hover:bg-amber-50 font-semibold py-3 rounded-lg text-base">
+                Solicitar reapertura
+            </button>
+        </form>
+    @endif
 @endif
 @endsection

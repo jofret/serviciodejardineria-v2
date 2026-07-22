@@ -4,6 +4,8 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\PublicBudgetController;
+use App\Http\Controllers\PublicWorkOrderController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\TagController;
@@ -55,6 +57,15 @@ Route::post('/contacto/enviar', [ContactController::class, 'send'])
 // Encuestas públicas
 Route::get('/encuesta/{token}', [SurveyController::class, 'show'])->name('survey.show');
 Route::post('/encuesta/{token}', [SurveyController::class, 'store'])->name('survey.store');
+
+// Presupuesto público (enviado por WhatsApp o email desde "Revisar y presupuestar")
+Route::get('/presupuesto/{token}', [PublicBudgetController::class, 'show'])->name('budget.show');
+Route::post('/presupuesto/{token}/aceptar', [PublicBudgetController::class, 'accept'])->name('budget.accept');
+Route::get('/presupuesto/{token}/descargar', [PublicBudgetController::class, 'download'])->name('budget.download');
+
+// Conformidad del cliente sobre el trabajo realizado (enviado por WhatsApp o email desde la Orden de Trabajo)
+Route::get('/conformidad/{token}', [PublicWorkOrderController::class, 'show'])->name('conformity.show');
+Route::post('/conformidad/{token}/confirmar', [PublicWorkOrderController::class, 'confirm'])->name('conformity.confirm');
 
 /*
 |--------------------------------------------------------------------------

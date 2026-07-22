@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\OpensWhatsAppInNewTab;
 use App\Filament\Resources\SurveyResource\Pages;
 use App\Models\Survey;
 use Filament\Forms;
@@ -12,6 +13,8 @@ use Filament\Tables\Table;
 
 class SurveyResource extends Resource
 {
+    use OpensWhatsAppInNewTab;
+
     protected static ?string $model = Survey::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-ellipsis';
@@ -133,7 +136,8 @@ class SurveyResource extends Resource
                     ->icon('heroicon-o-chat-bubble-left-right')
                     ->color('success')
                     ->visible(fn (Survey $record): bool => $record->is_published && filled($record->customer?->phone))
-                    ->action(function (Survey $record) {
+                    ->extraAttributes(static::whatsAppTriggerAttributes())
+                    ->action(function (Survey $record, $livewire) {
                         $nombre = $record->customer->name ?: 'Cliente';
 
                         $mensaje = "¡Hola {$nombre}! 🌿 Muchas gracias por tu comentario, ya está publicado en nuestra web. ";
@@ -150,7 +154,9 @@ class SurveyResource extends Resource
 
                         // Se usa api.whatsapp.com/send directo en vez de wa.me: el acortador wa.me
                         // corrompe emojis (4 bytes UTF-8) en su propio redirect hacia api.whatsapp.com.
-                        return redirect("https://api.whatsapp.com/send/?phone={$telefono}&text=" . urlencode($mensaje) . '&type=phone_number&app_absent=0');
+                        $whatsappLink = "https://api.whatsapp.com/send/?phone={$telefono}&text=" . urlencode($mensaje) . '&type=phone_number&app_absent=0';
+
+                        $livewire->js(static::navigateWhatsAppTab($whatsappLink));
                     }),
                 Tables\Actions\DeleteAction::make(),
             ])

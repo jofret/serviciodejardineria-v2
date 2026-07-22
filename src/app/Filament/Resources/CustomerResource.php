@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\OpensWhatsAppInNewTab;
 use App\Filament\Resources\CustomerResource\Pages;
 use App\Models\Customer;
 use Filament\Forms;
@@ -12,6 +13,8 @@ use Filament\Tables\Table;
 
 class CustomerResource extends Resource
 {
+    use OpensWhatsAppInNewTab;
+
     protected static ?string $model = Customer::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
@@ -39,28 +42,12 @@ class CustomerResource extends Resource
                             ->label('Email')
                             ->email()
                             ->maxLength(255),
-                        Forms\Components\TextInput::make('address')
-                            ->label('Dirección')
-                            ->maxLength(255),
-                        Forms\Components\TextInput::make('zone')
-                            ->label('Zona')
-                            ->maxLength(255),
                     ])->columns(2),
 
                 Forms\Components\Section::make('Datos adicionales')
                     ->schema([
                         Forms\Components\DatePicker::make('birthday')
                             ->label('Cumpleaños'),
-                        Forms\Components\Select::make('customer_type')
-                            ->label('Tipo de cliente')
-                            ->options([
-                                'casa' => 'Casa particular',
-                                'empresa' => 'Empresa',
-                                'consorcio' => 'Consorcio',
-                                'country' => 'Country/Barrio privado',
-                                'otro' => 'Otro',
-                            ])
-                            ->default('casa'),
                         Forms\Components\Select::make('status')
                             ->label('Estado')
                             ->options([
@@ -69,18 +56,6 @@ class CustomerResource extends Resource
                                 'potencial' => 'Potencial',
                             ])
                             ->default('potencial'),
-                        Forms\Components\Select::make('lead_status')
-                            ->label('Etapa del lead')
-                            ->options([
-                                'nuevo' => 'Nuevo',
-                                'contactado' => 'Contactado',
-                                'visitado' => 'Visitado',
-                                'presupuestado' => 'Presupuestado',
-                                'cliente' => 'Cliente',
-                                'descartado' => 'Descartado',
-                            ])
-                            ->default('nuevo')
-                            ->required(),
                         Forms\Components\Select::make('preferred_contact')
                             ->label('Contacto preferido')
                             ->options([
@@ -118,17 +93,6 @@ class CustomerResource extends Resource
                 Tables\Columns\TextColumn::make('email')
                     ->label('Email')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('zone')
-                    ->label('Zona'),
-                Tables\Columns\TextColumn::make('customer_type')
-                    ->label('Tipo')
-                    ->formatStateUsing(fn (string $state): string => [
-                        'casa' => 'Casa',
-                        'empresa' => 'Empresa',
-                        'consorcio' => 'Consorcio',
-                        'country' => 'Country',
-                        'otro' => 'Otro',
-                    ][$state] ?? $state),
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Estado')
                     ->colors([
@@ -141,26 +105,6 @@ class CustomerResource extends Resource
                         'inactivo' => 'Inactivo',
                         'potencial' => 'Potencial',
                     ][$state] ?? $state),
-                Tables\Columns\TextColumn::make('lead_status')
-                    ->label('Etapa del lead')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'nuevo' => 'info',
-                        'contactado', 'visitado' => 'warning',
-                        'presupuestado' => 'primary',
-                        'cliente' => 'success',
-                        'descartado' => 'danger',
-                        default => 'gray',
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'nuevo' => 'Nuevo',
-                        'contactado' => 'Contactado',
-                        'visitado' => 'Visitado',
-                        'presupuestado' => 'Presupuestado',
-                        'cliente' => 'Cliente',
-                        'descartado' => 'Descartado',
-                        default => $state,
-                    }),
                 Tables\Columns\TextColumn::make('properties_count')
                     ->label('Propiedades')
                     ->counts('properties')
@@ -189,26 +133,6 @@ class CustomerResource extends Resource
                         'inactivo' => 'Inactivo',
                         'potencial' => 'Potencial',
                     ]),
-                Tables\Filters\SelectFilter::make('lead_status')
-                    ->label('Etapa del lead')
-                    ->options([
-                        'nuevo' => 'Nuevo',
-                        'contactado' => 'Contactado',
-                        'visitado' => 'Visitado',
-                        'presupuestado' => 'Presupuestado',
-                        'cliente' => 'Cliente',
-                        'descartado' => 'Descartado',
-                    ]),
-                Tables\Filters\SelectFilter::make('customer_type')
-                    ->label('Tipo de cliente')
-                    ->options([
-                        'casa' => 'Casa particular',
-                        'empresa' => 'Empresa',
-                        'consorcio' => 'Consorcio',
-                        'country' => 'Country',
-                    ]),
-                Tables\Filters\SelectFilter::make('zone')
-                    ->label('Zona'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -223,7 +147,8 @@ class CustomerResource extends Resource
                     ->modalHeading('Enviar encuesta por WhatsApp')
                     ->modalDescription('Se enviará un enlace al cliente para que complete su opinión. Los datos del cliente se precargarán automáticamente.')
                     ->modalSubmitActionLabel('Enviar ahora')
-                    ->action(function ($record) {
+                    ->modalSubmitAction(fn ($action) => $action->extraAttributes(static::whatsAppTriggerAttributes()))
+                    ->action(function ($record, $livewire) {
                         // Generar token único
                         $token = md5($record->id . time() . rand(1000, 9999));
                         
@@ -271,7 +196,7 @@ class CustomerResource extends Resource
                             ->send();
                         
                         // Abrir WhatsApp en una nueva pestaña
-                        return redirect($whatsappLink);
+                        $livewire->js(static::navigateWhatsAppTab($whatsappLink));
                     }),
             ])
             ->bulkActions([

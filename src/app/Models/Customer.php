@@ -39,6 +39,23 @@ class Customer extends Model
     ];
 
     /**
+     * Teléfono normalizado para enlaces de WhatsApp (api.whatsapp.com/send),
+     * con prefijo de país 54 (Argentina).
+     */
+    public function whatsappPhone(): string
+    {
+        $telefono = preg_replace('/[^0-9]/', '', $this->phone ?? '');
+
+        if (substr($telefono, 0, 1) === '0') {
+            $telefono = '54'.substr($telefono, 1);
+        } elseif (substr($telefono, 0, 2) !== '54') {
+            $telefono = '54'.$telefono;
+        }
+
+        return $telefono;
+    }
+
+    /**
      * Relación con propiedades
      */
     public function properties()
