@@ -15,7 +15,12 @@ class RelevamientoWorkItem extends Model implements HasMedia
         'relevamiento_id',
         'description',
         'observations',
+        'includes_pickup',
         'order',
+    ];
+
+    protected $casts = [
+        'includes_pickup' => 'boolean',
     ];
 
     public function registerMediaCollections(): void

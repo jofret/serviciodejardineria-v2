@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Relevador;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Relevador\Concerns\AuthorizesRelevamientoEditing;
+use App\Http\Controllers\Relevador\Concerns\CapitalizesFreeText;
 use App\Models\Property;
-use App\Models\PropertyTag;
 use App\Models\Relevamiento;
+use App\Models\WorkTool;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,6 +16,7 @@ use Illuminate\View\View;
 class RelevamientoController extends Controller
 {
     use AuthorizesRelevamientoEditing;
+    use CapitalizesFreeText;
 
     public function index(Request $request): View
     {
@@ -48,7 +50,7 @@ class RelevamientoController extends Controller
         abort_if($relevamiento->status !== 'enviado_a_relevador', 404);
 
         $relevamiento->pruneEmptyWorkItems();
-        $relevamiento->load('property.customer', 'property.tags', 'category', 'serviceOrder', 'workItems.media');
+        $relevamiento->load('property.customer', 'category', 'serviceOrder', 'workItems.media', 'workTools');
 
         return view('relevador.relevamientos.show', [
             'relevamiento' => $relevamiento,
@@ -68,12 +70,27 @@ class RelevamientoController extends Controller
     {
         $this->authorizeEditable($request, $relevamiento);
 
-        $this->applyChanges($request, $relevamiento);
+        $this->applyChanges($request, $relevamiento, enforceRequired: true);
         $relevamiento->markAsSubmitted();
 
         return redirect()
             ->route('relevador.show', $relevamiento)
             ->with('status', 'Relevamiento enviado correctamente.');
+    }
+
+    public function requestReopen(Request $request, Relevamiento $relevamiento): RedirectResponse
+    {
+        abort_unless($relevamiento->assigned_to === $request->user()->id, 403);
+        abort_if($relevamiento->status !== 'enviado_a_relevador', 403);
+        abort_if($relevamiento->submitted_at === null, 403);
+
+        if (! $relevamiento->reopen_requested_at) {
+            $relevamiento->requestReopen();
+        }
+
+        return redirect()
+            ->route('relevador.show', $relevamiento)
+            ->with('status', 'Solicitud de reapertura enviada. Vas a poder editar el relevamiento cuando el administrador la apruebe.');
     }
 
     public function uploadPhoto(Request $request, Relevamiento $relevamiento): JsonResponse
@@ -101,82 +118,53 @@ class RelevamientoController extends Controller
         return response()->json(['status' => 'ok']);
     }
 
-    private function applyChanges(Request $request, Relevamiento $relevamiento): void
+    private function applyChanges(Request $request, Relevamiento $relevamiento, bool $enforceRequired = false): void
     {
+        $requiredOrNullable = $enforceRequired ? 'required' : 'nullable';
+
         $data = $request->validate([
             'property_type' => ['nullable', 'string', 'in:'.implode(',', array_keys(Property::PROPERTY_TYPES))],
             'property_type_other' => ['nullable', 'string', 'max:255'],
             'total_area' => ['nullable', 'numeric'],
+            'estimated_price' => [$requiredOrNullable, 'numeric'],
+            'workers_count' => [$requiredOrNullable, 'integer', 'min:0'],
+            'estimated_duration_days' => [$requiredOrNullable, 'integer', 'min:0'],
 
-            'has_garden' => ['nullable', 'boolean'],
-            'garden_areas' => ['nullable', 'array'],
-            'garden_areas.*.name' => ['nullable', 'string', 'max:255'],
-            'garden_areas.*.size' => ['nullable', 'numeric'],
+            'requires_non_compete_clause' => ['nullable', 'boolean'],
 
-            'has_pool' => ['nullable', 'boolean'],
-            'pools' => ['nullable', 'array'],
-            'pools.*.type' => ['nullable', 'string', 'in:'.implode(',', array_keys(Property::POOL_TYPES))],
-            'pools.*.liters' => ['nullable', 'numeric'],
-            'pools.*.size_m2' => ['nullable', 'numeric'],
-
-            'has_trees' => ['nullable', 'boolean'],
-            'trees' => ['nullable', 'array'],
-            'trees.*.species' => ['nullable', 'string', 'max:255'],
-            'trees.*.quantity' => ['nullable', 'numeric'],
-            'trees.*.height' => ['nullable', 'numeric'],
-
-            'has_plants' => ['nullable', 'boolean'],
-            'plants' => ['nullable', 'array'],
-            'plants.*.species' => ['nullable', 'string', 'max:255'],
-            'plants.*.quantity' => ['nullable', 'numeric'],
-
-            'has_sport_areas' => ['nullable', 'boolean'],
-            'sport_areas' => ['nullable', 'array'],
-            'sport_areas.*.type' => ['nullable', 'string', 'in:'.implode(',', array_keys(Property::SPORT_AREA_TYPES))],
-            'sport_areas.*.quantity' => ['nullable', 'numeric'],
-
-            'tags' => ['nullable', 'string', 'max:1000'],
+            'work_tools' => ['nullable', 'array'],
+            'work_tools.*' => ['string', 'max:255'],
 
             'notes' => ['nullable', 'string'],
         ]);
 
         $property = $relevamiento->property;
 
+        $propertyTypeOther = $this->capitalizeFirst($data['property_type_other'] ?? null);
         $propertyType = $data['property_type'] ?? $relevamiento->property_type;
-        if ($propertyType === 'otro' && filled($data['property_type_other'] ?? null)) {
-            $propertyType = $data['property_type_other'];
+        if ($propertyType === 'otro' && filled($propertyTypeOther)) {
+            $propertyType = $propertyTypeOther;
         }
 
         $property->update([
             'total_area' => $data['total_area'] ?? null,
-            'has_garden' => $request->boolean('has_garden'),
-            'garden_areas' => $this->cleanRows($data['garden_areas'] ?? []),
-            'has_pool' => $request->boolean('has_pool'),
-            'pools' => $this->cleanRows($data['pools'] ?? []),
-            'has_trees' => $request->boolean('has_trees'),
-            'trees' => $this->cleanRows($data['trees'] ?? []),
-            'has_plants' => $request->boolean('has_plants'),
-            'plants' => $this->cleanRows($data['plants'] ?? []),
-            'has_sport_areas' => $request->boolean('has_sport_areas'),
-            'sport_areas' => $this->cleanRows($data['sport_areas'] ?? []),
         ]);
 
-        $tagIds = collect(explode(',', $data['tags'] ?? ''))
-            ->map(fn (string $name) => trim($name))
+        $workToolIds = collect($data['work_tools'] ?? [])
+            ->map(fn (string $name) => $this->capitalizeFirst(trim($name)))
             ->filter()
             ->unique()
-            ->map(fn (string $name) => PropertyTag::firstOrCreate(['name' => $name])->id);
+            ->map(fn (string $name) => WorkTool::firstOrCreate(['name' => $name])->id);
 
-        $property->tags()->sync($tagIds);
+        $relevamiento->workTools()->sync($workToolIds);
 
         $relevamiento->update([
             'property_type' => $propertyType,
-            'notes' => $data['notes'] ?? $relevamiento->notes,
+            'requires_non_compete_clause' => $request->boolean('requires_non_compete_clause'),
+            'estimated_price' => $data['estimated_price'] ?? null,
+            'workers_count' => $data['workers_count'] ?? null,
+            'estimated_duration_days' => $data['estimated_duration_days'] ?? null,
+            'notes' => $this->capitalizeFirst($data['notes'] ?? null) ?? $relevamiento->notes,
         ]);
-    }
-
-    private function cleanRows(array $rows): array
-    {
-        return array_values(array_filter($rows, fn (array $row) => collect($row)->filter(fn ($value) => filled($value))->isNotEmpty()));
     }
 }

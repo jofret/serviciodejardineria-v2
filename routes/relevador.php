@@ -20,6 +20,7 @@ Route::prefix('relevador')->name('relevador.')->group(function () {
         Route::get('/{relevamiento}', [RelevamientoController::class, 'show'])->name('show');
         Route::post('/{relevamiento}', [RelevamientoController::class, 'update'])->name('update');
         Route::post('/{relevamiento}/autoguardar', [RelevamientoController::class, 'autosave'])->name('autosave');
+        Route::post('/{relevamiento}/solicitar-reapertura', [RelevamientoController::class, 'requestReopen'])->name('reopen.request');
         Route::post('/{relevamiento}/fotos', [RelevamientoController::class, 'uploadPhoto'])->name('photos.store');
         Route::delete('/{relevamiento}/fotos/{media}', [RelevamientoController::class, 'deletePhoto'])->name('photos.destroy');
 

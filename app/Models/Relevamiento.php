@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Spatie\MediaLibrary\HasMedia;
@@ -24,13 +25,23 @@ class Relevamiento extends Model implements HasMedia
         'scheduled_time_from',
         'scheduled_time_to',
         'submitted_at',
+        'reopen_requested_at',
         'notes',
         'property_type',
+        'requires_non_compete_clause',
+        'estimated_price',
+        'workers_count',
+        'estimated_duration_days',
     ];
 
     protected $casts = [
         'scheduled_date' => 'date',
         'submitted_at' => 'datetime',
+        'reopen_requested_at' => 'datetime',
+        'requires_non_compete_clause' => 'boolean',
+        'estimated_price' => 'decimal:2',
+        'workers_count' => 'integer',
+        'estimated_duration_days' => 'integer',
     ];
 
     protected static function booted(): void
@@ -86,12 +97,18 @@ class Relevamiento extends Model implements HasMedia
         return $this->hasMany(RelevamientoWorkItem::class)->orderBy('order')->orderBy('id');
     }
 
+    public function workTools(): BelongsToMany
+    {
+        return $this->belongsToMany(WorkTool::class);
+    }
+
     public function pruneEmptyWorkItems(): void
     {
         $this->workItems()
             ->whereDoesntHave('media')
             ->where(fn ($query) => $query->whereNull('description')->orWhere('description', ''))
             ->where(fn ($query) => $query->whereNull('observations')->orWhere('observations', ''))
+            ->where('includes_pickup', false)
             ->delete();
     }
 
@@ -99,8 +116,36 @@ class Relevamiento extends Model implements HasMedia
     {
         $this->update(['submitted_at' => now()]);
 
-        if ($this->serviceOrder && $this->serviceOrder->status === 'visita_programada') {
-            $this->serviceOrder->update(['status' => 'visita_realizada']);
+        $serviceOrder = $this->serviceOrder()->first();
+
+        if ($serviceOrder) {
+            if ($serviceOrder->status === 'visita_programada') {
+                $serviceOrder->update(['status' => 'visita_realizada']);
+            }
+
+            return;
         }
+
+        ServiceOrder::create([
+            'customer_id' => $this->property->customer_id,
+            'property_id' => $this->property_id,
+            'relevamiento_id' => $this->id,
+            'flow_type' => 'con_relevamiento',
+            'category_id' => $this->category_id,
+            'status' => 'visita_realizada',
+        ]);
+    }
+
+    public function requestReopen(): void
+    {
+        $this->update(['reopen_requested_at' => now()]);
+    }
+
+    public function approveReopen(): void
+    {
+        $this->update([
+            'submitted_at' => null,
+            'reopen_requested_at' => null,
+        ]);
     }
 }

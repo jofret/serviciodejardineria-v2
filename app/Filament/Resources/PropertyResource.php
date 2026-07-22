@@ -5,11 +5,14 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PropertyResource\Pages;
 use App\Filament\Resources\PropertyResource\RelationManagers;
 use App\Models\Property;
+use App\Models\Relevamiento;
+use App\Models\ServiceOrder;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Collection;
 
 class PropertyResource extends Resource
 {
@@ -183,17 +186,6 @@ class PropertyResource extends Resource
                     ->schema([
                         Forms\Components\KeyValue::make('other_features')
                             ->label('Características adicionales'),
-                        Forms\Components\Select::make('tags')
-                            ->label('Tags del relevamiento')
-                            ->relationship('tags', 'name')
-                            ->multiple()
-                            ->preload()
-                            ->searchable()
-                            ->createOptionForm([
-                                Forms\Components\TextInput::make('name')
-                                    ->label('Nombre')
-                                    ->required(),
-                            ]),
                     ]),
             ]);
     }
@@ -222,9 +214,6 @@ class PropertyResource extends Resource
                 Tables\Columns\IconColumn::make('has_trees')
                     ->label('Árboles')
                     ->boolean(),
-                Tables\Columns\TextColumn::make('tags.name')
-                    ->label('Tags')
-                    ->badge(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Creada')
                     ->dateTime('d/m/Y')
@@ -238,11 +227,13 @@ class PropertyResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->modalDescription(fn (Property $record): ?string => static::deleteWarning($record)),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->modalDescription(fn (Collection $records): ?string => static::deleteWarningForRecords($records)),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
@@ -268,5 +259,57 @@ class PropertyResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         return static::getModel()::count();
+    }
+
+    /**
+     * Aviso dinámico para el modal de "Eliminar" (una sola Property) — el
+     * borrado arrastra en cascada sus Relevamientos (con ítems de trabajo y
+     * fotos), y desvincula (sin borrar) las Órdenes de Servicio que
+     * apuntaban a ella o a esos relevamientos.
+     */
+    public static function deleteWarning(Property $record): ?string
+    {
+        return static::deleteWarningForRecords(collect([$record]));
+    }
+
+    /**
+     * Misma lógica que deleteWarning() pero agregada para el borrado
+     * masivo (DeleteBulkAction), sobre todas las Properties seleccionadas.
+     */
+    public static function deleteWarningForRecords(Collection $records): ?string
+    {
+        $propertyIds = $records->pluck('id');
+
+        $ordersCount = ServiceOrder::whereIn('property_id', $propertyIds)->count();
+        $relevamientosCount = Relevamiento::whereIn('property_id', $propertyIds)->count();
+
+        if ($ordersCount === 0 && $relevamientosCount === 0) {
+            return null;
+        }
+
+        $sujeto = $records->count() === 1 ? 'Esta propiedad tiene' : 'Las propiedades seleccionadas tienen';
+
+        $partes = array_filter([
+            $relevamientosCount > 0 ? "{$relevamientosCount} relevamiento(s), con sus ítems de trabajo y fotos" : null,
+            $ordersCount > 0 ? "{$ordersCount} orden(es) de servicio" : null,
+        ]);
+
+        $mensaje = "{$sujeto} ".implode(' y ', $partes).' vinculada(s). ';
+
+        $consecuencias = array_filter([
+            $relevamientosCount > 0 ? 'los relevamientos se van a borrar definitivamente' : null,
+            $ordersCount > 0 ? ($ordersCount === 1
+                ? 'la orden de servicio va a quedar sin propiedad ni relevamiento vinculado (no se borra)'
+                : 'las órdenes de servicio van a quedar sin propiedad ni relevamiento vinculado (no se borran)') : null,
+        ]);
+
+        $mensaje .= ucfirst(implode(', y ', $consecuencias)).'.';
+
+        $acceptedCount = ServiceOrder::whereIn('property_id', $propertyIds)->whereNotNull('budget_accepted_at')->count();
+        if ($acceptedCount > 0) {
+            $mensaje .= " ⚠️ {$acceptedCount} de esas órdenes ya tiene(n) un presupuesto ACEPTADO por el cliente.";
+        }
+
+        return $mensaje;
     }
 }

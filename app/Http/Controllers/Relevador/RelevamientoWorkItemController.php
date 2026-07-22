@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Relevador;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Relevador\Concerns\AuthorizesRelevamientoEditing;
+use App\Http\Controllers\Relevador\Concerns\CapitalizesFreeText;
 use App\Models\Relevamiento;
 use App\Models\RelevamientoWorkItem;
 use Illuminate\Http\JsonResponse;
@@ -12,6 +13,7 @@ use Illuminate\Http\Request;
 class RelevamientoWorkItemController extends Controller
 {
     use AuthorizesRelevamientoEditing;
+    use CapitalizesFreeText;
 
     public function store(Request $request, Relevamiento $relevamiento): JsonResponse
     {
@@ -23,11 +25,13 @@ class RelevamientoWorkItemController extends Controller
         $data = $request->validate([
             'description' => ['nullable', 'string'],
             'observations' => ['nullable', 'string'],
+            'includes_pickup' => ['nullable', 'boolean'],
         ]);
 
         $item = $relevamiento->workItems()->create([
-            'description' => $data['description'] ?? null,
-            'observations' => $data['observations'] ?? null,
+            'description' => $this->capitalizeFirst($data['description'] ?? null),
+            'observations' => $this->capitalizeFirst($data['observations'] ?? null),
+            'includes_pickup' => $request->boolean('includes_pickup'),
             'order' => $relevamiento->workItems()->count(),
         ]);
 
@@ -42,7 +46,17 @@ class RelevamientoWorkItemController extends Controller
         $data = $request->validate([
             'description' => ['nullable', 'string'],
             'observations' => ['nullable', 'string'],
+            'includes_pickup' => ['nullable', 'boolean'],
         ]);
+
+        // El autoguardado manda un solo campo por request (ver el listener de
+        // "input" en _form.blade.php) — solo tocamos las claves presentes acá
+        // para no pisar el otro campo con null.
+        foreach (['description', 'observations'] as $field) {
+            if (array_key_exists($field, $data)) {
+                $data[$field] = $this->capitalizeFirst($data[$field]);
+            }
+        }
 
         $item->update($data);
 

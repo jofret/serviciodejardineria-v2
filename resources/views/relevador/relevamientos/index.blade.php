@@ -32,9 +32,20 @@
                         <p class="text-sm text-gray-500">{{ $relevamiento->property->customer?->name }}</p>
                         <p class="text-sm text-gray-500">{{ $relevamiento->property->display_label }}</p>
                     </div>
-                    <span class="text-xs font-medium px-2 py-1 rounded-full {{ $relevamiento->submitted_at ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700' }}">
-                        {{ $relevamiento->submitted_at ? 'Enviado' : 'Pendiente' }}
-                    </span>
+                    <div class="flex items-center gap-2">
+                        @if ($relevamiento->property?->full_address)
+                            <button
+                                type="button"
+                                onclick="event.preventDefault(); event.stopPropagation(); window.open('https://www.google.com/maps/search/?api=1&query={{ urlencode($relevamiento->property->full_address) }}', '_blank');"
+                                class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-300 shadow-sm active:bg-blue-100 whitespace-nowrap"
+                            >
+                                📍 Buscar dirección
+                            </button>
+                        @endif
+                        <span class="text-xs font-medium px-2 py-1 rounded-full {{ $relevamiento->submitted_at ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700' }}">
+                            {{ $relevamiento->submitted_at ? 'Enviado' : 'Pendiente' }}
+                        </span>
+                    </div>
                 </div>
                 @if ($relevamiento->serviceOrder?->work_date)
                     <p class="text-xs text-gray-400 mt-2">

@@ -63,6 +63,11 @@ class Property extends Model
         return $this->address ?: $this->zone ?: 'Propiedad #'.$this->id;
     }
 
+    public function getFullAddressAttribute(): ?string
+    {
+        return implode(', ', array_filter([$this->address, $this->zone])) ?: null;
+    }
+
     public function getPropertyTypeLabelAttribute(): ?string
     {
         if (! $this->property_type) {
