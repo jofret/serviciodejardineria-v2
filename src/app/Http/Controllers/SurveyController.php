@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\NuevaRespuestaEncuestaMailable;
 use App\Models\Survey;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class SurveyController extends Controller
 {
@@ -73,7 +75,20 @@ class SurveyController extends Controller
             'comment' => $validated['comment'],
             'answered_at' => now(),
         ]);
-        
-        return redirect()->back()->with('success', '¡Gracias por tu opinión! Tu comentario nos ayuda a mejorar.');
+
+        $survey->load('customer');
+
+        foreach (['info@serviciodejardineria.com.ar', 'jofretjofret@gmail.com'] as $email) {
+            Mail::to($email)->send(new NuevaRespuestaEncuestaMailable($survey));
+        }
+
+        // Mismo número que el botón flotante de WhatsApp del sitio (layouts/app.blade.php).
+        $telefonoNegocio = '5491171789529';
+        $mensajeCliente = urlencode("Hola! Soy {$survey->customer->name}, acabo de dejar mi opinión sobre el servicio. ¡Gracias! 🌿");
+        $whatsappLink = "https://api.whatsapp.com/send/?phone={$telefonoNegocio}&text={$mensajeCliente}&type=phone_number&app_absent=0";
+
+        return redirect()->back()
+            ->with('success', '¡Gracias por tu opinión! Tu comentario nos ayuda a mejorar.')
+            ->with('whatsappLink', $whatsappLink);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Concerns\OpensWhatsAppInNewTab;
+use App\Filament\Concerns\SendsSurveyThanks;
 use App\Filament\Resources\SurveyResource\Pages;
 use App\Models\Survey;
 use Filament\Forms;
@@ -13,7 +13,7 @@ use Filament\Tables\Table;
 
 class SurveyResource extends Resource
 {
-    use OpensWhatsAppInNewTab;
+    use SendsSurveyThanks;
 
     protected static ?string $model = Survey::class;
 
@@ -45,7 +45,9 @@ class SurveyResource extends Resource
                             ->label('Post relacionado')
                             ->relationship('post', 'title')
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->required(fn (callable $get): bool => (bool) $get('is_published'))
+                            ->helperText('Obligatorio para poder publicar la encuesta.'),
                         Forms\Components\TextInput::make('token')
                             ->label('Token')
                             ->disabled()
@@ -78,6 +80,7 @@ class SurveyResource extends Resource
                     ->schema([
                         Forms\Components\Toggle::make('is_published')
                             ->label('Publicada en el sitio')
+                            ->live()
                             ->helperText('Activalo solo después de revisar el comentario.'),
                         Forms\Components\DateTimePicker::make('sent_at')
                             ->label('Enviada el')
@@ -137,27 +140,7 @@ class SurveyResource extends Resource
                     ->color('success')
                     ->visible(fn (Survey $record): bool => $record->is_published && filled($record->customer?->phone))
                     ->extraAttributes(static::whatsAppTriggerAttributes())
-                    ->action(function (Survey $record, $livewire) {
-                        $nombre = $record->customer->name ?: 'Cliente';
-
-                        $mensaje = "¡Hola {$nombre}! 🌿 Muchas gracias por tu comentario, ya está publicado en nuestra web. ";
-                        $mensaje .= "Fue un placer haber trabajado con vos, y nos alegra mucho que hayas confiado en AltoParque. ";
-                        $mensaje .= "¡Cualquier cosa que necesites, contactanos! 🙌";
-
-                        $telefono = preg_replace('/[^0-9]/', '', $record->customer->phone);
-
-                        if (substr($telefono, 0, 1) == '0') {
-                            $telefono = '54' . substr($telefono, 1);
-                        } elseif (substr($telefono, 0, 2) != '54') {
-                            $telefono = '54' . $telefono;
-                        }
-
-                        // Se usa api.whatsapp.com/send directo en vez de wa.me: el acortador wa.me
-                        // corrompe emojis (4 bytes UTF-8) en su propio redirect hacia api.whatsapp.com.
-                        $whatsappLink = "https://api.whatsapp.com/send/?phone={$telefono}&text=" . urlencode($mensaje) . '&type=phone_number&app_absent=0';
-
-                        $livewire->js(static::navigateWhatsAppTab($whatsappLink));
-                    }),
+                    ->action(fn (Survey $record, $livewire) => static::sendSurveyThanks($record, $livewire, includeEmail: false)),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
