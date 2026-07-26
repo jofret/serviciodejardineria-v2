@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.minimal')
 
 @section('meta_title', 'Conformidad del trabajo - AltoParque')
 @section('meta_description', 'Confirmá la conformidad del trabajo realizado.')
@@ -97,9 +97,9 @@
                 </template>
 
                 <template x-if="confirmed">
-                    <div class="bg-green-700 text-white rounded-lg p-4 text-center font-semibold">
+                    <button type="button" disabled class="w-full bg-green-700 text-white font-semibold py-3 rounded-lg text-base opacity-90 cursor-default">
                         ✅ ¡Gracias! Tu conformidad fue registrada.
-                    </div>
+                    </button>
                 </template>
             </div>
 

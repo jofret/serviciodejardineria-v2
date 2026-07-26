@@ -41,6 +41,23 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
+     * Teléfono normalizado para enlaces de WhatsApp (api.whatsapp.com/send),
+     * con prefijo de país 54 (Argentina).
+     */
+    public function whatsappPhone(): string
+    {
+        $telefono = preg_replace('/[^0-9]/', '', $this->whatsapp ?? '');
+
+        if (substr($telefono, 0, 1) === '0') {
+            $telefono = '54'.substr($telefono, 1);
+        } elseif (substr($telefono, 0, 2) !== '54') {
+            $telefono = '54'.$telefono;
+        }
+
+        return $telefono;
+    }
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>

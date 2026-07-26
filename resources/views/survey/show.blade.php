@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.minimal')
 
 @section('meta_title', 'Encuesta de satisfacción - AltoParque')
 @section('meta_description', 'Ayudanos a mejorar contándonos tu experiencia con nuestro servicio.')

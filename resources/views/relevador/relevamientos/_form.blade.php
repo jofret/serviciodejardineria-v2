@@ -12,13 +12,24 @@
         ->orderBy('name')
         ->get();
     $extraCustomToolNames = array_diff($selectedToolNames, $availableTools->pluck('name')->all());
+
+    // Aviso a admin por WhatsApp de que el relevador envió el relevamiento.
+    // Se abre en el evento "submit" (no en el click del botón) para que solo
+    // dispare si el formulario pasó la validación nativa del navegador.
+    $whatsappAdminMessage = 'Hola soy '.auth()->user()->name.', el relevamiento n° '.$relevamiento->id
+        .' del señor '.($property->customer?->name ?: 'sin nombre')
+        .' de la zona '.($property->zone ?: $property->display_label)
+        .' fue completado con éxito';
+    $whatsappAdminLink = 'https://api.whatsapp.com/send/?phone=5491171789529&text='
+        .urlencode($whatsappAdminMessage).'&type=phone_number&app_absent=0';
 @endphp
 
 <div id="autosave-status" class="mt-4 text-xs text-gray-400 flex items-center gap-1" data-state="idle">
     <span>Los cambios se guardan solos mientras completás el formulario.</span>
 </div>
 
-<form method="POST" action="{{ route('relevador.update', $relevamiento) }}" id="relevamiento-form" class="mt-2 space-y-4">
+<form method="POST" action="{{ route('relevador.update', $relevamiento) }}" id="relevamiento-form" class="mt-2 space-y-4"
+      onsubmit="window.open({{ json_encode($whatsappAdminLink) }}, '_blank')">
     @csrf
 
     @if ($errors->any())
@@ -117,7 +128,7 @@
             <hr class="border-gray-200">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Fotos del Ítem</label>
-                <input type="file" data-item-photo-input multiple accept="image/*" capture="environment" class="w-full text-sm">
+                <input type="file" data-item-photo-input multiple accept="image/*" class="w-full text-sm">
                 <div data-item-photo-grid class="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-2"></div>
             </div>
         </div>

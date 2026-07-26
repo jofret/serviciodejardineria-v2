@@ -3,6 +3,8 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Concerns\HasPendingAttentionBadge;
+use App\Filament\Concerns\OpensWhatsAppInNewTab;
+use App\Filament\Concerns\SendsRelevamientoToRelevador;
 use App\Filament\Resources\RelevamientoResource\Pages;
 use App\Models\Relevamiento;
 use App\Models\ServiceOrder;
@@ -16,7 +18,7 @@ use Illuminate\Support\Collection;
 
 class RelevamientoResource extends Resource
 {
-    use HasPendingAttentionBadge;
+    use HasPendingAttentionBadge, OpensWhatsAppInNewTab, SendsRelevamientoToRelevador;
 
     protected static ?string $model = Relevamiento::class;
 
@@ -172,10 +174,16 @@ class RelevamientoResource extends Resource
                     ->visible(fn (Relevamiento $record): bool => $record->status === 'pendiente')
                     ->requiresConfirmation()
                     ->modalHeading('Enviar relevamiento a relevador')
-                    ->modalDescription('Revisá que la propiedad, el relevador asignado y la fecha/horario estén correctos antes de confirmar. Al enviarlo, el relevador va a poder verlo y completarlo desde su panel.')
+                    ->modalDescription('Revisá que la propiedad, el relevador asignado y la fecha/horario estén correctos antes de confirmar. Al enviarlo, se abre WhatsApp con el aviso listo para el relevador.')
                     ->modalSubmitActionLabel('Confirmar envío')
-                    ->action(fn (Relevamiento $record) => $record->update(['status' => 'enviado_a_relevador']))
-                    ->successNotificationTitle('Relevamiento enviado a relevador'),
+                    ->modalSubmitAction(fn ($action) => $action->extraAttributes(static::whatsAppTriggerAttributes()))
+                    ->action(fn (Relevamiento $record, $livewire) => static::sendRelevamientoToRelevador($record, $livewire)),
+                Tables\Actions\Action::make('ya_enviado')
+                    ->label('Enviado a relevador')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->disabled()
+                    ->visible(fn (Relevamiento $record): bool => $record->status === 'enviado_a_relevador'),
                 Tables\Actions\Action::make('approve_reopen')
                     ->label('Aprobar reapertura')
                     ->icon('heroicon-o-lock-open')

@@ -31,7 +31,6 @@ class CustomerResource extends Resource
                     ->schema([
                         Forms\Components\TextInput::make('name')
                             ->label('Nombre')
-                            ->required()
                             ->maxLength(255),
                         Forms\Components\TextInput::make('phone')
                             ->label('Teléfono')
