@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.minimal')
 
 @section('meta_title', 'Tu presupuesto - AltoParque')
 @section('meta_description', 'Presupuesto para tu servicio de jardinería.')
@@ -51,13 +51,21 @@
                 </div>
             @endif
 
-            @if ($order->relevamiento && ($order->relevamiento->requires_non_compete_clause || $order->relevamiento->workers_count))
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-1 text-sm text-gray-700">
+            @if ($order->relevamiento && ($order->relevamiento->requires_non_compete_clause || $order->relevamiento->workers_count || $order->relevamiento->estimated_duration_days || $order->budget_comment))
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-1 text-sm font-bold text-gray-600">
                     @if ($order->relevamiento->requires_non_compete_clause)
                         <p>Incluye Cláusula de No Repetición</p>
                     @endif
                     @if ($order->relevamiento->workers_count)
                         <p>Personal para la obra: {{ $order->relevamiento->workers_count }} trabajadores</p>
+                    @endif
+                    @if ($order->relevamiento->estimated_duration_days)
+                        <p>Duración aproximada de la obra: {{ $order->relevamiento->estimated_duration_days }} día(s)</p>
+                    @endif
+                    <p>Personal asegurado en Mapfre</p>
+                    <p>Orden y Limpieza</p>
+                    @if ($order->budget_comment)
+                        <p><br><br>{{ $order->budget_comment }}</p>
                     @endif
                 </div>
             @endif
@@ -145,8 +153,11 @@
                 </template>
 
                 <template x-if="accepted">
-                    <div class="bg-green-700 text-white rounded-lg p-4 text-center font-semibold">
-                        ✅ ¡Gracias! Tu presupuesto fue aceptado. Nos pusimos en contacto para coordinar los próximos pasos.
+                    <div class="space-y-2">
+                        <button type="button" disabled class="w-full bg-green-700 text-white font-semibold py-3 rounded-lg text-base opacity-90 cursor-default">
+                            ✅ Presupuesto aceptado
+                        </button>
+                        <p class="text-sm text-gray-500 text-center">¡Gracias! Nos pusimos en contacto para coordinar los próximos pasos.</p>
                     </div>
                 </template>
             </div>

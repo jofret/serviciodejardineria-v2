@@ -59,6 +59,7 @@ class ServiceOrder extends Model implements HasMedia
         'observations',
         'final_price',
         'final_price_notes',
+        'budget_comment',
         'budget_token',
         'budget_sent_at',
         'budget_accepted_at',

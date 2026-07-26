@@ -12,20 +12,15 @@ use Illuminate\Support\Facades\Mail;
 /**
  * Compartido entre WorkOrderResource\Pages\EditWorkOrder (acción de
  * cabecera) y WorkOrderResource (acción de fila en el listado) — misma
- * acción, dos lugares. El envío solo tiene sentido si el cliente ya dio
- * conformidad y eligió pagar por transferencia; si eligió efectivo, el
- * mismo botón se muestra deshabilitado como "Paga con efectivo" en vez
- * de desaparecer.
+ * acción, dos lugares. Disponible siempre, desde el inicio de la orden,
+ * para poder mandar los datos bancarios al cliente en cualquier momento.
+ * El envío solo tiene sentido si eligió pagar por transferencia; si
+ * eligió efectivo (o todavía no eligió), el mismo botón se muestra
+ * deshabilitado como "Paga con efectivo" en vez de desaparecer.
  */
 trait SendsBankAccountDetails
 {
     use OpensWhatsAppInNewTab;
-
-    protected static function isEligibleForBankAccountDetails(WorkOrder $record): bool
-    {
-        return in_array($record->status, ['programado', 'en_curso', 'completado'], true)
-            && $record->conformity_confirmed_at !== null;
-    }
 
     protected static function paysWithTransferencia(WorkOrder $record): bool
     {
@@ -47,7 +42,6 @@ trait SendsBankAccountDetails
                 : 'heroicon-o-banknotes')
             ->color(fn (WorkOrder $record): string => static::paysWithTransferencia($record) ? 'success' : 'gray')
             ->disabled(fn (WorkOrder $record): bool => ! static::paysWithTransferencia($record))
-            ->visible(fn (WorkOrder $record): bool => static::isEligibleForBankAccountDetails($record))
             ->form([
                 Forms\Components\CheckboxList::make('bank_account_ids')
                     ->label('Cuentas a enviar')

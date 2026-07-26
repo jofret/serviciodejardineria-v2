@@ -17,6 +17,8 @@
         table.items { width: 100%; border-collapse: collapse; margin-top: 8px; }
         table.items td, table.items th { border: 1px solid #e5e7eb; padding: 6px 8px; text-align: left; font-size: 12px; }
         table.items th { background-color: #f9fafb; color: #374151; }
+        .highlight-box { background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px; padding: 12px 16px; margin-top: 18px; }
+        .highlight-box p { margin: 4px 0; font-weight: bold; color: #4b5563; }
         .price-box { background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 16px; text-align: center; margin-top: 22px; }
         .price-box .label { color: #166534; margin: 0; }
         .price-box .price { font-size: 26px; font-weight: bold; color: #166534; margin: 4px 0 0; }
@@ -78,6 +80,25 @@
                     @endforeach
                 </tbody>
             </table>
+        @endif
+
+        @if ($order->relevamiento && ($order->relevamiento->requires_non_compete_clause || $order->relevamiento->workers_count || $order->relevamiento->estimated_duration_days || $order->budget_comment))
+            <div class="highlight-box">
+                @if ($order->relevamiento->requires_non_compete_clause)
+                    <p>Incluye Cláusula de No Repetición</p>
+                @endif
+                @if ($order->relevamiento->workers_count)
+                    <p>Personal para la obra: {{ $order->relevamiento->workers_count }} trabajadores</p>
+                @endif
+                @if ($order->relevamiento->estimated_duration_days)
+                    <p>Duración aproximada de la obra: {{ $order->relevamiento->estimated_duration_days }} día(s)</p>
+                @endif
+                <p>Personal asegurado en Mapfre</p>
+                <p>Orden y Limpieza</p>
+                @if ($order->budget_comment)
+                    <p><br><br>{{ $order->budget_comment }}</p>
+                @endif
+            </div>
         @endif
 
         <div class="price-box">

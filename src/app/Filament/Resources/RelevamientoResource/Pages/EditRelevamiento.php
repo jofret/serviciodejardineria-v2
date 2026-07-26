@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\RelevamientoResource\Pages;
 
+use App\Filament\Concerns\OpensWhatsAppInNewTab;
+use App\Filament\Concerns\SendsRelevamientoToRelevador;
 use App\Filament\Resources\RelevamientoResource;
 use App\Models\Relevamiento;
 use Filament\Actions;
@@ -9,6 +11,8 @@ use Filament\Resources\Pages\EditRecord;
 
 class EditRelevamiento extends EditRecord
 {
+    use OpensWhatsAppInNewTab, SendsRelevamientoToRelevador;
+
     protected static string $resource = RelevamientoResource::class;
 
     protected function getHeaderActions(): array
@@ -28,6 +32,27 @@ class EditRelevamiento extends EditRecord
                     $this->fillForm();
                 })
                 ->successNotificationTitle('Reapertura aprobada'),
+            Actions\Action::make('enviarWhatsapp')
+                ->label('Enviar a relevador')
+                ->icon('heroicon-o-paper-airplane')
+                ->color('success')
+                ->visible(fn (Relevamiento $record): bool => $record->status === 'pendiente')
+                ->requiresConfirmation()
+                ->modalHeading('Enviar relevamiento a relevador')
+                ->modalDescription('Se guardan los cambios del formulario y se abre WhatsApp con el aviso listo para el relevador asignado.')
+                ->modalSubmitActionLabel('Confirmar envío')
+                ->modalSubmitAction(fn ($action) => $action->extraAttributes(static::whatsAppTriggerAttributes()))
+                ->action(function (Relevamiento $record) {
+                    $this->save(shouldRedirect: false, shouldSendSavedNotification: false);
+                    static::sendRelevamientoToRelevador($record, $this);
+                    $this->fillForm();
+                }),
+            Actions\Action::make('ya_enviado')
+                ->label('Enviado a relevador')
+                ->icon('heroicon-o-check-circle')
+                ->color('success')
+                ->disabled()
+                ->visible(fn (Relevamiento $record): bool => $record->status === 'enviado_a_relevador'),
             Actions\DeleteAction::make()
                 ->modalDescription(fn (Relevamiento $record): ?string => RelevamientoResource::deleteWarning($record)),
         ];

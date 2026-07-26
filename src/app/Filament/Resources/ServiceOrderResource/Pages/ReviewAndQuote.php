@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\ServiceOrderResource\Pages;
 
 use App\Filament\Concerns\OpensWhatsAppInNewTab;
+use App\Filament\Resources\PresupuestoPorFotoResource;
 use App\Filament\Resources\ServiceOrderResource;
-use App\Mail\BudgetMailable;
 use App\Models\ServiceOrder;
 use Closure;
 use Filament\Actions;
@@ -14,7 +14,6 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
-use Illuminate\Support\Facades\Mail;
 
 class ReviewAndQuote extends Page implements HasForms
 {
@@ -45,6 +44,7 @@ class ReviewAndQuote extends Page implements HasForms
         $this->form->fill([
             'final_price' => $this->serviceOrder->final_price,
             'final_price_notes' => $this->serviceOrder->final_price_notes,
+            'budget_comment' => $this->serviceOrder->budget_comment,
         ]);
     }
 
@@ -56,7 +56,14 @@ class ReviewAndQuote extends Page implements HasForms
     public function form(Form $form): Form
     {
         return $form
+            ->model($this->serviceOrder->relevamiento)
             ->schema([
+                Forms\Components\Section::make('Trabajo a realizar')
+                    ->description('Los mismos ítems que carga un relevador desde el celular — se pueden agregar, editar o quitar acá igual que en Presupuestos por foto.')
+                    ->schema([
+                        PresupuestoPorFotoResource::workItemsField(),
+                    ]),
+
                 Forms\Components\Section::make('Precio final')
                     ->description('Propio de esta orden de servicio — independiente del precio estimativo que cargó el relevador.')
                     ->schema([
@@ -76,7 +83,11 @@ class ReviewAndQuote extends Page implements HasForms
                             }),
                         Forms\Components\Textarea::make('final_price_notes')
                             ->label('Observaciones del precio final')
-                            ->helperText('Justificá acá si el precio final difiere del estimado por el relevador.')
+                            ->helperText('Interno: justificá acá si el precio final difiere del estimado por el relevador. No se muestra al cliente.')
+                            ->columnSpanFull(),
+                        Forms\Components\Textarea::make('budget_comment')
+                            ->label('Comentario para el cliente')
+                            ->helperText('Público: aparece en la proforma que ve el cliente, después de "Orden y Limpieza".')
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
@@ -105,24 +116,14 @@ class ReviewAndQuote extends Page implements HasForms
         ];
     }
 
-    /**
-     * Arma la descripción del modal de confirmación según los canales que
-     * realmente se van a usar (el envío ya no es "elegir uno": manda por
-     * todos los que el cliente tenga cargados).
-     */
     private function sendBudgetDescription(): string
     {
-        $canales = array_filter([
-            filled($this->serviceOrder->customer->email) ? 'email' : null,
-            filled($this->serviceOrder->customer->phone) ? 'WhatsApp' : null,
-        ]);
-
-        if ($canales === []) {
-            return 'El cliente no tiene email ni teléfono cargado — no hay forma de enviarle el presupuesto.';
+        if (! filled($this->serviceOrder->customer->phone)) {
+            return 'El cliente no tiene teléfono cargado — no hay forma de enviarle el presupuesto.';
         }
 
-        return 'Se guarda el precio final cargado y se envía por '.implode(' y ', $canales).
-            '. El cliente va a poder ver el presupuesto, aceptarlo y descargarlo.';
+        return 'Se guarda el precio final cargado y se envía por WhatsApp. '.
+            'El cliente va a poder ver el presupuesto, aceptarlo y descargarlo.';
     }
 
     /**
@@ -166,6 +167,7 @@ class ReviewAndQuote extends Page implements HasForms
     public function save(): void
     {
         $this->serviceOrder->update($this->form->getState());
+        $this->form->saveRelationships();
 
         Notification::make()
             ->title('Precio final guardado')
@@ -176,36 +178,18 @@ class ReviewAndQuote extends Page implements HasForms
     public function sendBudget()
     {
         $this->serviceOrder->update($this->form->getState());
+        $this->form->saveRelationships();
 
         $token = $this->serviceOrder->generateBudgetToken();
         $enlace = url('/presupuesto/'.$token);
 
-        $hasEmail = filled($this->serviceOrder->customer->email);
-        $hasWhatsapp = filled($this->serviceOrder->customer->phone);
-
-        if (! $hasEmail && ! $hasWhatsapp) {
+        if (! filled($this->serviceOrder->customer->phone)) {
             $this->js(static::closeWhatsAppTab());
 
             Notification::make()
                 ->title('No se pudo enviar')
-                ->body('El cliente no tiene email ni teléfono cargado.')
+                ->body('El cliente no tiene teléfono cargado.')
                 ->danger()
-                ->send();
-
-            return null;
-        }
-
-        if ($hasEmail) {
-            Mail::to($this->serviceOrder->customer->email)
-                ->send(new BudgetMailable($this->serviceOrder, $enlace));
-        }
-
-        if (! $hasWhatsapp) {
-            $this->js(static::closeWhatsAppTab());
-
-            Notification::make()
-                ->title('Presupuesto enviado por email')
-                ->success()
                 ->send();
 
             return null;
@@ -226,7 +210,7 @@ class ReviewAndQuote extends Page implements HasForms
         $whatsappLink = "https://api.whatsapp.com/send/?phone={$telefono}&text={$mensajeCodificado}&type=phone_number&app_absent=0";
 
         Notification::make()
-            ->title($hasEmail ? 'Presupuesto enviado por email' : 'Presupuesto guardado')
+            ->title('Presupuesto guardado')
             ->body('Se abrió WhatsApp con el mensaje listo para enviar.')
             ->success()
             ->send();
