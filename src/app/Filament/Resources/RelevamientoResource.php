@@ -106,6 +106,7 @@ class RelevamientoResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->with('serviceOrder'))
             ->columns([
                 Tables\Columns\TextColumn::make('property.customer.name')
                     ->label('Cliente')
@@ -132,16 +133,39 @@ class RelevamientoResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'pendiente' => 'gray',
-                        'enviado_a_relevador' => 'warning',
-                        default => 'gray',
+                    ->color(function (Relevamiento $record): string {
+                        if ($record->submitted_at === null) {
+                            return match ($record->status) {
+                                'pendiente' => 'gray',
+                                'enviado_a_relevador' => 'warning',
+                                default => 'gray',
+                            };
+                        }
+
+                        return $record->serviceOrder?->status === 'presupuesto_aceptado' ? 'primary' : 'success';
                     })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pendiente' => 'Pendiente',
-                        'enviado_a_relevador' => 'Enviado a relevador',
-                        default => $state,
-                    }),
+                    ->formatStateUsing(function (Relevamiento $record): string {
+                        if ($record->submitted_at === null) {
+                            return match ($record->status) {
+                                'pendiente' => 'Pendiente',
+                                'enviado_a_relevador' => 'Enviado a relevador',
+                                default => $record->status,
+                            };
+                        }
+
+                        return $record->serviceOrder?->status === 'presupuesto_aceptado'
+                            ? 'Presupuesto aceptado'
+                            : 'Relevado y listo para presupuestar';
+                    })
+                    // Solo enlaza mientras tenga sentido presupuestar: una vez aceptado el
+                    // presupuesto, ServiceOrderResource ya oculta la acción "Revisar y
+                    // presupuestar" (ver ServiceOrder::canReviewAndQuote()), así que acá se
+                    // replica la misma condición para no linkear a un lugar sin acción útil.
+                    ->url(fn (Relevamiento $record): ?string => $record->submitted_at !== null
+                        && $record->serviceOrder
+                        && $record->serviceOrder->status !== 'presupuesto_aceptado'
+                        ? ServiceOrderResource::getUrl('review-and-quote', ['record' => $record->serviceOrder])
+                        : null),
                 Tables\Columns\IconColumn::make('submitted_at')
                     ->label('Completado por relevador')
                     ->boolean()
