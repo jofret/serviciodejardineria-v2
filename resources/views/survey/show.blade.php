@@ -19,6 +19,15 @@
             </div>
             @endif
 
+            @if(session('whatsappLink'))
+            <div class="text-center mb-4">
+                <a href="{{ session('whatsappLink') }}" target="_blank" rel="noopener"
+                   class="inline-block bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 transition">
+                    📱 Enviarnos un saludo por WhatsApp
+                </a>
+            </div>
+            @endif
+
             @if(session('error'))
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                 {{ session('error') }}
