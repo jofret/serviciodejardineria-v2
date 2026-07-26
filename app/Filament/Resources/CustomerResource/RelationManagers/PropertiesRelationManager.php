@@ -19,6 +19,7 @@ class PropertiesRelationManager extends RelationManager
             ->schema([
                 Forms\Components\TextInput::make('address')
                     ->label('Dirección')
+                    ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('zone')
                     ->label('Zona')
