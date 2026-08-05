@@ -103,7 +103,7 @@
                 <div class="lg:col-span-6">
                     <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Servicio de Corte de Pasto</h2>
                     <p class="text-lg text-gray-600 mb-6">Puede contactarnos por WhatsApp. Podemos concertar una cita para ver el trabajo a realizar, no cobramos por el presupuesto. Atendemos casas, quintas y empresas.</p>
-                    <a href="https://wa.me/5491171789529?text=Hola!%20Quiero%20informaci%C3%B3n%20sobre%20el%20servicio%20de%20corte%20de%20pasto"
+                    <a href="https://wa.me/5491164640291?text=Hola!%20Vengo%20desde%20serviciodejardineria.com.ar,%20quiero%20informaci%C3%B3n%20sobre%20el%20servicio%20de%20corte%20de%20pasto"
                        target="_blank"
                        class="inline-flex items-center gap-2 bg-green-700 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-800 transition">
                         <i class="fab fa-whatsapp text-xl"></i> WhatsApp
@@ -402,7 +402,7 @@
                 <a href="#contacto-formulario" class="bg-white text-green-800 px-8 py-4 rounded-lg text-lg font-bold hover:bg-gray-100 transition" aria-label="Enviar consulta por correo">
                     <i class="fas fa-envelope mr-2"></i> Enviar consulta
                 </a>
-                <a href="https://wa.me/5491171789529" target="_blank" class="bg-green-600 text-white px-8 py-4 rounded-lg text-lg font-bold hover:bg-green-700 transition border-2 border-white" aria-label="Contactar por WhatsApp">
+                <a href="https://wa.me/5491164640291?text=Hola!%20Vengo%20desde%20serviciodejardineria.com.ar,%20quiero%20información%20sobre%20servicios%20de%20jardinería" target="_blank" class="bg-green-600 text-white px-8 py-4 rounded-lg text-lg font-bold hover:bg-green-700 transition border-2 border-white" aria-label="Contactar por WhatsApp">
                     <i class="fab fa-whatsapp mr-2"></i> WhatsApp directo
                 </a>
             </div>
