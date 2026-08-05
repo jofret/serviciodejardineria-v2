@@ -86,6 +86,8 @@
         </section>
         @endif
     </div>
+
+    @include('includes.popular-searches')
 @endsection
 
 
