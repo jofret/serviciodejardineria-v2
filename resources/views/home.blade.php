@@ -239,7 +239,7 @@
 
     {{-- Publicaciones por categoría: mismo patrón que serviciodejardineria.com.ar hoy
          en producción (web/blog.blade.php) -- un bloque por categoría con posts reales,
-         cada categoría linkeando a /categoria/{slug} y cada post a /publicaciones/{slug}.
+         cada categoría linkeando a /servicio-de/{slug} y cada post a /publicaciones/{slug}.
          A diferencia del original (3 categorías hardcodeadas), acá se recorren todas
          las categorías activas que tengan al menos un post publicado. --}}
     @foreach($categoryPosts as $group)

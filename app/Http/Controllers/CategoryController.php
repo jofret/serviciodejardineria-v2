@@ -10,7 +10,7 @@ class CategoryController extends Controller
 {
     /**
      * Muestra los posts de una categoría
-     * URL: /categoria/desmalezado
+     * URL: /servicio-de/desmalezado
      */
     public function show($slug)
     {

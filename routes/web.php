@@ -9,6 +9,7 @@ use App\Http\Controllers\PublicWorkOrderController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\WhatsAppWebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,9 +25,11 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 |--------------------------------------------------------------------------
 | Rutas para tags (etiquetas)
 |--------------------------------------------------------------------------
-| Estructura: /tag/pilar
+| Estructura: /serviciode/pilar
+| Prefijo nuevo (antes /tag/pilar) — sin redirect desde el viejo porque
+| estas páginas se crearon en este rewrite y no había nada indexado.
 */
-Route::prefix('tag')->name('tag.')->group(function () {
+Route::prefix('serviciode')->name('tag.')->group(function () {
     Route::get('/{tag:slug}', [TagController::class, 'show'])->name('show');
 });
 
@@ -39,11 +42,16 @@ Route::prefix('tag')->name('tag.')->group(function () {
 | post anidado bajo categoría), acá el post NO lleva segmento de categoría.
 | Estructura: /publicaciones           (listado)
 |             /publicaciones/{slug}    (detalle de post)
-|             /categoria/{slug}        (listado por categoría)
+|             /servicio-de/{slug}      (listado por categoría)
+| El prefijo de categoría era /categoria/{slug} y pasó a /servicio-de/{slug}
+| (los slugs en sí no cambiaron, siguen preservando el contenido migrado del
+| sitio legacy). Se deja un redirect 301 desde /categoria/{slug} porque esas
+| URLs sí llegaron a estar posicionadas en buscadores.
 */
 Route::get('/publicaciones', [PostController::class, 'index'])->name('posts.index');
 Route::get('/publicaciones/{post:slug}', [PostController::class, 'show'])->name('post.show');
-Route::get('/categoria/{category:slug}', [CategoryController::class, 'show'])->name('category.show');
+Route::get('/servicio-de/{category:slug}', [CategoryController::class, 'show'])->name('category.show');
+Route::redirect('/categoria/{slug}', '/servicio-de/{slug}', 301);
 
 /*
 |--------------------------------------------------------------------------
@@ -75,6 +83,17 @@ Route::post('/conformidad/{token}/confirmar', [PublicWorkOrderController::class,
 
 // Sitemap
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
+
+/*
+|--------------------------------------------------------------------------
+| Webhook de WhatsApp Business Cloud API (Claudia)
+|--------------------------------------------------------------------------
+| Meta llama a estas dos rutas: GET para verificar la URL al dar de alta el
+| webhook, POST por cada mensaje entrante. Sin CSRF (ver bootstrap/app.php)
+| porque Meta no manda token de sesión de Laravel.
+*/
+Route::get('/webhook/whatsapp', [WhatsAppWebhookController::class, 'verify'])->name('whatsapp.webhook.verify');
+Route::post('/webhook/whatsapp', [WhatsAppWebhookController::class, 'receive'])->name('whatsapp.webhook.receive');
 
 /*
 |--------------------------------------------------------------------------

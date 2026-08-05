@@ -33,7 +33,7 @@ class SitemapController extends Controller
         // Categorías (solo activas)
         Category::active()->get()->each(function (Category $category) use ($sitemap) {
             $sitemap->add(
-                Url::create("/categoria/{$category->slug}")
+                Url::create(route('category.show', $category))
                     ->setLastModificationDate($category->updated_at)
                     ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
                     ->setPriority(0.8)
@@ -56,7 +56,7 @@ class SitemapController extends Controller
         // Tags
         Tag::all()->each(function (Tag $tag) use ($sitemap) {
             $sitemap->add(
-                Url::create("/tag/{$tag->slug}")
+                Url::create(route('tag.show', $tag))
                     ->setLastModificationDate($tag->updated_at)
                     ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
                     ->setPriority(0.6)

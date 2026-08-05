@@ -112,7 +112,7 @@
                                 <h3 class="font-semibold mb-2">Etiquetas de este post:</h3>
                                 <div class="flex flex-wrap gap-2">
                                     @foreach($post->tags as $tag)
-                                        <a href="/tag/{{ $tag->slug }}" class="bg-gray-200 px-3 py-1 rounded-full text-sm hover:bg-green-600 hover:text-white transition">
+                                        <a href="{{ route('tag.show', $tag) }}" class="bg-gray-200 px-3 py-1 rounded-full text-sm hover:bg-green-600 hover:text-white transition">
                                             #{{ $tag->name }}
                                         </a>
                                     @endforeach
@@ -163,7 +163,7 @@
                     <h3 class="text-xl font-bold mb-4">Etiquetas populares</h3>
                     <div class="flex flex-wrap gap-2">
                         @foreach($popularTags as $tag)
-                            <a href="/tag/{{ $tag->slug }}" class="bg-gray-100 hover:bg-green-700 hover:text-white px-3 py-1 rounded-full text-sm transition">#{{ $tag->name }}</a>
+                            <a href="{{ route('tag.show', $tag) }}" class="bg-gray-100 hover:bg-green-700 hover:text-white px-3 py-1 rounded-full text-sm transition">#{{ $tag->name }}</a>
                         @endforeach
                     </div>
                 </div>
