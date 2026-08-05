@@ -148,7 +148,7 @@
                     <h3 class="text-xl font-bold mb-4">Categorías</h3>
                     <ul class="space-y-2">
                         @foreach($categories as $cat)
-                            <li><a href="/{{ $cat->slug }}" class="text-gray-600 hover:text-green-700 transition flex justify-between"><span>{{ $cat->name }}</span><span class="text-sm text-gray-400">({{ $cat->posts_count }})</span></a></li>
+                            <li><a href="{{ route('category.show', $cat) }}" class="text-gray-600 hover:text-green-700 transition flex justify-between"><span>{{ $cat->name }}</span><span class="text-sm text-gray-400">({{ $cat->posts_count }})</span></a></li>
                         @endforeach
                     </ul>
                 </div>
