@@ -25,7 +25,7 @@ class WhatsappConversation extends Model
      * Casilla que recibe las notificaciones de contacto nuevo en este sitio.
      */
     private const ADMIN_EMAILS = [
-        'gerald@altoparque.com',
+        'geral4bebes@gmail.com',
         'jofretjofret@gmail.com',
     ];
 
