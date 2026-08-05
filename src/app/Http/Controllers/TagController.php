@@ -10,7 +10,7 @@ class TagController extends Controller
 {
     /**
      * Muestra los posts que tienen un tag específico
-     * URL: /tag/pilar
+     * URL: /serviciode/pilar
      */
     public function show($slug)
     {

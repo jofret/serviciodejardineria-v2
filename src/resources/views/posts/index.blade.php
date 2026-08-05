@@ -4,7 +4,7 @@
 @section('meta_description', 'AltoParque WhatsApp ✅ 11 7178-9529 | Galería completa de trabajos de corte de pasto, poda y desmalezado realizados en zona norte. Antes y después reales.')
 @section('meta_keywords', 'trabajos de jardinería, corte de pasto, poda de altura, desmalezado, zona norte, galería de trabajos, antes y después')
 
-{{-- Con búsqueda, filtro de categoría o páginas siguientes se duplica el contenido de /publicaciones o de /categoria/{slug}, así que no deben indexarse --}}
+{{-- Con búsqueda, filtro de categoría o páginas siguientes se duplica el contenido de /publicaciones o de /servicio-de/{slug}, así que no deben indexarse --}}
 @if(request('search') || request('category') || $posts->currentPage() > 1)
     @section('meta_robots', 'noindex, follow')
 @endif

@@ -14,8 +14,11 @@ use Illuminate\Support\Str;
 /**
  * Importa posts/categories/tags/images/clientes de la base del sitio Laravel 8
  * actual (serviciodejardineria.com.ar) preservando los slugs exactos, para que
- * las URLs públicas (/publicaciones/{slug}, /categoria/{slug}) sigan resolviendo
- * a los mismos contenidos que hoy están posicionados en buscadores.
+ * las URLs públicas (/publicaciones/{slug}, /servicio-de/{slug}) sigan
+ * resolviendo a los mismos contenidos que hoy están posicionados en
+ * buscadores. La URL de categoría era /categoria/{slug} y pasó a
+ * /servicio-de/{slug}; queda un redirect 301 desde la vieja para no perder
+ * ese posicionamiento.
  *
  * Idempotente: se puede correr varias veces sin duplicar (se salta lo que ya
  * existe por slug / por customer.phone), salvo que se pida --fresh.
