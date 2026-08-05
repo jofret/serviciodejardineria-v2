@@ -390,21 +390,8 @@
     });
     </script>
 
-    {{-- Tags populares --}}
-    @if($popularTags->count() > 0)
-    <section class="py-16 bg-gray-50 rounded-xl shadow-sm mb-8">
-        <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-8">Búsquedas populares</h2>
-            <div class="flex flex-wrap justify-center gap-3">
-                @foreach($popularTags as $tag)
-                <a href="/tag/{{ $tag->slug }}" class="bg-white px-4 py-2 rounded-full text-gray-700 hover:bg-green-700 hover:text-white transition shadow-sm" aria-label="Ver trabajos etiquetados como #{{ $tag->name }}">
-                    #{{ $tag->name }}
-                </a>
-                @endforeach
-            </div>
-        </div>
-    </section>
-    @endif
+    {{-- Búsquedas populares (categorías + tags) --}}
+    @include('includes.popular-searches')
 
     {{-- CTA Section --}}
     <section class="py-16 bg-green-800 text-white rounded-xl shadow-lg mb-8">

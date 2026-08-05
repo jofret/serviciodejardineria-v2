@@ -196,6 +196,9 @@
         </div>
     </div>
 
+    {{-- Búsquedas populares (categorías + tags) --}}
+    @include('includes.popular-searches')
+
     {{-- FORMULARIO DE CONTACTO (igual al de home) --}}
     @include('partials.contact-form', ['serviceCategories' => $serviceCategories])
 

@@ -43,6 +43,8 @@
         <div class="text-center py-12 bg-white rounded-lg"><p class="text-gray-500">No hay trabajos con esta etiqueta aún.</p></div>
         @endif
     </div>
+
+    @include('includes.popular-searches')
 @endsection
 
 @php
