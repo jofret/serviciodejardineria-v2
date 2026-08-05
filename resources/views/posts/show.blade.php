@@ -133,7 +133,7 @@
                     </h3>
                     <div class="space-y-3 text-gray-600">
                         <p class="flex items-center gap-2"><i class="fas fa-map-marker-alt w-5 text-green-600"></i> Buenos Aires, Argentina</p>
-                        <p class="flex items-center gap-2"><i class="fab fa-whatsapp w-5 text-green-600"></i> <a href="https://wa.me/5491171789529" class="hover:text-green-700">11 7178-9529</a></p>
+                        <p class="flex items-center gap-2"><i class="fab fa-whatsapp w-5 text-green-600"></i> <a href="https://wa.me/5491164640291?text=Hola!%20Vengo%20desde%20serviciodejardineria.com.ar,%20necesito%20información%20sobre%20servicios%20de%20jardinería" class="hover:text-green-700">11 6464-0291</a></p>
                         <p class="flex items-center gap-2"><i class="fas fa-envelope w-5 text-green-600"></i> <a href="mailto:info@serviciodejardineria.com.ar" class="hover:text-green-700">info@serviciodejardineria.com.ar</a></p>
                         <p class="flex items-center gap-2"><i class="fab fa-facebook-f w-5 text-green-600"></i> <a href="https://www.facebook.com/cortamospastoyjardines" target="_blank" class="hover:text-green-700">Síguenos</a></p>
                     </div>

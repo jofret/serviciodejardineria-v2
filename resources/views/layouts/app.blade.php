@@ -149,10 +149,10 @@
                     <a href="/#servicios" class="text-gray-700 hover:text-green-700 font-medium transition">Servicios</a>
                     <a href="{{ route('posts.index') }}" class="text-gray-700 hover:text-green-700 font-medium transition">Trabajos</a>
                     <a href="/#contacto-formulario" class="text-gray-700 hover:text-green-700 font-medium transition">Contacto</a>
-                    <a href="https://wa.me/5491171789529?text=Hola%21%20Necesito%20informaci%C3%B3n%20sobre%20los%20servicios%20de%20jardiner%C3%ADa"
+                    <a href="https://wa.me/5491164640291?text=Hola%21%20Vengo%20desde%20serviciodejardineria.com.ar%2C%20necesito%20informaci%C3%B3n%20sobre%20los%20servicios%20de%20jardiner%C3%ADa"
                        target="_blank"
                        class="flex items-center text-green-700 font-bold hover:text-green-800 transition">
-                        <i class="fab fa-whatsapp mr-2"></i> 11 7178-9529
+                        <i class="fab fa-whatsapp mr-2"></i> 11 6464-0291
                     </a>
                     <a href="/#contacto-formulario" class="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition">
                         Presupuesto
@@ -180,7 +180,7 @@
     </header>
 
     {{-- WhatsApp flotante --}}
-    <a href="https://wa.me/5491171789529?text=Hola!%20Necesito%20información%20sobre%20servicios%20de%20jardinería"
+    <a href="https://wa.me/5491164640291?text=Hola!%20Vengo%20desde%20serviciodejardineria.com.ar,%20necesito%20información%20sobre%20servicios%20de%20jardinería"
        target="_blank"
        class="whatsapp-float bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition transform hover:scale-110">
         <i class="fab fa-whatsapp text-3xl"></i>
