@@ -246,7 +246,7 @@
                         </li>
                         <li class="flex items-center">
                             <i class="fab fa-whatsapp text-green-500 w-5 mr-2"></i>
-                            <span class="text-gray-400">11 7178-9529</span>
+                            <a href="https://wa.me/5491164640291?text=Hola!%20Vengo%20desde%20serviciodejardineria.com.ar,%20necesito%20información%20sobre%20servicios%20de%20jardinería" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition">WhatsApp</a>
                         </li>
                         <li class="flex items-center">
                             <i class="fas fa-envelope text-green-500 w-5 mr-2"></i>
