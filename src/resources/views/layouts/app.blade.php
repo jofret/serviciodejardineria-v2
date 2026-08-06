@@ -152,7 +152,7 @@
                     <a href="https://wa.me/5491164640291?text=Hola%21%20Vengo%20desde%20serviciodejardineria.com.ar%2C%20necesito%20informaci%C3%B3n%20sobre%20los%20servicios%20de%20jardiner%C3%ADa"
                        target="_blank"
                        class="flex items-center text-green-700 font-bold hover:text-green-800 transition">
-                        <i class="fab fa-whatsapp mr-2"></i> 11 6464-0291
+                        <i class="fab fa-whatsapp mr-2"></i> WhatsApp
                     </a>
                     <a href="/#contacto-formulario" class="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition">
                         Presupuesto
