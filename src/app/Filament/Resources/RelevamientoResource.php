@@ -75,13 +75,16 @@ class RelevamientoResource extends Resource
                     ->preload()
                     ->required(),
                 Forms\Components\DatePicker::make('scheduled_date')
-                    ->label('Fecha programada'),
+                    ->label('Fecha programada')
+                    ->required(),
                 Forms\Components\TimePicker::make('scheduled_time_from')
                     ->label('Hora desde')
-                    ->seconds(false),
+                    ->seconds(false)
+                    ->required(),
                 Forms\Components\TimePicker::make('scheduled_time_to')
                     ->label('Hora hasta')
-                    ->seconds(false),
+                    ->seconds(false)
+                    ->required(),
                 Forms\Components\Select::make('status')
                     ->label('Estado')
                     ->options([
@@ -117,19 +120,11 @@ class RelevamientoResource extends Resource
                 Tables\Columns\TextColumn::make('service_type_label')
                     ->label('Tipo de servicio')
                     ->default('—'),
-                Tables\Columns\TextColumn::make('relevador.name')
-                    ->label('Relevador')
-                    ->default('—')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('scheduled_date')
-                    ->label('Fecha')
-                    ->date('d/m/Y')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('scheduled_time_from')
-                    ->label('Horario')
-                    ->formatStateUsing(fn ($state, $record) => $state
-                        ? Carbon::parse($state)->format('H:i').($record->scheduled_time_to ? ' - '.Carbon::parse($record->scheduled_time_to)->format('H:i') : '')
-                        : '—'),
+                Tables\Columns\TextColumn::make('reopen_requested_at')
+                    ->label('Reapertura')
+                    ->badge()
+                    ->color('warning')
+                    ->getStateUsing(fn (Relevamiento $record): ?string => $record->reopen_requested_at ? 'Solicitada' : null),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
@@ -166,15 +161,23 @@ class RelevamientoResource extends Resource
                         && $record->serviceOrder->status !== 'presupuesto_aceptado'
                         ? ServiceOrderResource::getUrl('review-and-quote', ['record' => $record->serviceOrder])
                         : null),
+                Tables\Columns\TextColumn::make('relevador.name')
+                    ->label('Relevador')
+                    ->default('—')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('scheduled_date')
+                    ->label('Fecha')
+                    ->date('d/m/Y')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('scheduled_time_from')
+                    ->label('Horario')
+                    ->formatStateUsing(fn ($state, $record) => $state
+                        ? Carbon::parse($state)->format('H:i').($record->scheduled_time_to ? ' - '.Carbon::parse($record->scheduled_time_to)->format('H:i') : '')
+                        : '—'),
                 Tables\Columns\IconColumn::make('submitted_at')
                     ->label('Completado por relevador')
                     ->boolean()
                     ->getStateUsing(fn (Relevamiento $record): bool => $record->submitted_at !== null),
-                Tables\Columns\TextColumn::make('reopen_requested_at')
-                    ->label('Reapertura')
-                    ->badge()
-                    ->color('warning')
-                    ->getStateUsing(fn (Relevamiento $record): ?string => $record->reopen_requested_at ? 'Solicitada' : null),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
@@ -202,12 +205,6 @@ class RelevamientoResource extends Resource
                     ->modalSubmitActionLabel('Confirmar envío')
                     ->modalSubmitAction(fn ($action) => $action->extraAttributes(static::whatsAppTriggerAttributes()))
                     ->action(fn (Relevamiento $record, $livewire) => static::sendRelevamientoToRelevador($record, $livewire)),
-                Tables\Actions\Action::make('ya_enviado')
-                    ->label('Enviado a relevador')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->disabled()
-                    ->visible(fn (Relevamiento $record): bool => $record->status === 'enviado_a_relevador'),
                 Tables\Actions\Action::make('approve_reopen')
                     ->label('Aprobar reapertura')
                     ->icon('heroicon-o-lock-open')
