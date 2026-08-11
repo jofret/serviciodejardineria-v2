@@ -51,6 +51,7 @@ class ServiceOrder extends Model implements HasMedia
         'relevamiento_id',
         'flow_type',
         'category_id',
+        'category_other',
         'post_id',
         'work_date',
         'time_slot',

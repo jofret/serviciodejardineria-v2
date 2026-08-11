@@ -91,7 +91,9 @@ class ServiceOrdersRelationManager extends RelationManager
                         : '—'),
 
                 Infolists\Components\TextEntry::make('category.name')
-                    ->label('Categoría'),
+                    ->label('Categoría')
+                    ->getStateUsing(fn (ServiceOrder $record): ?string => $record->category?->name ?? $record->category_other)
+                    ->placeholder('—'),
 
                 Infolists\Components\TextEntry::make('status')
                     ->label('Estado')
@@ -131,7 +133,9 @@ class ServiceOrdersRelationManager extends RelationManager
             ->recordTitleAttribute('id')
             ->columns([
                 Tables\Columns\TextColumn::make('category.name')
-                    ->label('Categoría'),
+                    ->label('Categoría')
+                    ->getStateUsing(fn (ServiceOrder $record): ?string => $record->category?->name ?? $record->category_other)
+                    ->default('—'),
                 Tables\Columns\TextColumn::make('work_date')
                     ->label('Fecha')
                     ->date('d/m/Y')

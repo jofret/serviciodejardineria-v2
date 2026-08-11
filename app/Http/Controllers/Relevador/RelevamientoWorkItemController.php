@@ -79,7 +79,7 @@ class RelevamientoWorkItemController extends Controller
         abort_unless($item->relevamiento_id === $relevamiento->id, 404);
 
         $request->validate([
-            'photo' => ['required', 'image', 'max:10240'],
+            'photo' => ['required', 'image', 'max:20480'],
         ]);
 
         $media = $item->addMedia($request->file('photo'))->toMediaCollection('photos');

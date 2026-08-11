@@ -132,6 +132,7 @@ class Relevamiento extends Model implements HasMedia
             'relevamiento_id' => $this->id,
             'flow_type' => 'con_relevamiento',
             'category_id' => $this->category_id,
+            'category_other' => $this->category_other,
             'status' => 'visita_realizada',
         ]);
     }

@@ -14,7 +14,7 @@
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-3">
     <div>
         <h1 class="text-lg font-bold text-gray-800">{{ $relevamiento->property->property_type_label ?? 'Propiedad' }}</h1>
-        <p class="text-sm text-gray-500">{{ $relevamiento->property->customer?->name }}</p>
+        <p class="text-sm text-gray-500 font-normal">Cliente: <span class="text-lg font-bold text-gray-800">{{ $relevamiento->property->customer?->name }}</span></p>
     </div>
 
     <dl class="text-sm text-gray-600 space-y-1">

@@ -168,7 +168,9 @@ class ServiceOrderResource extends Resource
                     ->placeholder('—'),
 
                 Infolists\Components\TextEntry::make('category.name')
-                    ->label('Categoría'),
+                    ->label('Categoría')
+                    ->getStateUsing(fn (ServiceOrder $record): ?string => $record->category?->name ?? $record->category_other)
+                    ->placeholder('—'),
 
                 Infolists\Components\TextEntry::make('status')
                     ->label('Estado')
@@ -215,7 +217,9 @@ class ServiceOrderResource extends Resource
                     ->label('Propiedad')
                     ->default('—'),
                 Tables\Columns\TextColumn::make('category.name')
-                    ->label('Categoría'),
+                    ->label('Categoría')
+                    ->getStateUsing(fn (ServiceOrder $record): ?string => $record->category?->name ?? $record->category_other)
+                    ->default('—'),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
