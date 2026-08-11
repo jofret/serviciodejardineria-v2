@@ -24,12 +24,15 @@
 @else
     <div class="space-y-3">
         @foreach ($relevamientos as $relevamiento)
+            @php
+                $visitaHoy = ($relevamiento->serviceOrder?->work_date ?? $relevamiento->scheduled_date)?->isToday() ?? false;
+            @endphp
             <a href="{{ route('relevador.show', $relevamiento) }}"
-               class="block bg-white rounded-xl shadow-sm border border-gray-100 p-4 active:bg-gray-50">
+               class="block rounded-xl shadow-sm border p-4 {{ $visitaHoy ? 'bg-red-50 border-red-300 active:bg-red-100' : 'bg-white border-gray-100 active:bg-gray-50' }}">
                 <div class="flex items-start justify-between gap-2">
                     <div>
                         <p class="font-semibold text-gray-800">{{ $relevamiento->property->property_type_label ?? 'Propiedad' }}</p>
-                        <p class="text-sm text-gray-500">{{ $relevamiento->property->customer?->name }}</p>
+                        <p class="text-sm text-gray-500 font-normal">Cliente: <span class="font-semibold text-gray-800">{{ $relevamiento->property->customer?->name }}</span></p>
                         <p class="text-sm text-gray-500">{{ $relevamiento->property->display_label }}</p>
                     </div>
                     <div class="flex items-center gap-2">
@@ -48,15 +51,17 @@
                     </div>
                 </div>
                 @if ($relevamiento->serviceOrder?->work_date)
-                    <p class="text-xs text-gray-400 mt-2">
+                    <p class="text-xs mt-2 {{ $visitaHoy ? 'text-red-600 font-semibold' : 'text-gray-400' }}">
                         📅 {{ $relevamiento->serviceOrder->work_date->format('d/m/Y') }}
+                        @if ($visitaHoy) · Hoy @endif
                         @if ($relevamiento->serviceOrder->time_slot)
                             · {{ \App\Models\ServiceOrder::TIME_SLOTS[$relevamiento->serviceOrder->time_slot] ?? $relevamiento->serviceOrder->time_slot }}
                         @endif
                     </p>
                 @elseif ($relevamiento->scheduled_date)
-                    <p class="text-xs text-gray-400 mt-2">
+                    <p class="text-xs mt-2 {{ $visitaHoy ? 'text-red-600 font-semibold' : 'text-gray-400' }}">
                         📅 {{ $relevamiento->scheduled_date->format('d/m/Y') }}
+                        @if ($visitaHoy) · Hoy @endif
                         @if ($relevamiento->scheduled_time_from)
                             · {{ \Illuminate\Support\Carbon::parse($relevamiento->scheduled_time_from)->format('H:i') }}
                             @if ($relevamiento->scheduled_time_to)

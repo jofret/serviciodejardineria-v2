@@ -61,7 +61,7 @@ class ReviewAndQuote extends Page implements HasForms
                 Forms\Components\Section::make('Trabajo a realizar')
                     ->description('Los mismos ítems que carga un relevador desde el celular — se pueden agregar, editar o quitar acá igual que en Presupuestos por foto.')
                     ->schema([
-                        PresupuestoPorFotoResource::workItemsField(),
+                        PresupuestoPorFotoResource::workItemsField(requirePhoto: false, showPhotosField: false),
                     ]),
 
                 Forms\Components\Section::make('Precio final')

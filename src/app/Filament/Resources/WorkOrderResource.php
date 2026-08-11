@@ -45,7 +45,7 @@ class WorkOrderResource extends Resource
                             ->content(fn (?WorkOrder $record): string => $record?->serviceOrder?->property?->display_label ?? '—'),
                         Forms\Components\Placeholder::make('category')
                             ->label('Categoría')
-                            ->content(fn (?WorkOrder $record): string => $record?->serviceOrder?->category?->name ?? '—'),
+                            ->content(fn (?WorkOrder $record): string => $record?->serviceOrder?->category?->name ?? $record?->serviceOrder?->category_other ?? '—'),
                         Forms\Components\Placeholder::make('relevamiento')
                             ->label('Relevamiento')
                             ->content(fn (?WorkOrder $record): string => $record?->serviceOrder?->relevamiento
@@ -131,6 +131,7 @@ class WorkOrderResource extends Resource
                     ->default('—'),
                 Tables\Columns\TextColumn::make('serviceOrder.category.name')
                     ->label('Categoría')
+                    ->getStateUsing(fn (WorkOrder $record): ?string => $record->serviceOrder?->category?->name ?? $record->serviceOrder?->category_other)
                     ->default('—'),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
@@ -147,7 +148,6 @@ class WorkOrderResource extends Resource
                     ->formatStateUsing(fn (string $state): string => (WorkOrder::PIPELINE_STATUSES + WorkOrder::OTHER_STATUSES)[$state] ?? $state),
                 Tables\Columns\TextColumn::make('work_date')
                     ->label('Fecha')
-                    ->getStateUsing(fn (WorkOrder $record) => $record->status === 'programado' ? $record->work_date : null)
                     ->date('d/m/Y')
                     ->placeholder('—')
                     ->sortable(),

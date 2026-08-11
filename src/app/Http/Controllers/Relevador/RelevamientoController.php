@@ -98,7 +98,7 @@ class RelevamientoController extends Controller
         $this->authorizeEditable($request, $relevamiento);
 
         $request->validate([
-            'photo' => ['required', 'image', 'max:10240'],
+            'photo' => ['required', 'image', 'max:20480'],
         ]);
 
         $media = $relevamiento->addMedia($request->file('photo'))->toMediaCollection('photos');

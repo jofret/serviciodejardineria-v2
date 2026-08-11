@@ -6,6 +6,7 @@ use App\Filament\Resources\PresupuestoPorFotoResource\Pages;
 use App\Models\Category;
 use App\Models\Property;
 use App\Models\Relevamiento;
+use App\Models\RelevamientoWorkItem;
 use Closure;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -154,7 +155,7 @@ class PresupuestoPorFotoResource extends Resource
      * comportamiento aguas abajo (Revisar y presupuestar, proforma
      * pública, checklist de la Orden de Trabajo).
      */
-    public static function workItemsField(): Forms\Components\Repeater
+    public static function workItemsField(bool $requirePhoto = true, bool $showPhotosField = true): Forms\Components\Repeater
     {
         return Forms\Components\Repeater::make('workItems')
             ->relationship()
@@ -177,8 +178,28 @@ class PresupuestoPorFotoResource extends Resource
                     ->imageEditor()
                     ->reorderable()
                     ->openable()
-                    ->required()
-                    ->columnSpanFull(),
+                    ->required($requirePhoto)
+                    ->columnSpanFull()
+                    // En "Revisar y presupuestar" ($showPhotosField = false) el uploader
+                    // se oculta solo para ítems que YA tienen fotos del relevador (ver
+                    // botón "Ver imágenes" debajo) — un ítem nuevo, o uno existente sin
+                    // fotos todavía, sigue mostrando el uploader normalmente.
+                    ->hidden(fn (?RelevamientoWorkItem $record): bool => (! $showPhotosField) && $record && $record->getMedia('photos')->isNotEmpty()),
+                Forms\Components\Actions::make([
+                    Forms\Components\Actions\Action::make('viewPhotos')
+                        ->label(fn (?RelevamientoWorkItem $record): string => 'Ver imágenes ('.$record?->getMedia('photos')->count().')')
+                        ->icon('heroicon-o-photo')
+                        ->color('gray')
+                        ->modalHeading('Fotos cargadas por el relevador')
+                        ->modalContent(fn (?RelevamientoWorkItem $record) => view(
+                            'filament.resources.presupuesto-por-foto-resource.work-item-photos-modal',
+                            ['photos' => $record?->getMedia('photos') ?? collect()]
+                        ))
+                        ->modalSubmitAction(false)
+                        ->modalCancelActionLabel('Cerrar'),
+                ])
+                    ->columnSpanFull()
+                    ->visible(fn (?RelevamientoWorkItem $record): bool => (! $showPhotosField) && $record && $record->getMedia('photos')->isNotEmpty()),
             ])
             ->columns(2)
             ->addActionLabel('+ Agregar ítem de trabajo')

@@ -117,14 +117,11 @@ class RelevamientoResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('property.display_label')
                     ->label('Propiedad'),
-                Tables\Columns\TextColumn::make('service_type_label')
-                    ->label('Tipo de servicio')
-                    ->default('—'),
-                Tables\Columns\TextColumn::make('reopen_requested_at')
-                    ->label('Reapertura')
-                    ->badge()
-                    ->color('warning')
-                    ->getStateUsing(fn (Relevamiento $record): ?string => $record->reopen_requested_at ? 'Solicitada' : null),
+                // Columna "Relevador" oculta a pedido — descomentar para reactivarla.
+                // Tables\Columns\TextColumn::make('relevador.name')
+                //     ->label('Relevador')
+                //     ->default('—')
+                //     ->searchable(),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
@@ -161,10 +158,14 @@ class RelevamientoResource extends Resource
                         && $record->serviceOrder->status !== 'presupuesto_aceptado'
                         ? ServiceOrderResource::getUrl('review-and-quote', ['record' => $record->serviceOrder])
                         : null),
-                Tables\Columns\TextColumn::make('relevador.name')
-                    ->label('Relevador')
-                    ->default('—')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('reopen_requested_at')
+                    ->label('Reapertura')
+                    ->badge()
+                    ->color('warning')
+                    ->getStateUsing(fn (Relevamiento $record): ?string => $record->reopen_requested_at ? 'Solicitada' : null),
+                Tables\Columns\TextColumn::make('service_type_label')
+                    ->label('Tipo de servicio')
+                    ->default('—'),
                 Tables\Columns\TextColumn::make('scheduled_date')
                     ->label('Fecha')
                     ->date('d/m/Y')
@@ -212,10 +213,10 @@ class RelevamientoResource extends Resource
                     ->visible(fn (Relevamiento $record): bool => $record->reopen_requested_at !== null)
                     ->requiresConfirmation()
                     ->modalHeading('Aprobar reapertura del relevamiento')
-                    ->modalDescription('El relevamiento vuelve a quedar editable para el relevador, que va a poder modificarlo y volver a enviarlo.')
+                    ->modalDescription('El relevamiento vuelve a quedar editable para el relevador, que va a poder modificarlo y volver a enviarlo. Se abre WhatsApp con el aviso listo para el relevador.')
                     ->modalSubmitActionLabel('Aprobar reapertura')
-                    ->action(fn (Relevamiento $record) => $record->approveReopen())
-                    ->successNotificationTitle('Reapertura aprobada'),
+                    ->modalSubmitAction(fn ($action) => $action->extraAttributes(static::whatsAppTriggerAttributes()))
+                    ->action(fn (Relevamiento $record, $livewire) => static::sendReopenApprovedToRelevador($record, $livewire)),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

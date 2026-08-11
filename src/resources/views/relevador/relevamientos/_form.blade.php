@@ -129,6 +129,7 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Fotos del Ítem</label>
                 <input type="file" data-item-photo-input multiple accept="image/*" class="w-full text-sm">
+                <p data-item-photo-error class="hidden text-xs text-red-600 mt-1"></p>
                 <div data-item-photo-grid class="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-2"></div>
             </div>
         </div>
@@ -575,6 +576,7 @@
             var input = event.target;
             var itemEl = input.closest('[data-work-item]');
             var grid = itemEl.querySelector('[data-item-photo-grid]');
+            var errorEl = itemEl.querySelector('[data-item-photo-error]');
             // input.files es una FileList "viva": si se lee la referencia acá
             // pero se la recorre recién dentro del .then() de más abajo (async),
             // el input.value = '' de unas líneas después ya la vació para
@@ -583,6 +585,12 @@
             // mismo, antes de cualquier operación asincrónica.
             var files = Array.prototype.slice.call(input.files);
             input.value = '';
+            errorEl.classList.add('hidden');
+
+            function showPhotoError(message) {
+                errorEl.textContent = message;
+                errorEl.classList.remove('hidden');
+            }
 
             ensureItemCreated(itemEl, collectFields(itemEl)).then(function (itemId) {
                 files.forEach(function (file) {
@@ -595,6 +603,16 @@
                         body: data,
                         headers: {'Accept': 'application/json'},
                     }).then(function (response) {
+                        if (!response.ok) {
+                            return response.json().catch(function () {
+                                return null;
+                            }).then(function (body) {
+                                var message = body && body.errors && body.errors.photo
+                                    ? body.errors.photo[0]
+                                    : 'No se pudo subir "' + file.name + '" (probá con una foto más liviana o en otro formato).';
+                                throw new Error(message);
+                            });
+                        }
                         return response.json();
                     }).then(function (photo) {
                         var cell = document.createElement('div');
@@ -603,6 +621,9 @@
                         cell.innerHTML = '<img src="' + photo.url + '" alt="Foto del ítem" class="w-full h-full object-cover">'
                             + '<button type="button" data-remove-item-photo class="absolute top-1 right-1 bg-black/60 text-white text-xs w-5 h-5 rounded-full leading-none">✕</button>';
                         grid.appendChild(cell);
+                    }).catch(function (error) {
+                        console.error('Subida de foto del ítem falló', error);
+                        showPhotoError(error.message || 'No se pudo subir la foto. Revisá tu conexión e intentá de nuevo.');
                     });
                 });
             });
