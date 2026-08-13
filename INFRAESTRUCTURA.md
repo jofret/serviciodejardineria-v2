@@ -99,14 +99,13 @@ el 6/8 para el footer de WhatsApp) es:
 No versiona el server — hay que acordarse de que el repo local y el server pueden
 divergir si se edita algo directo ahí sin después portarlo al commit.
 
-### Clon de staging de este repo (`v2`) — probablemente redundante ahora
+### Clon de staging — borrado (2026-08-13)
 
-Antes del hallazgo de arriba se había clonado (por HTTPS, sin deploy key) una copia
-separada en `~/serviciodejardineria-v2-staging`, pensada para revisar código "antes
-del corte" — pero el corte ya había pasado. Quedó parado en el commit `0f46f64`, sin
-`.env` ni contenedores levantados. No se está usando para servir nada. Evaluar si
-conviene borrarlo o reconvertirlo en el checkout real de deploy (ver "Pendiente"
-abajo).
+Había un clon separado en `~/serviciodejardineria-v2-staging` (HTTPS, sin deploy
+key), pensado para revisar código "antes del corte" — pero el corte ya había
+pasado y no se estaba usando para nada (sin `.env`, sin contenedores levantados,
+parado en el commit `0f46f64`). Se confirmó `git status` limpio y se borró
+(`rm -rf`) para no dejar una copia zombie dando vueltas.
 
 ### Pendiente / mejora sugerida
 
