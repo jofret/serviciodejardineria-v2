@@ -35,10 +35,17 @@
                 </p>
 
                 <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <a href="#contacto-formulario" 
+                    <a href="#contacto-formulario"
                        class="group bg-yellow-500 text-gray-900 px-8 py-4 rounded-lg text-lg font-bold hover:bg-yellow-400 transition-all transform hover:scale-105 shadow-xl">
                         <i class="fas fa-calculator group-hover:rotate-12 transition"></i>
                         Solicitar presupuesto
+                    </a>
+                    <a href="https://wa.me/5491164640291?text=Hola!%20Vengo%20desde%20serviciodejardineria.com.ar,%20necesito%20información%20sobre%20servicios%20de%20jardinería"
+                       target="_blank"
+                       class="group bg-green-600 text-white px-8 py-4 rounded-lg text-lg font-bold hover:bg-green-700 transition-all transform hover:scale-105 shadow-xl border-2 border-white"
+                       aria-label="Contactar por WhatsApp">
+                        <i class="fab fa-whatsapp group-hover:scale-110 transition"></i>
+                        WhatsApp
                     </a>
                     <a href="{{ route('posts.index') }}"
                        class="group bg-white text-green-700 px-8 py-4 rounded-lg text-lg font-bold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-xl">
