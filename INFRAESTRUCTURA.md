@@ -55,39 +55,66 @@ El hosting es el mismo servidor compartido (Hostinger) que ya se usa para
   reutilizado tal cual — no hace falta una clave nueva porque es la misma cuenta.
 - Conectar: `ssh produccion-poda`.
 
-### Sitio en vivo (dominio `serviciodejardineria.com.ar`)
+### Sitio en vivo (dominio `serviciodejardineria.com.ar`) — CORREGIDO 2026-08-13
 
-**Ojo:** en `~/domains/serviciodejardineria.com.ar/` en el servidor corre hoy el sitio
-**viejo** (Laravel 8, estructura con la app en la raíz, no en `src/`), sirviendo
-tráfico real. `public_html` es un symlink a `new_release_20260805f/public`. **No es
-este repo (`v2`)** — el corte a este repo es la Fase 8 del plan de migración
-(README.md, "Estado de la migración"), todavía pendiente. No tocar esa carpeta ni el
-symlink hasta que se decida hacer el corte.
+**Este repo (`v2`) ya está en producción real.** El corte (Fase 8) ya se hizo
+alrededor del 5-6/8/2026 — lo de abajo estaba desactualizado (decía "Fase 8
+pendiente, sigue el sitio viejo") porque nadie volvió a chequear el estado real del
+servidor después del corte.
 
-### Clon de staging de este repo (`v2`)
+- Carpeta viva: `~/domains/serviciodejardineria.com.ar/new_release_20260805f/`
+  (es la app de este repo — Laravel con `vite.config.js`/`tailwind.config.js`,
+  no el Laravel 8 viejo que sigue suelto en la raíz del dominio sin usarse).
+- `public_html` es un symlink a `new_release_20260805f/public`.
+- **No hay `.git` en esa carpeta ni en la raíz del dominio.** El release se armó
+  como una copia de archivos (probablemente clonado con la deploy key
+  `~/.ssh/github_serviciodejardineria` y despachado sin dejar `.git`, a juzgar por
+  los backups de DB `jardineria_db_pre_deploy_20260805b/e/f.sql.gz` — varios
+  releases fechados el mismo día, patrón "release folder" tipo Capistrano, no un
+  pipeline automático).
+- No hay webhook ni GitHub Action disparando deploys, ni `crontab` (no existe el
+  comando en este hosting compartido).
+- PHP del hosting: `vendor/` requiere PHP >= 8.4.1. El binario correcto es
+  `/opt/alt/php84/usr/bin/php` (¡ojo! `/opt/alt/php83/usr/bin/php` y el `php` del
+  `$PATH` son 8.3 y fallan con "Composer detected issues in your platform").
 
-Para poder revisar el código de este repo en el servidor sin afectar el sitio en vivo,
-se clonó (por HTTPS, el repo es público, no hace falta deploy key en el servidor) en
-una ruta separada, fuera de `domains/` — no expuesta públicamente:
+### Cómo desplegar un cambio chico hoy (verificado 2026-08-13)
 
-```
-~/serviciodejardineria-v2-staging
-```
+Sin `.git` en el server, el mecanismo real para un fix puntual (mismo patrón usado
+el 6/8 para el footer de WhatsApp) es:
 
-Estado actual: solo el código clonado (`git clone`, commit `0f46f64` al crearlo).
-Todavía falta, cuando se quiera avanzar ahí: `.env` (a partir de
-`src/.env.production.example`, completando los TODO — nunca commitear el real),
-levantar los contenedores o instalar dependencias, y decidir cómo se sirve
-(¿Docker en el servidor, o Apache/PHP-FPM del hosting apuntando a `src/public`?
-falta definir — el hosting de Hostinger normalmente no corre Docker).
+1. Backup de los archivos que se van a tocar, a mano, en una carpeta nueva en
+   `~`, ej. `~/backup-<descripcion>-<fecha>/` (`cp` de los originales antes de
+   pisarlos).
+2. `scp` de la versión nueva desde el repo local a la ruta correspondiente dentro
+   de `~/domains/serviciodejardineria.com.ar/new_release_20260805f/...`.
+3. Limpiar cache de Laravel con el PHP correcto:
+   ```
+   cd ~/domains/serviciodejardineria.com.ar/new_release_20260805f
+   /opt/alt/php84/usr/bin/php artisan view:clear
+   /opt/alt/php84/usr/bin/php artisan optimize:clear
+   ```
+4. Verificar en vivo con `curl` (o el navegador) que el cambio se ve.
 
-### Pendiente para el corte real (Fase 8)
+No versiona el server — hay que acordarse de que el repo local y el server pueden
+divergir si se edita algo directo ahí sin después portarlo al commit.
 
-- Definir cómo se sirve `v2` en este hosting compartido (probablemente sin Docker,
-  directo con el PHP del hosting — ver cómo está armado `poda-de-altura-v2` como
-  referencia).
-- Completar `.env` de producción real.
-- Mover/renombrar carpetas y repuntar `public_html` (o el symlink que corresponda)
-  de la app vieja a la nueva.
-- Comandos de deploy esperables una vez armado: `git pull`, `artisan migrate --force`,
-  `artisan optimize:clear` (mismo patrón que `poda-de-altura-v2`).
+### Clon de staging de este repo (`v2`) — probablemente redundante ahora
+
+Antes del hallazgo de arriba se había clonado (por HTTPS, sin deploy key) una copia
+separada en `~/serviciodejardineria-v2-staging`, pensada para revisar código "antes
+del corte" — pero el corte ya había pasado. Quedó parado en el commit `0f46f64`, sin
+`.env` ni contenedores levantados. No se está usando para servir nada. Evaluar si
+conviene borrarlo o reconvertirlo en el checkout real de deploy (ver "Pendiente"
+abajo).
+
+### Pendiente / mejora sugerida
+
+- Adoptar `git` en `new_release_20260805f` (o en una carpeta nueva y repuntar el
+  symlink), igual que ya se hizo hoy para `limpieza-terrenos` (backup previo +
+  `git init` + remote HTTPS al repo público + dejarlo parado en el commit
+  correspondiente) y como ya funciona `poda-de-altura-v2`. Así los próximos
+  deploys pueden ser `git pull` en vez de `scp` archivo por archivo.
+- Mientras tanto, cualquier fix se despliega a mano como se describe arriba —
+  y hay que acordarse de commitear el mismo cambio en este repo para que no
+  diverja del server.
