@@ -16,13 +16,13 @@
             ['q' => '¿Qué es el desmalezado y cuándo es necesario?', 'a' => 'El desmalezado consiste en cortar y retirar la maleza, pastizales altos y arbustos de un terreno. Es necesario cuando el terreno está descuidado, antes de una construcción, o para cumplir con ordenanzas municipales de prevención de incendios.'],
             ['q' => '¿Cada cuánto tiempo hay que desmalezar un terreno?', 'a' => 'En zona norte y Gran Buenos Aires, con el clima húmedo, se recomienda desmalezar cada 2 o 3 meses en primavera-verano, y cada 4 a 6 meses en otoño-invierno, para evitar multas y mantener el terreno en condiciones.'],
             ['q' => '¿Trabajan con maquinaria propia?', 'a' => 'Sí, contamos con maquinaria propia (desmalezadoras, motoguadañas y equipos pesados según el tamaño del terreno) para resolver el trabajo en el menor tiempo posible.'],
-            ['q' => '¿Cuánto cuesta el desmalezado de un terreno?', 'a' => 'El costo depende del tamaño del terreno, el tipo de maleza y el acceso al lugar. Escribinos por WhatsApp al 11 7178-9529 y te pasamos un presupuesto sin cargo.'],
+            ['q' => '¿Cuánto cuesta el desmalezado de un terreno?', 'a' => 'El costo depende del tamaño del terreno, el tipo de maleza y el acceso al lugar. Escribinos por <a href="https://wa.me/5491164640291?text=Hola!%20Vengo%20desde%20serviciodejardineria.com.ar,%20quiero%20información%20sobre%20el%20servicio%20de%20desmalezado" target="_blank" class="text-green-700 font-semibold underline">WhatsApp</a> y te pasamos un presupuesto sin cargo.'],
         ],
         'poda-de-altura' => [
             ['q' => '¿Qué es la poda de altura y cuándo se necesita?', 'a' => 'Es la poda de árboles grandes o de difícil acceso, que requiere equipo especializado y trabajo en altura. Se recomienda cuando hay ramas secas, riesgo de caída, o el árbol interfiere con cables o construcciones.'],
             ['q' => '¿Trabajan con árboles muy altos o de difícil acceso?', 'a' => 'Sí, contamos con el equipamiento y la experiencia necesaria para podar árboles de gran altura de forma segura, incluso en espacios reducidos.'],
             ['q' => '¿Retiran las ramas y restos de la poda?', 'a' => 'Sí, el retiro y traslado de las ramas cortadas está incluido en el servicio, dejando el lugar limpio.'],
-            ['q' => '¿Cuánto cuesta la poda de altura de un árbol?', 'a' => 'Depende de la altura del árbol, su ubicación y el acceso al lugar. Escribinos por WhatsApp al 11 7178-9529 y te pasamos un presupuesto sin cargo.'],
+            ['q' => '¿Cuánto cuesta la poda de altura de un árbol?', 'a' => 'Depende de la altura del árbol, su ubicación y el acceso al lugar. Escribinos por <a href="https://wa.me/5491164640291?text=Hola!%20Vengo%20desde%20serviciodejardineria.com.ar,%20quiero%20información%20sobre%20el%20servicio%20de%20poda%20de%20altura" target="_blank" class="text-green-700 font-semibold underline">WhatsApp</a> y te pasamos un presupuesto sin cargo.'],
         ],
     ];
     $categoryFaqs = $serviceFaqs[$category->slug] ?? null;
@@ -79,7 +79,7 @@
                 @foreach($categoryFaqs as $faq)
                 <details class="bg-white rounded-lg shadow p-4">
                     <summary class="font-semibold cursor-pointer text-gray-800">{{ $faq['q'] }}</summary>
-                    <p class="text-gray-600 mt-2">{{ $faq['a'] }}</p>
+                    <p class="text-gray-600 mt-2">{!! $faq['a'] !!}</p>
                 </details>
                 @endforeach
             </div>
@@ -171,7 +171,7 @@
                     "name" => $faq['q'],
                     "acceptedAnswer" => [
                         "@type" => "Answer",
-                        "text" => $faq['a']
+                        "text" => strip_tags($faq['a'])
                     ]
                 ];
             }, $categoryFaqs)

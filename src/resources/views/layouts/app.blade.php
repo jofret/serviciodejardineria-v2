@@ -171,8 +171,8 @@
                 <a href="/#servicios" class="block py-2 px-4 hover:bg-green-50">Servicios</a>
                 <a href="{{ route('posts.index') }}" class="block py-2 px-4 hover:bg-green-50">Trabajos</a>
                 <a href="/#contacto-formulario" class="block py-2 px-4 hover:bg-green-50">Contacto</a>
-                <a href="tel:+541171789529" class="block py-2 px-4 text-green-700 font-bold">
-                    <i class="fas fa-phone-alt mr-2"></i> 11 7178-9529
+                <a href="https://wa.me/5491164640291?text=Hola!%20Vengo%20desde%20serviciodejardineria.com.ar,%20necesito%20información%20sobre%20servicios%20de%20jardinería" target="_blank" class="block py-2 px-4 text-green-700 font-bold">
+                    <i class="fab fa-whatsapp mr-2"></i> WhatsApp
                 </a>
                 <a href="/#contacto-formulario" class="block py-2 px-4 bg-green-700 text-white rounded">Presupuesto</a>
             </div>
