@@ -128,6 +128,17 @@ class Customer extends Model
     }
 
     /**
+     * true si el cliente tiene al menos una Orden de Trabajo completada —
+     * requisito para habilitar el botón de "Encuesta WhatsApp".
+     */
+    public function hasCompletedWorkOrder(): bool
+    {
+        return $this->serviceOrders()
+            ->whereHas('workOrder', fn ($query) => $query->where('status', 'completado'))
+            ->exists();
+    }
+
+    /**
      * Estado del testimonio más reciente del cliente, para mostrar en el admin.
      */
     public function testimonialStatusLabel(): string
