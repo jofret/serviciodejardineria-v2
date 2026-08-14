@@ -50,6 +50,21 @@ class WorkOrder extends Model implements HasMedia
         ];
     }
 
+    /**
+     * Al completarse una Orden de Trabajo (por cualquier camino: edición
+     * manual en el admin o confirmConformity() desde la página pública), el
+     * Customer asociado pasa a "activo" — mismo patrón que
+     * ServiceOrder::booted() para generar la Orden de Trabajo.
+     */
+    protected static function booted(): void
+    {
+        static::saved(function (WorkOrder $workOrder) {
+            if ($workOrder->wasChanged('status') && $workOrder->status === 'completado') {
+                $workOrder->serviceOrder?->customer?->update(['status' => 'activo']);
+            }
+        });
+    }
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('before_photos');
