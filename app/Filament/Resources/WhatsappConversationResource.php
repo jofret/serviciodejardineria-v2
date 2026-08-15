@@ -5,10 +5,19 @@ namespace App\Filament\Resources;
 use App\Filament\Concerns\HasPendingAttentionBadge;
 use App\Filament\Resources\WhatsappConversationResource\Pages;
 use App\Models\WhatsappConversation;
+use App\Services\Altoparque\AltoparqueApiClient;
 use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Table;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
+/**
+ * Las conversaciones ya no viven en la tabla local whatsapp_conversations
+ * (Claudia ahora escribe en la API central de Altoparque) — por eso este
+ * Resource no tiene table()/form() bindeados a Eloquent: ListWhatsappConversations
+ * y ManageConversation son páginas a medida que consultan AltoparqueApiClient.
+ * $model se mantiene solo por compatibilidad con Resource (label, ícono,
+ * etc.), no para leer/escribir datos.
+ */
 class WhatsappConversationResource extends Resource
 {
     use HasPendingAttentionBadge;
@@ -25,62 +34,6 @@ class WhatsappConversationResource extends Resource
 
     protected static ?string $pluralModelLabel = 'conversaciones de WhatsApp';
 
-    public static function table(Table $table): Table
-    {
-        return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('customer.name')
-                    ->label('Cliente')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->label('Última actividad')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('atender')
-                    ->label('')
-                    ->state('Atender')
-                    ->icon('heroicon-o-chat-bubble-left-ellipsis')
-                    ->color('primary')
-                    ->url(fn (WhatsappConversation $record): string => static::getUrl('manage', ['record' => $record])),
-                Tables\Columns\BadgeColumn::make('estado_conversacion')
-                    ->label('Estado')
-                    ->colors([
-                        'gray' => 'claudia_atendiendo',
-                        'warning' => fn ($state): bool => in_array($state, ['esperando_agenda_visita', 'esperando_cotizacion_foto']),
-                        'danger' => 'con_humano',
-                        'success' => 'cerrada',
-                    ])
-                    ->formatStateUsing(fn (string $state): string => WhatsappConversation::ESTADOS[$state] ?? $state),
-                Tables\Columns\TextColumn::make('customer.phone')
-                    ->label('Teléfono')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('sitio_origen')
-                    ->label('Sitio')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('zona')
-                    ->label('Zona')
-                    ->placeholder('—'),
-                Tables\Columns\TextColumn::make('servicio_solicitado')
-                    ->label('Servicio')
-                    ->placeholder('—'),
-            ])
-            ->filters([
-                Tables\Filters\SelectFilter::make('estado_conversacion')
-                    ->label('Estado')
-                    ->options(WhatsappConversation::ESTADOS),
-            ])
-            ->actions([
-                Tables\Actions\DeleteAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ])
-            ->defaultSort('updated_at', 'desc');
-    }
-
     public static function getPages(): array
     {
         return [
@@ -89,9 +42,23 @@ class WhatsappConversationResource extends Resource
         ];
     }
 
+    /**
+     * Cuenta vía API en vez de la tabla local (que ya no recibe conversaciones
+     * nuevas). Si la API central no responde, no tira abajo el menú lateral:
+     * se loguea y se oculta el badge (mejor que romper la navegación entera).
+     */
     protected static function pendingAttentionCount(): int
     {
-        return static::getModel()::where('estado_conversacion', 'con_humano')->count();
+        try {
+            return app(AltoparqueApiClient::class)
+                ->conversations(estadoConversacion: 'con_humano', perPage: 1)['meta']['total'];
+        } catch (Throwable $e) {
+            Log::warning('No se pudo obtener el conteo de conversaciones pendientes desde Altoparque.', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return 0;
+        }
     }
 
     protected static function pendingAttentionTooltip(): ?string

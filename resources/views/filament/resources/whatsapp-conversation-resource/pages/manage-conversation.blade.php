@@ -3,7 +3,7 @@
         $estados = \App\Models\WhatsappConversation::ESTADOS;
     @endphp
 
-    <div class="space-y-6" wire:poll.10s="$refresh">
+    <div class="space-y-6" wire:poll.10s="refrescar">
         <x-filament::section heading="Datos de la consulta">
             <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                 <div>

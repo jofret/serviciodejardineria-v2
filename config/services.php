@@ -54,4 +54,11 @@ return [
         'app_secret' => env('WHATSAPP_CLOUD_API_APP_SECRET'),
     ],
 
+    // API central de Altoparque: Claudia crea/actualiza Customer,
+    // WhatsappConversation y WhatsappMessage acá en vez de en la base local.
+    'altoparque' => [
+        'api_url' => env('ALTOPARQUE_API_URL', 'https://altoparque.com/api'),
+        'api_token' => env('ALTOPARQUE_API_TOKEN'),
+    ],
+
 ];

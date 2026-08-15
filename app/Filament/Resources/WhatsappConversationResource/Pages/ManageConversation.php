@@ -3,7 +3,8 @@
 namespace App\Filament\Resources\WhatsappConversationResource\Pages;
 
 use App\Filament\Resources\WhatsappConversationResource;
-use App\Models\WhatsappConversation;
+use App\Services\Altoparque\AltoparqueApiClient;
+use App\Services\Altoparque\RemoteCustomer;
 use App\Services\WhatsApp\WhatsAppCloudApiService;
 use Filament\Actions;
 use Filament\Forms;
@@ -12,9 +13,17 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Throwable;
 
+/**
+ * Antes trabajaba contra el WhatsappConversation Eloquent local; ahora la
+ * conversación vive en la API central de Altoparque, así que todo pasa por
+ * AltoparqueApiClient. $conversation queda como un stdClass con la misma
+ * forma que el modelo local (mismos nombres de atributo) para no tener que
+ * tocar la vista Blade.
+ */
 class ManageConversation extends Page implements HasForms
 {
     use InteractsWithForms;
@@ -23,16 +32,41 @@ class ManageConversation extends Page implements HasForms
 
     protected static string $view = 'filament.resources.whatsapp-conversation-resource.pages.manage-conversation';
 
-    public WhatsappConversation $conversation;
+    public int $conversationId;
+
+    public object $conversation;
 
     /** @var array<string, mixed> */
     public ?array $data = [];
 
     public function mount(int|string $record): void
     {
-        $this->conversation = WhatsappConversation::with('customer', 'asignadoA')->findOrFail($record);
+        $this->conversationId = (int) $record;
+
+        $this->refrescar();
 
         $this->form->fill();
+    }
+
+    /**
+     * Refresca $conversation desde la API. Se llama explícitamente (no hay
+     * Eloquent local que Livewire re-hidrate solo entre requests).
+     */
+    public function refrescar(): void
+    {
+        $remota = app(AltoparqueApiClient::class)->conversation($this->conversationId);
+
+        $this->conversation = (object) [
+            'sitio_origen' => $remota->sitioOrigen(),
+            'zona' => $remota->zona(),
+            'servicio_solicitado' => $remota->servicioSolicitado(),
+            'estado_conversacion' => $remota->estadoConversacion(),
+            'foto_path' => $remota->fotoPath(),
+            'customer' => (object) [
+                'name' => $remota->customer()?->name(),
+                'phone' => $remota->customer()?->phone(),
+            ],
+        ];
     }
 
     public function form(Form $form): Form
@@ -60,9 +94,18 @@ class ManageConversation extends Page implements HasForms
         return 'Conversación con '.($this->conversation->customer->name ?: $this->conversation->customer->phone);
     }
 
+    /**
+     * @return Collection<int, object{remitente: string, tipo: string, contenido: string, enviado_en: Carbon}>
+     */
     public function getMessagesProperty(): Collection
     {
-        return $this->conversation->messages()->get();
+        return collect(app(AltoparqueApiClient::class)->conversationMessages($this->conversationId))
+            ->map(fn (array $mensaje) => (object) [
+                'remitente' => $mensaje['remitente'],
+                'tipo' => $mensaje['tipo'],
+                'contenido' => $mensaje['contenido'],
+                'enviado_en' => Carbon::parse($mensaje['enviado_en']),
+            ]);
     }
 
     protected function getHeaderActions(): array
@@ -75,7 +118,11 @@ class ManageConversation extends Page implements HasForms
                 ->requiresConfirmation()
                 ->visible(fn (): bool => $this->conversation->estado_conversacion !== 'cerrada')
                 ->action(function (): void {
-                    $this->conversation->cerrar();
+                    app(AltoparqueApiClient::class)->updateConversation($this->conversationId, [
+                        'estado_conversacion' => 'cerrada',
+                    ]);
+
+                    $this->refrescar();
 
                     Notification::make()->title('Caso cerrado')->success()->send();
                 }),
@@ -87,7 +134,11 @@ class ManageConversation extends Page implements HasForms
                 ->requiresConfirmation()
                 ->visible(fn (): bool => $this->conversation->estado_conversacion === 'cerrada')
                 ->action(function (): void {
-                    $this->conversation->reabrir();
+                    app(AltoparqueApiClient::class)->updateConversation($this->conversationId, [
+                        'estado_conversacion' => 'claudia_atendiendo',
+                    ]);
+
+                    $this->refrescar();
 
                     Notification::make()->title('Caso reabierto')->success()->send();
                 }),
@@ -110,18 +161,16 @@ class ManageConversation extends Page implements HasForms
             return;
         }
 
+        // El objeto RemoteCustomer real ya no se conserva entre requests de
+        // Livewire (solo sobrevive $conversation, un stdClass) — se arma uno
+        // efímero acá solo para reusar la normalización de whatsappPhone().
+        $telefono = (new RemoteCustomer(['phone' => $this->conversation->customer->phone]))->whatsappPhone();
+
         try {
             if (filled($imagen)) {
-                app(WhatsAppCloudApiService::class)->sendImageMessage(
-                    $this->conversation->customer->whatsappPhone(),
-                    $imagen,
-                    $contenido,
-                );
+                app(WhatsAppCloudApiService::class)->sendImageMessage($telefono, $imagen, $contenido);
             } else {
-                app(WhatsAppCloudApiService::class)->sendTextMessage(
-                    $this->conversation->customer->whatsappPhone(),
-                    $contenido,
-                );
+                app(WhatsAppCloudApiService::class)->sendTextMessage($telefono, $contenido);
             }
         } catch (Throwable $e) {
             Notification::make()
@@ -133,36 +182,47 @@ class ManageConversation extends Page implements HasForms
             return;
         }
 
+        $altoparque = app(AltoparqueApiClient::class);
+
+        // remitente queda fijo en "humano" (no el nombre del admin): la API
+        // central solo acepta cliente/claudia/humano en este campo.
         if (filled($imagen)) {
-            $this->conversation->messages()->create([
-                'remitente' => auth()->user()->name,
+            $altoparque->createMessage($this->conversationId, [
+                'remitente' => 'humano',
                 'contenido' => $imagen,
                 'tipo' => 'imagen',
-                'enviado_en' => now(),
+                'enviado_en' => now()->toIso8601String(),
             ]);
 
             if (filled($contenido)) {
-                $this->conversation->messages()->create([
-                    'remitente' => auth()->user()->name,
+                $altoparque->createMessage($this->conversationId, [
+                    'remitente' => 'humano',
                     'contenido' => $contenido,
                     'tipo' => 'texto',
-                    'enviado_en' => now(),
+                    'enviado_en' => now()->toIso8601String(),
                 ]);
             }
         } else {
-            $this->conversation->messages()->create([
-                'remitente' => auth()->user()->name,
+            $altoparque->createMessage($this->conversationId, [
+                'remitente' => 'humano',
                 'contenido' => $contenido,
                 'tipo' => 'texto',
-                'enviado_en' => now(),
+                'enviado_en' => now()->toIso8601String(),
             ]);
         }
 
-        if (! $this->conversation->estaConHumano()) {
-            $this->conversation->derivarAHumano(auth()->id());
-        } elseif (blank($this->conversation->asignado_a)) {
-            $this->conversation->update(['asignado_a' => auth()->id()]);
+        // No se manda asignado_a: el id del admin local (auth()->id()) no
+        // corresponde a ningún usuario real en la base central — asignarlo
+        // pisaría/apuntaría a un usuario central distinto por coincidencia
+        // de id. Sin un mapeo confiable entre cuentas locales y centrales,
+        // mejor dejarlo sin asignar que asignarlo mal.
+        if ($this->conversation->estado_conversacion !== 'con_humano') {
+            $altoparque->updateConversation($this->conversationId, [
+                'estado_conversacion' => 'con_humano',
+            ]);
         }
+
+        $this->refrescar();
 
         $this->form->fill();
     }
