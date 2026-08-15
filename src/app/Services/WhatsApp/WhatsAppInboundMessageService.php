@@ -2,32 +2,43 @@
 
 namespace App\Services\WhatsApp;
 
-use App\Models\Customer;
-use App\Models\WhatsappConversation;
-use App\Models\WhatsappMessage;
+use App\Mail\AltoparqueConversationDerivedMailable;
+use App\Services\Altoparque\AltoparqueApiClient;
+use App\Services\Altoparque\RemoteConversation;
+use App\Services\Altoparque\RemoteCustomer;
 use App\Services\Claudia\ClaudiaConversationService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Throwable;
 
 class WhatsAppInboundMessageService
 {
+    private const REMITENTE_CLIENTE = 'cliente';
+
+    private const REMITENTE_CLAUDIA = 'claudia';
+
     /**
-     * Instalación de un solo sitio (a diferencia de poda-de-altura-v2, acá
-     * no hace falta detectar de qué dominio vino el cliente): todo lo que
-     * llega a este webhook es de serviciodejardineria.com.ar.
+     * Casilla que recibe las notificaciones de contacto nuevo en este sitio.
+     * Réplica de la constante que antes vivía en WhatsappConversation (ahora
+     * la conversación vive en la API central, sin Eloquent local que
+     * dispare el hook de aviso).
      */
-    private const SITIO_ORIGEN = 'serviciodejardineria.com.ar';
+    private const ADMIN_EMAILS = [
+        'geral4bebes@gmail.com',
+        'jofretjofret@gmail.com',
+    ];
 
     public function __construct(
         private WhatsAppCloudApiService $whatsApp,
         private ClaudiaConversationService $claudia,
+        private AltoparqueApiClient $altoparque,
     ) {
     }
 
     /**
-     * Procesa un mensaje entrante de WhatsApp: crea/actualiza el Customer,
-     * resuelve la conversación activa, guarda el mensaje y, si corresponde,
-     * hace que Claudia responda.
+     * Procesa un mensaje entrante de WhatsApp: crea/actualiza el Customer y
+     * la conversación en la API central de Altoparque, guarda el mensaje y,
+     * si corresponde, hace que Claudia responda.
      *
      * @param  array<string, mixed>  $message
      * @param  array<int, array<string, mixed>>  $contacts
@@ -36,7 +47,7 @@ class WhatsAppInboundMessageService
     {
         $wamid = $message['id'] ?? null;
 
-        if (filled($wamid) && WhatsappMessage::where('wamid', $wamid)->exists()) {
+        if (filled($wamid) && $this->altoparque->messageExists($wamid)) {
             // Meta reintenta el webhook si no respondemos a tiempo o hay un
             // error transitorio: sin esto se duplicaría el mensaje.
             return;
@@ -53,18 +64,20 @@ class WhatsAppInboundMessageService
         [$tipo, $contenido] = $this->extraerContenido($message);
 
         $conversation = $this->resolverConversacion($customer);
-        $estadoAntes = $conversation->estado_conversacion;
+        $estadoAntes = $conversation->estadoConversacion();
 
-        $conversation->messages()->create([
+        $this->altoparque->createMessage($conversation->id(), [
             'wamid' => $wamid,
-            'remitente' => WhatsappMessage::REMITENTE_CLIENTE,
+            'remitente' => self::REMITENTE_CLIENTE,
             'contenido' => $contenido,
             'tipo' => $tipo,
-            'enviado_en' => isset($message['timestamp']) ? now()->setTimestamp((int) $message['timestamp']) : now(),
+            'enviado_en' => (isset($message['timestamp'])
+                ? now()->setTimestamp((int) $message['timestamp'])
+                : now())->toIso8601String(),
         ]);
 
         if ($tipo === 'imagen') {
-            $conversation->update(['foto_path' => $contenido]);
+            $conversation = $this->altoparque->updateConversation($conversation->id(), ['foto_path' => $contenido]);
         }
 
         if ($conversation->estaConHumano()) {
@@ -75,28 +88,29 @@ class WhatsAppInboundMessageService
         // Recibir la foto que se había pedido deriva directo, sin pasar por
         // Claude: es una regla de negocio fija, no algo a interpretar.
         if ($tipo === 'imagen' && $estadoAntes === 'esperando_cotizacion_foto') {
-            $this->derivarPorFotoRecibida($conversation);
+            $this->derivarPorFotoRecibida($conversation, $customer);
 
             return;
         }
 
-        $this->responderConClaudia($conversation);
+        $this->responderConClaudia($conversation, $customer);
     }
 
-    private function derivarPorFotoRecibida(WhatsappConversation $conversation): void
+    private function derivarPorFotoRecibida(RemoteConversation $conversation, RemoteCustomer $customer): void
     {
         $this->enviarYGuardar(
             $conversation,
+            $customer,
             'Perfecto, ya tengo la foto. Ahora te paso con alguien del equipo para que te pase un precio. 🌿'
         );
 
-        $conversation->derivarAHumano(motivo: 'El cliente mandó la foto pedida para la cotización.');
+        $this->derivarAHumano($conversation, $customer, motivo: 'El cliente mandó la foto pedida para la cotización.');
     }
 
-    private function responderConClaudia(WhatsappConversation $conversation): void
+    private function responderConClaudia(RemoteConversation $conversation, RemoteCustomer $customer): void
     {
         try {
-            $resultado = $this->claudia->generarRespuesta($conversation);
+            $resultado = $this->claudia->generarRespuesta($conversation, $customer);
         } catch (Throwable $e) {
             Log::error('Claudia: falló la llamada al motor conversacional.', ['error' => $e->getMessage()]);
 
@@ -111,7 +125,7 @@ class WhatsAppInboundMessageService
             Log::warning('Claudia: DeepSeek devolvió un mensaje vacío, reintentando una vez.');
 
             try {
-                $resultado = $this->claudia->generarRespuesta($conversation);
+                $resultado = $this->claudia->generarRespuesta($conversation, $customer);
             } catch (Throwable $e) {
                 Log::error('Claudia: falló el reintento tras mensaje vacío.', ['error' => $e->getMessage()]);
 
@@ -125,12 +139,10 @@ class WhatsAppInboundMessageService
             }
         }
 
-        $this->enviarYGuardar($conversation, $resultado['mensaje']);
-
-        $customer = $conversation->customer;
+        $this->enviarYGuardar($conversation, $customer, $resultado['mensaje']);
 
         if (filled($resultado['nombre_cliente'] ?? null) && ! $customer->tieneNombre()) {
-            $customer->update(['name' => $resultado['nombre_cliente']]);
+            $customer = $this->altoparque->updateCustomer($customer->id(), ['name' => $resultado['nombre_cliente']]);
         }
 
         $datosNuevos = array_filter([
@@ -139,67 +151,72 @@ class WhatsAppInboundMessageService
         ], fn ($valor) => filled($valor));
 
         if ($datosNuevos) {
-            $conversation->update($datosNuevos);
+            $conversation = $this->altoparque->updateConversation($conversation->id(), $datosNuevos);
         }
 
         match ($resultado['accion'] ?? 'continuar') {
-            'ofrecer_visita' => $conversation->update(['estado_conversacion' => 'esperando_agenda_visita']),
-            'ofrecer_foto' => $conversation->update(['estado_conversacion' => 'esperando_cotizacion_foto']),
-            'derivar' => $conversation->derivarAHumano(motivo: 'El cliente confirmó que quiere agendar la visita.'),
+            'ofrecer_visita' => $this->altoparque->updateConversation($conversation->id(), ['estado_conversacion' => 'esperando_agenda_visita']),
+            'ofrecer_foto' => $this->altoparque->updateConversation($conversation->id(), ['estado_conversacion' => 'esperando_cotizacion_foto']),
+            'derivar' => $this->derivarAHumano($conversation, $customer, motivo: 'El cliente confirmó que quiere agendar la visita.'),
             default => null,
         };
     }
 
     /**
      * Envía un mensaje de Claudia por WhatsApp y recién si el envío funcionó
-     * lo guarda en whatsapp_messages — evita registrar un mensaje "enviado"
-     * que el cliente nunca recibió.
+     * lo guarda en la API central — evita registrar un mensaje "enviado" que
+     * el cliente nunca recibió.
      */
-    private function enviarYGuardar(WhatsappConversation $conversation, string $mensaje): void
+    private function enviarYGuardar(RemoteConversation $conversation, RemoteCustomer $customer, string $mensaje): void
     {
-        if (blank($conversation->customer->phone)) {
+        if (blank($customer->phone())) {
             return;
         }
 
         try {
-            $this->whatsApp->sendTextMessage($conversation->customer->whatsappPhone(), $mensaje);
+            $this->whatsApp->sendTextMessage($customer->whatsappPhone(), $mensaje);
         } catch (Throwable $e) {
             Log::error('Claudia: no se pudo enviar la respuesta por WhatsApp.', ['error' => $e->getMessage()]);
 
             return;
         }
 
-        $conversation->messages()->create([
-            'remitente' => WhatsappMessage::REMITENTE_CLAUDIA,
+        $this->altoparque->createMessage($conversation->id(), [
+            'remitente' => self::REMITENTE_CLAUDIA,
             'contenido' => $mensaje,
             'tipo' => 'texto',
-            'enviado_en' => now(),
+            'enviado_en' => now()->toIso8601String(),
         ]);
     }
 
-    private function resolverCliente(string $waId, array $contacts): Customer
+    /**
+     * Deriva la conversación a un humano y, si recién ahora queda
+     * "con_humano" sin nadie asignado, manda el aviso por email — réplica
+     * del hook que antes vivía en WhatsappConversation::booted().
+     */
+    private function derivarAHumano(RemoteConversation $conversation, RemoteCustomer $customer, string $motivo): void
+    {
+        $yaEstabaConHumano = $conversation->estaConHumano();
+
+        $actualizada = $this->altoparque->updateConversation($conversation->id(), [
+            'estado_conversacion' => 'con_humano',
+        ]);
+
+        if (! $yaEstabaConHumano && blank($actualizada->asignadoA())) {
+            Mail::to(self::ADMIN_EMAILS)->send(new AltoparqueConversationDerivedMailable(
+                $actualizada,
+                $customer,
+                $motivo,
+                $this->altoparque->panelUrlForConversation($actualizada->id()),
+            ));
+        }
+    }
+
+    private function resolverCliente(string $waId, array $contacts): RemoteCustomer
     {
         $nombreContacto = collect($contacts)->firstWhere('wa_id', $waId)['profile']['name'] ?? null;
 
-        $customer = Customer::findByWhatsappNumber($waId);
-
-        if (! $customer) {
-            // 'name' es NOT NULL en customers — WhatsApp no siempre manda el
-            // nombre de perfil del contacto, así que hace falta un placeholder
-            // hasta que Claudia se lo pida y lo actualice en la conversación.
-            return Customer::create([
-                'name' => $nombreContacto ?? Customer::NOMBRE_PENDIENTE,
-                'phone' => $waId,
-                'status' => 'potencial',
-                'preferred_contact' => 'whatsapp',
-            ]);
-        }
-
-        if (! $customer->tieneNombre() && filled($nombreContacto)) {
-            $customer->update(['name' => $nombreContacto]);
-        }
-
-        return $customer;
+        return $this->altoparque->upsertCustomer($waId, $nombreContacto);
     }
 
     /**
@@ -229,22 +246,22 @@ class WhatsAppInboundMessageService
      * mensaje. Si estaba "cerrada", un mensaje nuevo la reactiva (ver
      * regla de negocio de "pausa automática" en la spec).
      */
-    private function resolverConversacion(Customer $customer): WhatsappConversation
+    private function resolverConversacion(RemoteCustomer $customer): RemoteConversation
     {
-        $conversation = $customer->whatsappConversations()->latest()->first();
+        $conversation = $this->altoparque->latestConversation($customer->id());
 
         if (! $conversation) {
-            return $customer->whatsappConversations()->create([
-                'sitio_origen' => self::SITIO_ORIGEN,
-            ]);
+            return $this->altoparque->createConversation($customer->id());
         }
 
         if ($conversation->estaConHumano()) {
             return $conversation;
         }
 
-        if ($conversation->estado_conversacion === 'cerrada') {
-            $conversation->update(['estado_conversacion' => 'claudia_atendiendo']);
+        if ($conversation->estaCerrada()) {
+            return $this->altoparque->updateConversation($conversation->id(), [
+                'estado_conversacion' => 'claudia_atendiendo',
+            ]);
         }
 
         return $conversation;

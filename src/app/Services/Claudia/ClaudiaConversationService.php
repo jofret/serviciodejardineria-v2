@@ -3,8 +3,9 @@
 namespace App\Services\Claudia;
 
 use App\Models\Category;
-use App\Models\WhatsappConversation;
-use App\Models\WhatsappMessage;
+use App\Services\Altoparque\AltoparqueApiClient;
+use App\Services\Altoparque\RemoteConversation;
+use App\Services\Altoparque\RemoteCustomer;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -13,11 +14,17 @@ class ClaudiaConversationService
 {
     private const TOOL_NAME = 'responder_cliente';
 
+    private const REMITENTE_CLIENTE = 'cliente';
+
     private const ESTADOS_LABEL = [
         'claudia_atendiendo' => 'Charlando normalmente, todavía juntando datos.',
         'esperando_agenda_visita' => 'Le ofreciste agendar una visita sin costo y estás esperando que confirme si quiere o no.',
         'esperando_cotizacion_foto' => 'Aceptaste que mande una foto para pasársela al encargado (él decide si alcanza sin visita, vos no cotizás) y estás esperando que la mande (si en vez de eso escribe texto, seguí la charla normal).',
     ];
+
+    public function __construct(private AltoparqueApiClient $altoparque)
+    {
+    }
 
     /**
      * Le pide a Claudia (motor DeepSeek, API compatible con OpenAI) la
@@ -26,9 +33,9 @@ class ClaudiaConversationService
      *
      * @return array{mensaje: string, nombre_cliente: ?string, zona: ?string, servicio_solicitado: ?string, accion: string}
      */
-    public function generarRespuesta(WhatsappConversation $conversation): array
+    public function generarRespuesta(RemoteConversation $conversation, RemoteCustomer $customer): array
     {
-        $conversation->loadMissing('customer', 'messages');
+        $mensajes = $this->altoparque->conversationMessages($conversation->id());
 
         $apiKey = config('services.deepseek.key');
 
@@ -42,8 +49,8 @@ class ClaudiaConversationService
             ->post("{$baseUrl}/chat/completions", [
                 'model' => config('services.deepseek.model', 'deepseek-v4-flash'),
                 'messages' => [
-                    ['role' => 'system', 'content' => $this->buildSystemPrompt($conversation)],
-                    ...$this->buildMessages($conversation),
+                    ['role' => 'system', 'content' => $this->buildSystemPrompt($conversation, $customer)],
+                    ...$this->buildMessages($mensajes),
                 ],
                 'tools' => [$this->buildTool()],
                 // DeepSeek tiene "modo pensamiento" activado por default, y
@@ -94,14 +101,12 @@ class ClaudiaConversationService
         ];
     }
 
-    private function buildSystemPrompt(WhatsappConversation $conversation): string
+    private function buildSystemPrompt(RemoteConversation $conversation, RemoteCustomer $customer): string
     {
-        $customer = $conversation->customer;
-
-        $nombre = $customer->tieneNombre() ? $customer->name : 'todavía no lo dio';
-        $zona = filled($conversation->zona) ? $conversation->zona : 'todavía no la dio';
-        $servicio = filled($conversation->servicio_solicitado) ? $conversation->servicio_solicitado : 'todavía no lo dijo';
-        $estadoDescripcion = self::ESTADOS_LABEL[$conversation->estado_conversacion] ?? 'Charlando normalmente.';
+        $nombre = $customer->tieneNombre() ? $customer->name() : 'todavía no lo dio';
+        $zona = filled($conversation->zona()) ? $conversation->zona() : 'todavía no la dio';
+        $servicio = filled($conversation->servicioSolicitado()) ? $conversation->servicioSolicitado() : 'todavía no lo dijo';
+        $estadoDescripcion = self::ESTADOS_LABEL[$conversation->estadoConversacion()] ?? 'Charlando normalmente.';
 
         // Se arma desde la BD real del sitio (no hardcodeado) para que la
         // lista de servicios que Claudia ofrece nunca quede desactualizada
@@ -149,18 +154,19 @@ class ClaudiaConversationService
     }
 
     /**
+     * @param  array<int, array{remitente: string, tipo: string, contenido: string}>  $mensajes
      * @return array<int, array{role: string, content: string}>
      */
-    private function buildMessages(WhatsappConversation $conversation): array
+    private function buildMessages(array $mensajes): array
     {
         $messages = [];
 
-        foreach ($conversation->messages as $message) {
-            $role = $message->remitente === WhatsappMessage::REMITENTE_CLIENTE ? 'user' : 'assistant';
+        foreach ($mensajes as $mensaje) {
+            $role = $mensaje['remitente'] === self::REMITENTE_CLIENTE ? 'user' : 'assistant';
 
-            $contenido = $message->tipo === 'imagen'
+            $contenido = $mensaje['tipo'] === 'imagen'
                 ? '[el cliente mandó una foto]'
-                : $message->contenido;
+                : $mensaje['contenido'];
 
             $messages[] = ['role' => $role, 'content' => $contenido];
         }

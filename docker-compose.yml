@@ -26,6 +26,10 @@ services:
     volumes:
       - ./src:/var/www
       - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    extra_hosts:
+      # Para poder pegarle en local a la API central de Altoparque
+      # (altoparque.com), que corre en su propio docker-compose en el host.
+      - "host.docker.internal:host-gateway"
     depends_on:
       - mysql
     networks:
