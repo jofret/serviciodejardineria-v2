@@ -61,4 +61,12 @@ return [
         'api_token' => env('ALTOPARQUE_API_TOKEN'),
     ],
 
+    // Protege /api/posts (ver EnsureCentralApiToken): dirección inversa a
+    // 'altoparque' de arriba — acá altoparque.com es el cliente y este sitio
+    // el servidor. Mismo valor configurado en altoparque.com como
+    // SATELLITE_API_TOKEN.
+    'central_api' => [
+        'token' => env('CENTRAL_API_TOKEN'),
+    ],
+
 ];
