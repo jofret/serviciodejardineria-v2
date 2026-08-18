@@ -74,16 +74,6 @@ class Post extends Model implements HasMedia
     }
 
     /**
-     * Relación con propiedades (muchos a muchos, inversa de Property::posts())
-     */
-    public function properties()
-    {
-        return $this->belongsToMany(Property::class, 'property_post')
-                    ->withPivot('relation_type', 'comment', 'rating', 'service_date')
-                    ->withTimestamps();
-    }
-
-    /**
      * Colecciones de imágenes para Spatie Media Library
      */
     public function registerMediaCollections(): void
