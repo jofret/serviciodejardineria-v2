@@ -2,7 +2,6 @@
 
 namespace App\Mail;
 
-use App\Models\Customer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -13,9 +12,14 @@ class NuevoContactoMailable extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $customer;
+    public object $customer;
 
-    public function __construct(Customer $customer)
+    /**
+     * $customer es un stdClass con los datos del formulario de contacto
+     * (ver ContactController::send()) — el Customer real ahora vive en
+     * altoparque.com, no en la base local de este sitio.
+     */
+    public function __construct(object $customer)
     {
         $this->customer = $customer;
     }

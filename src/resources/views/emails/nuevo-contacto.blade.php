@@ -61,7 +61,7 @@
             </div>
             
             <div style="text-align: center; margin-top: 30px;">
-                <a href="{{ url('/admin/customers') }}" class="button" style="background-color: #166534; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                <a href="https://altoparque.com/admin/customers" class="button" style="background-color: #166534; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
     			Ver listado de clientes
 		</a>
             </div>

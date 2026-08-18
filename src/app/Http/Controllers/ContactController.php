@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Customer;
+use App\Mail\NuevoContactoMailable;
+use App\Services\Altoparque\AltoparqueApiClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\NuevoContactoMailable;
 
 class ContactController extends Controller
 {
-    public function send(Request $request)
+    public function send(Request $request, AltoparqueApiClient $altoparque)
     {
         // Reglas base
         $rules = [
@@ -30,61 +30,46 @@ class ContactController extends Controller
 
         $validated = $request->validate($rules);
 
-        // Determinar la zona final
         if ($validated['zona_principal'] === 'Otra') {
-            $zona_final = $validated['otra_zona'];
             $partido = null;
         } else {
-            $zona_final = $validated['zona_principal'] . ' - ' . $validated['partido'];
             $partido = $validated['partido'];
         }
 
-        // Buscar si el cliente ya existe por teléfono
-        $customer = Customer::firstOrNew(['phone' => $validated['phone']]);
+        // El lead se guarda en el Customer central (altoparque.com), no en
+        // la base local de este sitio — ver AltoparqueApiClient::upsertContactLead().
+        $remoteCustomer = $altoparque->upsertContactLead([
+            'phone' => $validated['phone'],
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'zona' => $validated['zona_principal'],
+            'partido' => $partido,
+            'otra_zona' => $validated['otra_zona'] ?? null,
+            'servicio_interes' => $validated['service'],
+            'mensaje' => $validated['message'],
+        ]);
 
-        // Actualizar o crear
-        $customer->name = $validated['name'];
-        $customer->email = $validated['email'];
-        $customer->status = 'potencial';
-        $customer->fuente = $customer->exists ? $customer->fuente : 'web';
-        $customer->zona_principal = $validated['zona_principal'];
-        $customer->partido = $partido;
-        $customer->otra_zona = $validated['otra_zona'] ?? null;
-        $customer->servicio_interes = $validated['service'];
-        
-        // Acumular mensajes (no sobrescribir)
-        $mensajeAnterior = $customer->mensaje_inicial;
-        $customer->mensaje_inicial = $mensajeAnterior 
-            ? $mensajeAnterior . "\n---\n" . $validated['message']
-            : $validated['message'];
-        
-        // Actualizar metadata (Customer::$casts ya serializa/deserializa este campo
-        // como array -- no hay que pasar por json_encode/json_decode a mano, o el
-        // segundo contacto de un mismo cliente revienta con un TypeError porque
-        // $customer->metadata ya llega como array, no como string).
-        $metadata = $customer->metadata ?? [];
-        $metadata[] = [
-            'fecha' => now()->toDateTimeString(),
-            'user_agent' => $request->header('User-Agent'),
-            'ip' => $request->ip(),
-            'zona_completa' => $zona_final,
-            'servicio' => $validated['service'],
+        $contacto = (object) [
+            'name' => $validated['name'],
+            'phone' => $validated['phone'],
+            'email' => $validated['email'],
+            'zona_principal' => $validated['zona_principal'],
+            'partido' => $partido,
+            'otra_zona' => $validated['otra_zona'] ?? null,
+            'servicio_interes' => $validated['service'],
+            'mensaje_inicial' => $validated['message'],
         ];
-        $customer->metadata = $metadata;
 
-        $customer->save();
-
-        // Enviar emails a los destinatarios usando Mailable
         $emails = [
             'info@serviciodejardineria.com.ar',
             'jofretjofret@gmail.com',
         ];
 
         foreach ($emails as $email) {
-            Mail::to($email)->send(new NuevoContactoMailable($customer));
+            Mail::to($email)->send(new NuevoContactoMailable($contacto));
         }
 
-        $mensaje = $customer->wasRecentlyCreated 
+        $mensaje = $remoteCustomer->wasRecentlyCreated()
             ? '¡Gracias por contactarnos! Te responderemos a la brevedad.'
             : '¡Gracias por contactarte nuevamente! Hemos registrado tu nuevo mensaje.';
 
