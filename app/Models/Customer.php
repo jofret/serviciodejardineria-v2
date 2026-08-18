@@ -161,14 +161,6 @@ class Customer extends Model
     }
 
     /**
-     * Relación con posts a través de propiedades
-     */
-    public function posts()
-    {
-        return $this->hasManyThrough(Post::class, Property::class);
-    }
-
-    /**
      * Accesor para cumpleaños formateado
      */
     public function getBirthdayAttribute()
