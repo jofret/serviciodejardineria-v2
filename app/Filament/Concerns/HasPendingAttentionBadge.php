@@ -4,7 +4,7 @@ namespace App\Filament\Concerns;
 
 /**
  * Badge de menú lateral para señalar que un Resource tiene algo pendiente
- * que requiere atención del admin (mismo estilo que SurveyResource ya usa).
+ * que requiere atención del admin.
  *
  * Para sumar un caso nuevo: agregar el trait al Resource y definir
  * pendingAttentionCount() (y opcionalmente pendingAttentionTooltip()).

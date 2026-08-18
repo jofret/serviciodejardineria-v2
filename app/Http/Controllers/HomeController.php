@@ -76,14 +76,20 @@ class HomeController extends Controller
         // crea localmente) — se piden por API y se arma un objeto con la
         // misma forma que esperaba partials/testimonios.blade.php cuando
         // leía Eloquent local, para no tener que tocar esa vista.
-        $testimonials = $this->testimonialsFromAltoparque($altoparque);
+        $allTestimonials = $this->testimonialsFromAltoparque($altoparque);
+        $testimonials = $allTestimonials->take(9);
+        // Antes home.blade.php contaba Survey::whereNotNull('comment') directo
+        // (modelo ya borrado) para el stat "Clientes satisfechos" — se cuenta
+        // acá sobre la misma respuesta de la API, sin el límite de 9 del carrusel.
+        $testimonialsCount = $allTestimonials->count();
 
         return view('home', compact(
             'featuredPosts',
             'latestPosts',
             'categories',
             'categoryPosts',
-            'testimonials'
+            'testimonials',
+            'testimonialsCount'
         ));
     }
 
@@ -120,7 +126,6 @@ class HomeController extends Controller
                 'customer' => (object) ['name' => $t['customer_name']],
                 'post' => $t['post_id'] ? $posts->get($t['post_id']) : null,
             ])
-            ->take(9)
             ->values();
     }
 }

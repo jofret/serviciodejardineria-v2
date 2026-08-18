@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\WhatsappConversationResource\Pages;
 
 use App\Filament\Resources\WhatsappConversationResource;
-use App\Models\WhatsappConversation;
 use App\Services\Altoparque\AltoparqueApiClient;
 use Filament\Resources\Pages\Page;
 use Livewire\Attributes\Url;
@@ -38,7 +37,7 @@ class ListWhatsappConversations extends Page
 
     public function getEstadosProperty(): array
     {
-        return WhatsappConversation::ESTADOS;
+        return WhatsappConversationResource::ESTADOS;
     }
 
     public function filtrarPorEstado(?string $estado): void
