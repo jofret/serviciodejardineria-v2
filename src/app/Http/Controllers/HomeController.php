@@ -6,6 +6,8 @@ use App\Models\Post;
 use App\Models\Category;
 use App\Services\Altoparque\AltoparqueApiClient;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class HomeController extends Controller
 {
@@ -86,11 +88,22 @@ class HomeController extends Controller
     }
 
     /**
+     * Si la API central no responde, la home no debe caerse entera por
+     * eso — se loguea y se muestra la home sin la sección de testimonios.
+     *
      * @return \Illuminate\Support\Collection<int, object>
      */
     private function testimonialsFromAltoparque(AltoparqueApiClient $altoparque)
     {
-        $testimonials = collect($altoparque->testimonials());
+        try {
+            $testimonials = collect($altoparque->testimonials());
+        } catch (Throwable $e) {
+            Log::warning('No se pudieron obtener los testimonios desde Altoparque.', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return collect();
+        }
 
         $posts = Post::with('category')
             ->whereIn('id', $testimonials->pluck('post_id')->filter()->unique())
