@@ -3,11 +3,9 @@
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MovedLinkController;
 use App\Http\Controllers\PostController;
-use App\Http\Controllers\PublicBudgetController;
-use App\Http\Controllers\PublicWorkOrderController;
 use App\Http\Controllers\SitemapController;
-use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\WhatsAppWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -62,18 +60,22 @@ Route::post('/contacto/enviar', [ContactController::class, 'send'])
     ->middleware(['honey', 'honey-recaptcha'])
     ->name('contacto.enviar');
 
-// Encuestas públicas
-Route::get('/encuesta/{token}', [SurveyController::class, 'show'])->name('survey.show');
-Route::post('/encuesta/{token}', [SurveyController::class, 'store'])->name('survey.store');
-
-// Presupuesto público (enviado por WhatsApp o email desde "Revisar y presupuestar")
-Route::get('/presupuesto/{token}', [PublicBudgetController::class, 'show'])->name('budget.show');
-Route::post('/presupuesto/{token}/aceptar', [PublicBudgetController::class, 'accept'])->name('budget.accept');
-Route::get('/presupuesto/{token}/descargar', [PublicBudgetController::class, 'download'])->name('budget.download');
-
-// Conformidad del cliente sobre el trabajo realizado (enviado por WhatsApp o email desde la Orden de Trabajo)
-Route::get('/conformidad/{token}', [PublicWorkOrderController::class, 'show'])->name('conformity.show');
-Route::post('/conformidad/{token}/confirmar', [PublicWorkOrderController::class, 'confirm'])->name('conformity.confirm');
+/*
+|--------------------------------------------------------------------------
+| Links viejos (encuesta/presupuesto/conformidad) — sistema mudado al panel
+| central de Altoparque
+|--------------------------------------------------------------------------
+| Estas rutas ya no tienen su controller/modelo real (ver borrado de
+| Survey/ServiceOrder/WorkOrder): quedan enlaces sueltos de WhatsApp/email
+| de antes de la migración. En vez de un 500, se muestra un aviso simple.
+*/
+Route::get('/encuesta/{token}', [MovedLinkController::class, 'show'])->name('survey.show');
+Route::post('/encuesta/{token}', [MovedLinkController::class, 'show'])->name('survey.store');
+Route::get('/presupuesto/{token}', [MovedLinkController::class, 'show'])->name('budget.show');
+Route::post('/presupuesto/{token}/aceptar', [MovedLinkController::class, 'show'])->name('budget.accept');
+Route::get('/presupuesto/{token}/descargar', [MovedLinkController::class, 'show'])->name('budget.download');
+Route::get('/conformidad/{token}', [MovedLinkController::class, 'show'])->name('conformity.show');
+Route::post('/conformidad/{token}/confirmar', [MovedLinkController::class, 'show'])->name('conformity.confirm');
 
 /*
 |--------------------------------------------------------------------------
@@ -103,10 +105,3 @@ Route::post('/webhook/whatsapp', [WhatsAppWebhookController::class, 'receive'])-
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
 });
-
-/*
-|--------------------------------------------------------------------------
-| Panel del relevador
-|--------------------------------------------------------------------------
-*/
-require __DIR__.'/relevador.php';

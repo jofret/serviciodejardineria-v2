@@ -3,9 +3,8 @@
 namespace App\Services\Altoparque;
 
 /**
- * Representa el Customer tal como lo devuelve la API central de Altoparque.
- * Distinto de App\Models\Customer (que sigue existiendo local para el resto
- * del CRM del sitio) — este es solo el que usa Claudia para WhatsApp.
+ * Representa el Customer tal como lo devuelve la API central de Altoparque
+ * (el Customer ya no vive local en este sitio — CRM completo migrado).
  */
 class RemoteCustomer
 {

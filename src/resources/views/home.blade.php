@@ -136,7 +136,7 @@
     {{-- Stats Section: números reales de la propia base, nada inventado --}}
     @php
         $statTrabajos = App\Models\Post::where('is_published', true)->count();
-        $statTestimonios = App\Models\Survey::whereNotNull('comment')->where('comment', '!=', '')->count();
+        $statTestimonios = $testimonialsCount ?? 0;
         $statServicios = App\Models\Category::where('is_active', true)->count();
     @endphp
     <section class="py-16 bg-white rounded-xl shadow-sm mb-8">

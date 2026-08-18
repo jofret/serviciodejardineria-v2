@@ -4,25 +4,34 @@ namespace App\Filament\Resources;
 
 use App\Filament\Concerns\HasPendingAttentionBadge;
 use App\Filament\Resources\WhatsappConversationResource\Pages;
-use App\Models\WhatsappConversation;
 use App\Services\Altoparque\AltoparqueApiClient;
 use Filament\Resources\Resource;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Las conversaciones ya no viven en la tabla local whatsapp_conversations
- * (Claudia ahora escribe en la API central de Altoparque) — por eso este
- * Resource no tiene table()/form() bindeados a Eloquent: ListWhatsappConversations
- * y ManageConversation son páginas a medida que consultan AltoparqueApiClient.
- * $model se mantiene solo por compatibilidad con Resource (label, ícono,
- * etc.), no para leer/escribir datos.
+ * Las conversaciones ya no viven en tabla local (Claudia escribe en la API
+ * central de Altoparque) — este Resource no tiene table()/form() bindeados
+ * a Eloquent: ListWhatsappConversations y ManageConversation son páginas a
+ * medida que consultan AltoparqueApiClient. Sin $model: nada acá invoca
+ * getModel()/getEloquentQuery() (las rutas de las páginas no tipan
+ * $record como Eloquent, así que Laravel no intenta bindearlo).
  */
 class WhatsappConversationResource extends Resource
 {
     use HasPendingAttentionBadge;
 
-    protected static ?string $model = WhatsappConversation::class;
+    /**
+     * Estados posibles de una conversación (antes vivía como constante en
+     * el modelo Eloquent local WhatsappConversation, ya borrado).
+     */
+    public const ESTADOS = [
+        'claudia_atendiendo' => 'Claudia atendiendo',
+        'esperando_agenda_visita' => 'Esperando agenda de visita',
+        'esperando_cotizacion_foto' => 'Esperando cotización por foto',
+        'con_humano' => 'Con humano',
+        'cerrada' => 'Cerrada',
+    ];
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 

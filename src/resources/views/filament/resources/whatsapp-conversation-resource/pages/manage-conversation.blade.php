@@ -1,6 +1,6 @@
 <x-filament-panels::page>
     @php
-        $estados = \App\Models\WhatsappConversation::ESTADOS;
+        $estados = \App\Filament\Resources\WhatsappConversationResource::ESTADOS;
     @endphp
 
     <div class="space-y-6" wire:poll.10s="refrescar">
