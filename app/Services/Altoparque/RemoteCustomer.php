@@ -28,6 +28,16 @@ class RemoteCustomer
         return $this->attributes['phone'] ?? null;
     }
 
+    /**
+     * Solo viene presente en la respuesta de POST /api/customers
+     * (CustomerApiController::store) — indica si el Customer se acaba de
+     * crear o ya existía.
+     */
+    public function wasRecentlyCreated(): bool
+    {
+        return (bool) ($this->attributes['created'] ?? false);
+    }
+
     public function tieneNombre(): bool
     {
         return filled($this->name()) && $this->name() !== 'Cliente de WhatsApp';

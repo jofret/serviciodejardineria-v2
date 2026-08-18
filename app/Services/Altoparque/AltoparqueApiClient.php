@@ -39,6 +39,32 @@ class AltoparqueApiClient
         return new RemoteCustomer($this->jsonOrFail($response, 'actualizar el cliente'));
     }
 
+    /**
+     * Crea/actualiza el lead del formulario de contacto público directo en
+     * el Customer central (antes se guardaba en el Customer local de este
+     * sitio). $data acepta las mismas claves que CustomerApiController::store:
+     * phone, name, email, zona, partido, otra_zona, servicio_interes, mensaje.
+     */
+    public function upsertContactLead(array $data): RemoteCustomer
+    {
+        $response = $this->request()->post($this->url('/customers'), $data);
+
+        return new RemoteCustomer($this->jsonOrFail($response, 'guardar el contacto'));
+    }
+
+    /**
+     * Testimonios publicados de este sitio para el carrusel de la home.
+     * Sin post_id: todos los publicados.
+     *
+     * @return array<int, array{id: int, customer_name: ?string, post_id: ?int, comment: string, gender: ?string, occupation: ?string, created_at: string}>
+     */
+    public function testimonials(): array
+    {
+        $response = $this->request()->get($this->url('/surveys'));
+
+        return $this->jsonOrFail($response, 'traer los testimonios')['data'] ?? [];
+    }
+
     public function latestConversation(int $customerId): ?RemoteConversation
     {
         $response = $this->request()->get($this->url('/whatsapp-conversations/latest'), [
