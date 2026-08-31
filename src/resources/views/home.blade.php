@@ -397,6 +397,45 @@
     });
     </script>
 
+    {{-- Servicio de Fumigación: mismo patrón de layout que la sección "Servicio de
+         Corte de Pasto" (id="que-hacemos") más arriba, ubicada después del formulario
+         de contacto a pedido del usuario. --}}
+    <section class="py-16 bg-white rounded-xl shadow-sm mb-8">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-end">
+                <div class="lg:col-span-3">
+                    <img src="{{ asset('images/serviciodefumigacion.webp') }}"
+                         alt="Servicio profesional de fumigación de plagas en jardines"
+                         class="rounded-xl w-full h-full object-cover shadow-md"
+                         loading="lazy">
+                </div>
+
+                <div class="lg:col-span-6">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">¿Plagas arruinando tu jardín?</h2>
+                    <p class="text-lg text-gray-600 mb-6">Contamos con servicio profesional de fumigación para eliminar hormigas, pulgones, cochinillas y otras plagas que dañan el césped, las plantas y los árboles. Aplicamos productos seguros para tu familia y tus mascotas, con diagnóstico y presupuesto sin cargo.</p>
+                    <a href="https://wa.me/5491164640291?text=Hola!%20Vengo%20desde%20serviciodejardineria.com.ar,%20quiero%20informaci%C3%B3n%20sobre%20el%20servicio%20de%20fumigaci%C3%B3n"
+                       target="_blank"
+                       class="inline-flex items-center gap-2 bg-green-700 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-800 transition">
+                        <i class="fab fa-whatsapp text-xl"></i> WhatsApp
+                    </a>
+                </div>
+
+                <div class="lg:col-span-3 space-y-8">
+                    <div class="border-l-4 border-green-600 pl-4">
+                        <i class="fas fa-bug text-3xl text-green-700 mb-3"></i>
+                        <h4 class="font-bold text-gray-800 mb-1">Eliminamos la plaga</h4>
+                        <p class="text-sm text-gray-600">Tratamos hormigas, pulgones, cochinillas y hongos antes de que arruinen tu jardín.</p>
+                    </div>
+                    <div class="border-l-4 border-green-600 pl-4">
+                        <i class="fas fa-leaf text-3xl text-green-700 mb-3"></i>
+                        <h4 class="font-bold text-gray-800 mb-1">Productos seguros</h4>
+                        <p class="text-sm text-gray-600">Aplicación cuidada, apta para espacios con niños y mascotas.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     {{-- Búsquedas populares (categorías + tags) --}}
     @include('includes.popular-searches')
 
