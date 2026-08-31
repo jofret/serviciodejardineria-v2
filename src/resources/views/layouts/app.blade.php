@@ -147,9 +147,9 @@
                 <div class="hidden md:flex items-center space-x-6">
                     <a href="/#inicio" class="text-gray-700 hover:text-green-700 font-medium transition">Inicio</a>
                     <a href="/#servicios" class="text-gray-700 hover:text-green-700 font-medium transition">Servicios</a>
+                    <a href="https://serviciodefumigacion.com.ar/" target="_blank" rel="noopener" class="text-gray-700 hover:text-green-700 font-medium transition">Fumigación</a>
                     <a href="{{ route('posts.index') }}" class="text-gray-700 hover:text-green-700 font-medium transition">Trabajos</a>
                     <a href="/#contacto-formulario" class="text-gray-700 hover:text-green-700 font-medium transition">Contacto</a>
-                    <a href="https://serviciodefumigacion.com.ar/" target="_blank" rel="noopener" class="text-gray-700 hover:text-green-700 font-medium transition">Fumigación</a>
                     <a href="https://wa.me/5491164640291?text=Hola%21%20Vengo%20desde%20serviciodejardineria.com.ar%2C%20necesito%20informaci%C3%B3n%20sobre%20los%20servicios%20de%20jardiner%C3%ADa"
                        target="_blank"
                        class="flex items-center text-green-700 font-bold hover:text-green-800 transition">
@@ -170,9 +170,9 @@
             <div x-show="mobileMenuOpen" @click.away="mobileMenuOpen = false" class="md:hidden mt-4 pb-4 space-y-2">
                 <a href="/#inicio" class="block py-2 px-4 hover:bg-green-50">Inicio</a>
                 <a href="/#servicios" class="block py-2 px-4 hover:bg-green-50">Servicios</a>
+                <a href="https://serviciodefumigacion.com.ar/" target="_blank" rel="noopener" class="block py-2 px-4 hover:bg-green-50">Fumigación</a>
                 <a href="{{ route('posts.index') }}" class="block py-2 px-4 hover:bg-green-50">Trabajos</a>
                 <a href="/#contacto-formulario" class="block py-2 px-4 hover:bg-green-50">Contacto</a>
-                <a href="https://serviciodefumigacion.com.ar/" target="_blank" rel="noopener" class="block py-2 px-4 hover:bg-green-50">Fumigación</a>
                 <a href="https://wa.me/5491164640291?text=Hola!%20Vengo%20desde%20serviciodejardineria.com.ar,%20necesito%20información%20sobre%20servicios%20de%20jardinería" target="_blank" class="block py-2 px-4 text-green-700 font-bold">
                     <i class="fab fa-whatsapp mr-2"></i> WhatsApp
                 </a>
