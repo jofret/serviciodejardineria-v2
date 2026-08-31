@@ -44,6 +44,7 @@ class HomeController extends Controller
         $homeServiceBlocks = [
             ['slug' => 'corte-de-pasto-y-jardineria', 'heading' => 'Servicio de Corte de Pasto'],
             ['slug' => 'poda-de-altura', 'heading' => 'Servicio de Poda de Altura'],
+            ['slug' => 'corte-de-cercos-y-enredaderas', 'heading' => 'Corte de Cercos y Enredaderas'],
             ['slug' => 'desmalezado-de-terrenos', 'heading' => 'Servicio Desmalezado y limpieza de Terrenos'],
         ];
 
