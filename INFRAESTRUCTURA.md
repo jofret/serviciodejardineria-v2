@@ -99,6 +99,30 @@ el 6/8 para el footer de WhatsApp) es:
 No versiona el server — hay que acordarse de que el repo local y el server pueden
 divergir si se edita algo directo ahí sin después portarlo al commit.
 
+### Deploys recientes (2026-08-31)
+
+Se aplicó el mecanismo de arriba para 3 cambios chicos en la home y el layout,
+todos commiteados en este repo y confirmados en vivo con `curl` después de cada uno:
+
+- Home: nueva sección "Corte de Cercos y Enredaderas" en el bloque de publicaciones
+  por servicio (`app/Http/Controllers/HomeController.php`, array
+  `$homeServiceBlocks`). Commit `14ccb0e`.
+- Home: nueva sección de fumigación después del formulario de contacto
+  (`resources/views/home.blade.php`) + imagen `public/images/serviciodefumigacion.webp`
+  (no existía en el server, se subió por primera vez con este deploy). Commit `57d441c`.
+- Menú y footer: enlace externo "Fumigación" → `https://serviciodefumigacion.com.ar/`,
+  ubicado después de "Servicios" en el menú desktop, el menú móvil y el footer
+  (`resources/views/layouts/app.blade.php`). Commits `afe41e8` (alta), `a39bd14`
+  (reorden en el menú), `b61b6f9` (alta en el footer).
+
+Backup a mano en el server, uno por archivo la primera vez que se tocó en esta
+tanda (los deploys siguientes sobre el mismo archivo se verificaron con `diff`
+contra el commit previo antes de pisar, sin backup adicional):
+
+- `~/backup-home-cercos-enredaderas-20260831/HomeController.php`
+- `~/backup-home-fumigacion-20260831/home.blade.php`
+- `~/backup-menu-fumigacion-20260831/app.blade.php`
+
 ### Clon de staging — borrado (2026-08-13)
 
 Había un clon separado en `~/serviciodejardineria-v2-staging` (HTTPS, sin deploy
