@@ -213,6 +213,7 @@
                     <ul class="space-y-2">
                         <li><a href="/#inicio" class="text-gray-400 hover:text-white transition">Inicio</a></li>
                         <li><a href="/#servicios" class="text-gray-400 hover:text-white transition">Servicios</a></li>
+                        <li><a href="https://serviciodefumigacion.com.ar/" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition">Fumigación</a></li>
                         <li><a href="{{ route('posts.index') }}" class="text-gray-400 hover:text-white transition">Trabajos</a></li>
                         <li><a href="/#contacto-formulario" class="text-gray-400 hover:text-white transition">Contacto</a></li>
                     </ul>
